@@ -20,10 +20,30 @@ import numpy as np
 import soundfile as sf
 import torch
 
-from tiny_voca.text import normalize_for_wer
+from tiny_voca.text import PHONE_SET, normalize_for_wer, phonemize
 
 MODEL = "Qwen/Qwen3-TTS-12Hz-1.7B-Base"
 BATCH = 8
+
+
+def edit_distance(a, b):
+    dp = list(range(len(b) + 1))
+    for i, x in enumerate(a, 1):
+        prev, dp[0] = dp[0], i
+        for j, y in enumerate(b, 1):
+            prev, dp[j] = dp[j], prev if x == y else 1 + min(prev, dp[j], dp[j - 1])
+    return dp[-1]
+
+
+def phoneme_error_rate(reference, hypothesis):
+    try:
+        ref = [s for s in phonemize(reference).symbols if s in PHONE_SET]
+        hyp = [s for s in phonemize(hypothesis).symbols if s in PHONE_SET]
+    except Exception:
+        return 1.0
+    if not ref:
+        return 1.0
+    return edit_distance(ref, hyp) / len(ref)
 
 
 def main():
@@ -37,6 +57,9 @@ def main():
     parser.add_argument("--asr-language", default="fr", help="Whisper ISO language code (e.g. fr, en)")
     parser.add_argument("--asr-device", default="cpu", choices=("cpu", "cuda"))
     parser.add_argument("--max-wer", type=float, default=0.15)
+    parser.add_argument("--max-per", type=float, default=0.05, help="Accept homophone spellings when phoneme error rate <= max-per (set <0 to disable)")
+    parser.add_argument("--batch-size", type=int, default=BATCH)
+    parser.add_argument("--retry-batch-size", type=int, default=BATCH)
     parser.add_argument("--deadline-file", type=Path)
     parser.add_argument("--deadline-margin", type=float, default=600)
     parser.add_argument("--limit", type=int, help="Only the first N scripts (smoke test)")
@@ -108,7 +131,7 @@ def main():
                 reasons.append("speaking_rate")
             if len(w) and float(np.mean(np.abs(w) < 1e-4)) > 0.8:
                 reasons.append("excessive_silence")
-            transcript, error = "", 1.0
+            transcript, error, per = "", 1.0, 1.0
             if not reasons:
                 factor = int(np.gcd(rate, 16000))
                 audio_16k = resample_poly(w.astype("float32"), 16000 // factor, rate // factor)
@@ -117,7 +140,8 @@ def main():
                 truth = normalize_for_wer(row["text"], args.asr_language)
                 hyp = normalize_for_wer(transcript, args.asr_language) or "<empty>"
                 error = wer(truth, hyp)
-                if error > args.max_wer:
+                per = phoneme_error_rate(row["text"], transcript) if transcript.strip() else 1.0
+                if error > args.max_wer and not (args.max_per >= 0 and per <= args.max_per):
                     reasons.append("asr_mismatch")
             if np.isfinite(w).all() and peak > 0:
                 sf.write(audio / (job["id"] + ".flac"), w * (0.95 / peak), rate, subtype="PCM_16")
@@ -127,7 +151,8 @@ def main():
                 "source_license": row["source_license"], "source_url": row["source_url"], "teacher_model": MODEL,
                 "reference_audio": job["voice"] + ".wav", "audio": f"audio/{job['id']}.flac", "duration_seconds": round(duration, 3),
                 "generation_seed": seed, "generation_batch": batch_id, "attempt": attempt, "generation_seconds": seconds,
-                "asr_transcript": transcript, "normalized_wer": round(float(error), 4), "review_reasons": reasons,
+                "asr_transcript": transcript, "normalized_wer": round(float(error), 4), "phoneme_error_rate": round(float(per), 4),
+                "review_reasons": reasons,
             }
             records.append((job["id"], "review" if reasons else "accepted", attempt, json.dumps(payload, ensure_ascii=False)))
         return records
@@ -172,12 +197,12 @@ def main():
             if (attempt == 1 and j["id"] not in existing)
             or (attempt == 2 and j["id"] in existing and existing[j["id"]][0] == "review" and existing[j["id"]][1] < 2)
         ]
-        size = BATCH if attempt == 1 else 1
+        size = args.batch_size if attempt == 1 else args.retry_batch_size
         for start in range(0, len(pending), size):
             if out_of_time():
                 stopped = True
                 break
-            generate(pending[start:start + size], attempt, start // BATCH if attempt == 1 else start + 20000)
+            generate(pending[start:start + size], attempt, start // size if attempt == 1 else start // size + 20000)
             if (start // size) % 16 == 15:
                 report("generating")
         while futures:

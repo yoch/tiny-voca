@@ -2,14 +2,14 @@
   "F1": {
     "gender": "female",
     "language": "French",
-    "seed": 20261117,
+    "seed": 20261118,
     "instruct": "A clear, warm metropolitan French female voice in her early 30s with a bright, balanced medium pitch, natural conversational warmth, crisp articulation, and a steady, smooth pace without breathiness or vocal fry. Studio recording quality.",
     "text": "Bonjour, je m'appelle Claire. Aujourd'hui, le ciel est parfaitement dégagé sur toute la région et il fait une température très agréable pour se promener."
   },
   "M1": {
     "gender": "male",
     "language": "French",
-    "seed": 20261118,
+    "seed": 20261120,
     "instruct": "A calm, warm metropolitan French male voice in his mid-30s with a smooth, resonant baritone timbre, clean and crisp articulation, natural phrasing, and steady pitch without raspiness or vocal fry. Studio recording quality.",
     "text": "Bonjour, je m'appelle Thomas. Nous avons préparé ce texte avec soin pour vérifier la clarté de chaque syllabe, le rythme naturel de la phrase et l'équilibre de la voix."
   }
