@@ -1,0 +1,8 @@
+# Versions measured on the original x86_64 CPU runner (Python 3.14.7).
+# Install with --extra-index-url https://download.pytorch.org/whl/cpu
+numpy==2.5.4
+onnx==1.23.2
+onnxruntime==1.32.0
+pytest==9.2.0
+soundfile==0.14.0
+torch==2.15.0+cpu

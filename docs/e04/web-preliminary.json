@@ -1,0 +1,149 @@
+{
+  "ort": "1.20.1",
+  "rows": [
+    {
+      "model": "filter-dense",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 52.420000076293945,
+      "p95_ms": 69.03499984741211,
+      "max_abs_error": 3.8743019104003906e-7,
+      "snr_db": 126.87460302417121,
+      "samples": 48128,
+      "browser_process_rss_mib": 329.75,
+      "browser": "159.0.8154.6"
+    },
+    {
+      "model": "filter-dense",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 44.489999771118164,
+      "p95_ms": 118.57500076293945,
+      "max_abs_error": 3.8743019104003906e-7,
+      "snr_db": 126.87460302417121,
+      "samples": 48128,
+      "browser_process_rss_mib": 346.3203125,
+      "browser": "159.0.8154.6"
+    },
+    {
+      "model": "filter-dft",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 118.56749963760376,
+      "p95_ms": 150.19999980926514,
+      "max_abs_error": 5.364418029785156e-7,
+      "snr_db": 124.75911990358787,
+      "samples": 48128,
+      "browser_process_rss_mib": 331.015625,
+      "browser": "159.0.8154.6"
+    },
+    {
+      "model": "filter-dft",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 105.87750005722046,
+      "p95_ms": 194.69000053405762,
+      "max_abs_error": 5.364418029785156e-7,
+      "snr_db": 124.75911990358787,
+      "samples": 48128,
+      "browser_process_rss_mib": 339.8515625,
+      "browser": "159.0.8154.6"
+    },
+    {
+      "model": "filter-radix2",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 515.5199999809265,
+      "p95_ms": 668.9049997329712,
+      "max_abs_error": 3.8743019104003906e-7,
+      "snr_db": 127.59582824649398,
+      "samples": 48128,
+      "browser_process_rss_mib": 335.67578125,
+      "browser": "159.0.8154.6"
+    },
+    {
+      "model": "filter-radix2",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 243.44250011444092,
+      "p95_ms": 526.5649995803833,
+      "max_abs_error": 3.8743019104003906e-7,
+      "snr_db": 127.59582824649398,
+      "samples": 48128,
+      "browser_process_rss_mib": 344.20703125,
+      "browser": "159.0.8154.6"
+    },
+    {
+      "model": "full-dense",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 125.0774998664856,
+      "p95_ms": 175.20000076293945,
+      "max_abs_error": 0.0018873810768127441,
+      "snr_db": 65.19275602100376,
+      "samples": 18432,
+      "browser_process_rss_mib": 358.43359375,
+      "browser": "159.0.8154.6"
+    },
+    {
+      "model": "full-dense",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 107.2374997138977,
+      "p95_ms": 180.8149995803833,
+      "max_abs_error": 0.0018873810768127441,
+      "snr_db": 65.19275774359863,
+      "samples": 18432,
+      "browser_process_rss_mib": 387.42578125,
+      "browser": "159.0.8154.6"
+    },
+    {
+      "model": "full-dft",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 165.00999975204468,
+      "p95_ms": 267.4099998474121,
+      "max_abs_error": 0.0018870830535888672,
+      "snr_db": 65.19623226968679,
+      "samples": 18432,
+      "browser_process_rss_mib": 354.625,
+      "browser": "159.0.8154.6"
+    },
+    {
+      "model": "full-dft",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 136.43499994277954,
+      "p95_ms": 292.1599998474121,
+      "max_abs_error": 0.0018870830535888672,
+      "snr_db": 65.19623226968679,
+      "samples": 18432,
+      "browser_process_rss_mib": 379.12890625,
+      "browser": "159.0.8154.6"
+    },
+    {
+      "model": "full-radix2",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 284.74749994277954,
+      "p95_ms": 368.1000003814697,
+      "max_abs_error": 0.0018873810768127441,
+      "snr_db": 65.1927863308413,
+      "samples": 18432,
+      "browser_process_rss_mib": 356.9296875,
+      "browser": "159.0.8154.6"
+    },
+    {
+      "model": "full-radix2",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 218.3600001335144,
+      "p95_ms": 385.45499992370605,
+      "max_abs_error": 0.0018873810768127441,
+      "snr_db": 65.1927863308413,
+      "samples": 18432,
+      "browser_process_rss_mib": 370.43359375,
+      "browser": "159.0.8154.6"
+    }
+  ]
+}
