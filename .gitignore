@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 env/
 .local-runs/
+.worktrees/
 .DS_Store
 data/
 runs/
