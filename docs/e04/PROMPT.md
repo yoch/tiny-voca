@@ -1,6 +1,10 @@
 Tu reprends E04 dans https://github.com/yoch/tiny-voca, branche
 `codex/e04-fft-vocoder`, PR brouillon #1. Travaille sur cette branche ; ne merge pas.
 
+E04-B a depuis implémenté et mesuré le DSP C/WASM et deux frontières ONNX.
+Commence par [le rapport E04-B](e04b/REPORT.md) et son tableau de mesures.
+Les consignes ci-dessous décrivent la reprise après le premier passage AVX2.
+
 Lis `docs/e04/README.md`, `docs/e04/avx2/REPORT.md`, les JSON bruts et les trois
 scripts de benchmark. L'export de production est INCHANGÉ. Aucun réentraînement,
 aucune modification des poids ou du DSP n'est autorisé pour fabriquer un gain.

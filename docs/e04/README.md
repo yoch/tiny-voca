@@ -1,5 +1,10 @@
 # E04 — FFT vocoder experiments and handoff
 
+[E04-B](e04b/REPORT.md) measures a shared native and WASM FFT core with two
+ONNX boundaries on real text. It includes operator profiles, repeated latency
+measurements, same-runtime fidelity and comparative WAVs. The status below
+describes the prior investigations.
+
 Status: **no production change accepted**. The AVX2 rerun is complete: DFT and
 radix-2 still regress on CPU and Web. A staged native CPU FFT prototype has also
 been measured, but has no Web implementation or listening validation.

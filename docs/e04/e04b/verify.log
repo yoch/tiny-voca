@@ -1,0 +1,2 @@
+[0;93m2026-11-18 00:52:59.215332771 [W:onnxruntime:Default, telemetry_1ds.cc:613 operator()] Failed to persist telemetry device ID; using an in-memory identifier[m
+80 filter comparisons and constant/transition F0 diagnostics passed

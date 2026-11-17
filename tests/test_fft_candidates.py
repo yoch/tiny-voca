@@ -145,4 +145,3 @@ class FFTFilterTest(unittest.TestCase):
             Exportable(self.model, fft_backend="unknown")
         with self.assertRaises(ValueError):
             export(self.model, "unused.onnx", opset=16, fft_backend="radix2")
-

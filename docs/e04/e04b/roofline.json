@@ -1,0 +1,144 @@
+{
+  "affinity": [
+    0
+  ],
+  "copy_gb_s": [
+    8.47364901177598,
+    36.10345798286861,
+    36.30886812147934,
+    36.74706777698007,
+    37.1765219452951,
+    37.40447978123013,
+    37.71033215182161,
+    37.832753680226894,
+    37.4018166181068,
+    37.748248221737086,
+    37.80948816765971,
+    37.85719034375017,
+    37.79127302945049,
+    37.53902599252307,
+    37.97604995411329,
+    37.33249963015428,
+    38.114509031865836,
+    37.56127121475333,
+    37.47881532839649,
+    38.034463968840605,
+    38.000005096961836,
+    36.84725972966017,
+    36.8099600833948,
+    37.30496084902365,
+    38.00895301445713,
+    38.10567363297384,
+    37.19438621979325,
+    37.803423376330734,
+    20.109791852678615,
+    12.99441444670369
+  ],
+  "matmul_gflop_s": [
+    27.98240791572838,
+    101.44092788864435,
+    104.05494918546994,
+    103.8925558486776,
+    93.62725734868883,
+    97.67507659735351,
+    104.25122741871661,
+    102.98819825355206,
+    102.51494333258469,
+    103.92372255371689,
+    104.47507736078742,
+    104.31147746171072,
+    103.98833772198887,
+    103.98863985202932,
+    103.27131627441078,
+    102.75147079272453,
+    104.38663178039799,
+    104.10647786219434,
+    104.0183980503193,
+    104.08378685179729,
+    103.74729122050412,
+    103.77821534989187,
+    99.38242425824585,
+    103.24720077847545,
+    103.88515782048925,
+    103.64623963541328,
+    104.32376084864985,
+    102.83918515607688,
+    103.95677998401894,
+    103.80640303969233
+  ],
+  "blas": {
+    "Compilers": {
+      "c": {
+        "name": "gcc",
+        "linker": "ld.bfd",
+        "version": "14.2.1",
+        "commands": "cc"
+      },
+      "cython": {
+        "name": "cython",
+        "linker": "cython",
+        "version": "3.3.0",
+        "commands": "cython"
+      },
+      "c++": {
+        "name": "gcc",
+        "linker": "ld.bfd",
+        "version": "14.2.1",
+        "commands": "c++"
+      }
+    },
+    "Machine Information": {
+      "host": {
+        "cpu": "x86_64",
+        "family": "x86_64",
+        "endian": "little",
+        "system": "linux"
+      },
+      "build": {
+        "cpu": "x86_64",
+        "family": "x86_64",
+        "endian": "little",
+        "system": "linux"
+      }
+    },
+    "Build Dependencies": {
+      "blas": {
+        "name": "scipy-openblas",
+        "found": true,
+        "version": "0.3.34.106.0",
+        "detection method": "pkgconfig",
+        "include directory": "/opt/_internal/cpython-3.12.13/lib/python3.12/site-packages/scipy_openblas64/include",
+        "lib directory": "/opt/_internal/cpython-3.12.13/lib/python3.12/site-packages/scipy_openblas64/lib",
+        "openblas configuration": "OpenBLAS 0.3.34.106.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=64",
+        "pc file directory": "/project/.openblas"
+      },
+      "lapack": {
+        "name": "scipy-openblas",
+        "found": true,
+        "version": "0.3.34.106.0",
+        "detection method": "pkgconfig",
+        "include directory": "/opt/_internal/cpython-3.12.13/lib/python3.12/site-packages/scipy_openblas64/include",
+        "lib directory": "/opt/_internal/cpython-3.12.13/lib/python3.12/site-packages/scipy_openblas64/lib",
+        "openblas configuration": "OpenBLAS 0.3.34.106.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=64",
+        "pc file directory": "/project/.openblas"
+      }
+    },
+    "Python Information": {
+      "path": "/tmp/build-env-ptu49_tp/bin/python",
+      "version": "3.12"
+    },
+    "SIMD Extensions": {
+      "baseline": [
+        "X86_V2"
+      ],
+      "found": [
+        "X86_V3",
+        "X86_V4",
+        "AVX512_ICL"
+      ],
+      "not found": [
+        "AVX512_SPR"
+      ]
+    }
+  }
+}

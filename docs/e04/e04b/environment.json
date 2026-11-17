@@ -1,0 +1,77 @@
+{
+  "base_commit": "ad7124275b5e0eb5221d6ad471245f66c6ef21b7",
+  "base_pr": {
+    "number": 1,
+    "draft": true,
+    "reviews": 0,
+    "review_threads": 0,
+    "comments": 0,
+    "checks": 0
+  },
+  "build_march": "x86-64-v3",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "versions": {
+    "numpy": "2.5.4",
+    "onnx": "1.23.2",
+    "ort_cpu": "1.32.0",
+    "torch": "2.15.0+cpu",
+    "zig": "0.15.1",
+    "playwright": "1.65.1",
+    "ort_web": "1.20.1",
+    "pyodide": "0.26.4"
+  },
+  "lscpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           46 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  5\nOn-line CPU(s) list:                     0-4\nVendor ID:                               AuthenticAMD\nModel name:                              AMD EPYC 9V74 80-Core Processor\nCPU family:                              25\nModel:                                   17\nThread(s) per core:                      1\nCore(s) per socket:                      5\nSocket(s):                               1\nStepping:                                1\nBogoMIPS:                                5192.30\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext cpuid_fault vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx512_bf16 clzero xsaveerptr arat npt nrip_save tsc_scale vmcb_clean flushbyasid pausefilter pfthreshold v_vmsave_vmload avx512vbmi umip avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm arch_capabilities\nHypervisor vendor:                       KVM\nVirtualization type:                     full\nL1d cache:                               96 KiB (3 instances)\nL1i cache:                               96 KiB (3 instances)\nL2 cache:                                3 MiB (3 instances)\nL3 cache:                                32 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-4\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Vulnerable\nVulnerability Spec store bypass:         Vulnerable\nVulnerability Spectre v1:                Vulnerable: __user pointer sanitization and usercopy barriers only; no swapgs barriers\nVulnerability Spectre v2:                Vulnerable; STIBP: disabled; PBRSB-eIBRS: Not affected; BHI: Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Vulnerable\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected\n",
+  "cc": "cc (Debian 14.2.0-19) 14.2.0",
+  "node": "v24.22.1",
+  "cpu_quota": "400000 100000",
+  "cpu_stat_before": "usage_usec 1304049248\nuser_usec 1187558700\nsystem_usec 116490548\nnice_usec 0\nnr_periods 14459\nnr_throttled 459\nthrottled_usec 9756675\nnr_bursts 0\nburst_usec 0\n",
+  "cpu_stat_after": "usage_usec 2545080158\nuser_usec 2390993725\nsystem_usec 154086432\nnice_usec 0\nnr_periods 20912\nnr_throttled 821\nthrottled_usec 11811568\nnr_bursts 0\nburst_usec 0\n",
+  "loadavg_after": "1.47 1.87 1.35 1/318 9527",
+  "checkpoint_sha256": "ebb22871524c5732520fb1652e6aefcec708a7452e83bdd00adcf6181db5ef70",
+  "artifacts": {
+    "dense.onnx": {
+      "bytes": 21386859,
+      "sha256": "5982886542c173d8fd933c4b13f7b7c3bc413ac6f7fa09f18c02c5564b2a4cdf"
+    },
+    "compact.onnx": {
+      "bytes": 18495420,
+      "sha256": "be984030b1fa74f0050d382b2042ffb3a1596730615c18508bb8fa3f74deb63d"
+    },
+    "early.onnx": {
+      "bytes": 18486089,
+      "sha256": "38d5c2c9a3b46f18f57c37253a0d3a373255ac93921b9947045b21ccd6284d97"
+    },
+    "native/stage.onnx": {
+      "bytes": 18739749,
+      "sha256": "cc9ccb6117908db227ae615ace756d31185157cc4c9e3da148fb4a1e10623825"
+    },
+    "dsp.so": {
+      "bytes": 28216,
+      "sha256": "2873b65fa565dd27bf75059ce9fe685ef827e20f8e6aa4565f8308fe5de5aff4"
+    },
+    "dsp.wasm": {
+      "bytes": 23511,
+      "sha256": "c8a6b7d4cedc66d19139fdf4f99979d7fd2e29bb41f9a5efd49ac51ca97f6201"
+    },
+    "noise.f32": {
+      "bytes": 3072000,
+      "sha256": "cfe50a45a0d522c7c8aa98ad5120b937e787b7b473474378f77ff1a03f365415"
+    },
+    "constants.json": {
+      "bytes": 18062,
+      "sha256": "88874eda84db1f3571c66ee13abc7aa9e08ab9342d2aa97e6294bedce2e19015"
+    }
+  },
+  "frontend_data_sha256": {
+    "sources.json": "f4c54924d30a5bc0bc1e3d7b058adb924484b3fab8541bc8d8bcecfb028fdbad",
+    "lexicon.tsv": "3fc930345c6b3cabc533981c4b212fa309eec83913fcdbd42919338270d64b06",
+    "lexicon.json": "4d67c1f94b86405a5b8766fb13b8cd92a1371204767dd709582a337e8e0ab334",
+    "LICENSE.homograph-data": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "align.json": "864763dbd558a864950266b2c30627f1cad203e75062ee842ee63c653e823b75",
+    "LICENSE.cmudict": "bd4ce8e44170a5f9f481310ca85c51de3c4f851a65e679b40e603b143bd3542a",
+    "g2p.npz": "eb3fd519ff00e72d850928d2fccb968adc36134bca2f3bda09de7e794c2ed01b",
+    "homographs.json": "9c3a96fcdf79fa27d1b3686dc6a507c37e4f754966928608ee9ddb617ba39192",
+    "g2p.json": "c518fd839ea0109c0b2b4f778c17506bf0d7653557b8b8c97a4c8dd9883d4432"
+  }
+}
