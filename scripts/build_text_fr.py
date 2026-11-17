@@ -195,10 +195,10 @@ def main():
         tmpl_target = round(total * args.template_share)
         ext_target = total - tmpl_target
         ext_rows = build_rows(ext_lines, ext_target, rng, seen, "common_voice_fr", "https://commonvoice.mozilla.org/", "reading")
-        tmpl_rows = build_rows(templates(rng, (total - len(ext_rows)) * 3), total - len(ext_rows), rng, seen, "tiny_voca_fr_templates", "local", "pronunciation")
+        tmpl_rows = build_rows(templates(rng, max(60, (total - len(ext_rows)) * 10)), total - len(ext_rows), rng, seen, "tiny_voca_fr_templates", "local", "pronunciation")
         rows = ext_rows + tmpl_rows
     else:
-        rows = build_rows(templates(rng, total * 3), total, rng, seen, "tiny_voca_fr_templates", "local", "pronunciation")
+        rows = build_rows(templates(rng, max(60, total * 10)), total, rng, seen, "tiny_voca_fr_templates", "local", "pronunciation")
 
     rng.shuffle(rows)
     splits = {
