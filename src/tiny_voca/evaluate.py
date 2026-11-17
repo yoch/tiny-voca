@@ -28,27 +28,23 @@ from .config import Config
 from .data import AnnotatedDataset
 from .infer import load_model, speak
 from .losses import SpectralLoss
-from .text import phonemize
+from .text import normalize_for_wer, phonemize
 
 NOVEL_SENTENCES = (
-    "The quick brown fox jumps over the lazy dog near the quiet river.",
-    "Please remember to call your grandmother before the weekend starts.",
-    "How many people are coming to the conference in September?",
-    "I can't believe it's already half past nine; we should leave now!",
-    "Tiny voca is a small text to speech model trained from scratch.",
-    "After the storm passed, the mountain air felt fresh, clear, and surprisingly warm.",
-    "Could you send me the report by Friday afternoon, please?",
-    "She sells seashells by the seashore, and the shells she sells are surely seashells.",
+    "Le rapide renard brun saute par-dessus le chien paresseux près de la rivière calme.",
+    "N'oublie pas d'appeler ta grand-mère avant le début du week-end.",
+    "Combien de personnes viendront à la conférence en septembre ?",
+    "Je n'arrive pas à croire qu'il soit déjà neuf heures et demie ; nous devrions partir maintenant !",
+    "Tiny voca est un petit modèle de synthèse vocale entraîné de zéro en français.",
+    "Après le passage de l'orage, l'air de la montagne semblait pur, frais et étonnamment doux.",
+    "Pourriez-vous m'envoyer le rapport avant vendredi après-midi, s'il vous plaît ?",
+    "Les chaussettes de l'archiduchesse sont-elles sèches, archi-sèches ?",
 )
 SEMITONES = 12 / np.log(2)
 
 
-def normalizer():
-    try:
-        from transformers.models.whisper.english_normalizer import EnglishTextNormalizer
-        return EnglishTextNormalizer({})
-    except Exception:
-        return lambda text: re.sub(r"\s+", " ", re.sub(r"[^a-z0-9' ]", " ", text.lower())).strip()
+def normalizer(language="fr"):
+    return lambda text: normalize_for_wer(text, language)
 
 
 def spread(indices, lengths, count):
@@ -90,7 +86,8 @@ def main():
     parser.add_argument("--per-voice", type=int, default=4)
     parser.add_argument("--novel", type=int, default=len(NOVEL_SENTENCES))
     parser.add_argument("--device", default="cuda")
-    parser.add_argument("--asr-model", default="small.en")
+    parser.add_argument("--asr-model", default="small")
+    parser.add_argument("--asr-language", default="fr")
     parser.add_argument("--no-asr", action="store_true")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--speed", type=float, default=1.0)
@@ -170,14 +167,14 @@ def main():
         import jiwer
         from faster_whisper import WhisperModel
         asr = WhisperModel(args.asr_model, device="cpu", compute_type="int8", cpu_threads=8)
-        normalize = normalizer()
+        normalize = normalizer(args.asr_language)
 
         def transcribe(path):
             from scipy.signal import resample_poly
             audio, rate = sf.read(path, dtype="float32")
             factor = int(np.gcd(rate, 16000))      # the ASR model expects 16 kHz samples
             audio = resample_poly(audio, 16000 // factor, rate // factor).astype(np.float32)
-            segments, _ = asr.transcribe(audio, language="en", beam_size=5, condition_on_previous_text=False, temperature=0.0)
+            segments, _ = asr.transcribe(audio, language=args.asr_language, beam_size=5, condition_on_previous_text=False, temperature=0.0)
             return " ".join(segment.text.strip() for segment in segments).strip()
         for record in samples:
             truth = normalize(record["text"])

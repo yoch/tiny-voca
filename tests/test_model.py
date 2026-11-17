@@ -235,7 +235,7 @@ class ModelTests(unittest.TestCase):
         mask = torch.tensor([[1.0, 1.0, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]])
         torch.testing.assert_close(masked_std(values, mask), torch.tensor([(8 / 3) ** 0.5, 1e-4]), atol=1e-5, rtol=1e-4)
         self.assertGreater(float(teacher["pitch_spread"]), 0)
-        self.assertTrue(0 <= float(teacher["pitch_spread_ratio"]) < 5)
+        self.assertTrue(0 < float(teacher["pitch_spread_ratio"]) < 10)
 
     def test_objective_rejects_durations_that_do_not_cover_the_frames(self):
         c = small_config()

@@ -1,34 +1,20 @@
-"""English front end: text -> phoneme tokens with a stress feature.
+"""French front end: text -> phoneme tokens with a stress feature.
 
 The same code runs during annotation, training-set preparation and inference,
-so tokens can never drift between them. Two programs can produce the phonemes:
+so tokens can never drift between them. Uses eSpeak NG (``fr``) either via the
+``espeak-ng`` executable or, if unavailable on PATH, via ``libespeak-ng.so.1``.
 
-* ``espeak`` (front-end version 3, the default): eSpeak NG, as described below.
-  The current checkpoints and annotations were made with it.
-* ``own`` (front-end version 4): the separate ``dizione`` package, a dictionary
-  built from CMUdict, a small model for unknown words and rules. No eSpeak, so
-  the whole system can be shipped under a permissive licence. Same 76 symbols.
-
-Choose with ``set_frontend("own")`` or ``TINY_VOCA_FRONTEND=own``. Everything
-below about tokens holds for both; the rest of this note is the eSpeak path.
-
-* eSpeak NG (``en-us``) is the only pronunciation source. It is an external
-  rule-based program: no neural G2P and no downloaded weights.
-* A token is one eSpeak phoneme exactly as eSpeak segments it (``--sep``), for
-  example ``t``, ``aɪ``, ``ɑːɹ`` or ``n̩``. This is also the label inventory of
-  the phoneme recogniser used for offline forced alignment, so one aligned
-  label corresponds to exactly one token.
-* Lexical stress is a parallel feature (0 none, 1 primary, 2 secondary), not a
-  token, so it never has to be given audio frames.
+* A token is one eSpeak phoneme exactly as eSpeak segments it (``--sep=_``),
+  for example ``ʁ``, ``ɑ̃``, ``ɔ̃`` or ``ɲ``. Trailing clitic ``-`` markers
+  emitted by French eSpeak (e.g. ``l_e-``, ``d_ə-``) are stripped.
+* Lexical/phrase stress is a parallel feature (0 none, 1 primary, 2 secondary),
+  not a token, so it never has to be given audio frames.
 * Punctuation, word boundaries and the utterance edges are explicit tokens that
   may last zero frames. They carry pauses when the recording has them.
-
-Versions 1 and 2 encoded IPA as UTF-8 bytes and piped text to eSpeak without a
-final newline; eSpeak NG 1.51 then drops the last character of the input, so
-the final phonemes of every clause were wrong. Version 3 terminates the input
-and has a regression test for it.
 """
 
+import ctypes
+import ctypes.util
 from dataclasses import dataclass
 import hashlib
 import json
@@ -36,12 +22,13 @@ import os
 import re
 import shutil
 import subprocess
+import threading
 import unicodedata
 
-FRONTEND_VERSION = 3
-ESPEAK_VOICE = "en-us"
+FRONTEND_VERSION = 4
+ESPEAK_VOICE = "fr"
 SEPARATOR = "_"
-FRONTENDS = ("espeak", "own")
+FRONTENDS = ("espeak",)
 FRONTEND_VARIABLE = "TINY_VOCA_FRONTEND"
 _frontend = os.environ.get(FRONTEND_VARIABLE, "espeak")
 if _frontend not in FRONTENDS:
@@ -50,38 +37,59 @@ if _frontend not in FRONTENDS:
 PAD, BOS, EOS, SP, UNK = "<pad>", "<bos>", "<eos>", "<sp>", "<unk>"
 SPECIALS = (PAD, BOS, EOS, SP, UNK)
 PUNCTUATION = (",", ".", "?", "!", ";", ":", '"', "'", "(", ")", "—", "…")
-CONSONANTS = ("p", "b", "t", "d", "k", "ɡ", "f", "v", "θ", "ð", "s", "z", "ʃ", "ʒ", "h",
-              "m", "n", "ŋ", "l", "ɹ", "j", "w", "tʃ", "dʒ", "ɾ", "ʔ")
-VOWELS = ("ə", "ɐ", "ɚ", "ᵻ", "ɪ", "i", "iː", "ɛ", "æ", "ʌ", "ɑː", "ɔ", "ɔː", "ʊ", "uː", "ɜː",
-          "eɪ", "aɪ", "ɔɪ", "oʊ", "aʊ", "iə", "oː",
-          "ɑːɹ", "ɔːɹ", "oːɹ", "ɪɹ", "ɛɹ", "ʊɹ", "aɪɚ", "aɪə", "əl", "n̩")
+CONSONANTS = (
+    "p", "b", "t", "d", "k", "ɡ", "f", "v", "s", "z", "ʃ", "ʒ",
+    "m", "n", "ɲ", "ŋ", "l", "ʁ", "j", "w", "tʃ", "dʒ",
+)
+VOWELS = (
+    "i", "y", "u", "e", "ø", "o", "ə", "ɛ", "œ", "ɔ", "a",
+    "ɛ̃", "œ̃", "ɔ̃", "ɑ̃",
+)
 PHONES = CONSONANTS + VOWELS
 # Append-only: changing the order or removing a symbol invalidates checkpoints.
 SYMBOLS = SPECIALS + PUNCTUATION + PHONES
 SYMBOL_TO_ID = {symbol: index for index, symbol in enumerate(SYMBOLS)}
 PHONE_SET = frozenset(PHONES)
 PHONE_IDS = frozenset(SYMBOL_TO_ID[p] for p in PHONES) | {SYMBOL_TO_ID[UNK]}
-VOICELESS = frozenset(("p", "t", "k", "f", "θ", "s", "ʃ", "h", "tʃ", "ʔ"))
+VOICELESS = frozenset(("p", "t", "k", "f", "s", "ʃ", "tʃ"))
 VOWEL_SET = frozenset(VOWELS)
 STRESS_MARKS = {"ˈ": 1, "ˌ": 2}
 
-# eSpeak phonemes outside the inventory (foreign words, rare allophones) map to
-# the closest inventory phone(s). Anything else becomes <unk> and is reported.
+# eSpeak phonemes outside the French inventory (foreign loanwords, rare
+# allophones) map to the closest inventory phone(s); empty tuple drops silent
+# foreign segments such as English ``h``. Anything else becomes <unk>.
 FALLBACK = {
-    "r": ("ɹ",), "ɻ": ("ɹ",), "ʁ": ("ɹ",), "x": ("k",), "ç": ("h",), "ɬ": ("l",), "ɫ": ("l",), "ɲ": ("n", "j"),
-    "ts": ("t", "s"), "dz": ("d", "z"), "β": ("v",), "ɣ": ("ɡ",), "ʎ": ("l", "j"),
-    "a": ("æ",), "aː": ("ɑː",), "ɑ": ("ɑː",), "ɒ": ("ɑː",), "ɑ̃": ("ɑː",), "ɔ̃": ("ɔː",), "ɛ̃": ("æ",),
-    "e": ("eɪ",), "eː": ("eɪ",), "o": ("oʊ",), "u": ("uː",), "y": ("uː",), "yː": ("uː",),
-    "ø": ("ɜː",), "øː": ("ɜː",), "œ": ("ɜː",), "ɜ": ("ɜː",), "ɛː": ("ɛ",), "ɪː": ("ɪ",),
-    "əʊ": ("oʊ",), "eə": ("ɛɹ",), "ɪə": ("iə",), "ʊə": ("ʊɹ",), "aʊɚ": ("aʊ", "ɚ"), "l̩": ("əl",), "m̩": ("ə", "m"),
+    "r": ("ʁ",), "ɹ": ("ʁ",), "ɾ": ("ʁ",), "ɻ": ("ʁ",), "χ": ("ʁ",),
+    "ɥ": ("y",), "ʎ": ("j",), "ɫ": ("l",), "ɬ": ("l",),
+    "ts": ("t", "s"), "dz": ("d", "z"), "x": ("k",), "ç": ("ʃ",),
+    "θ": ("s",), "ð": ("z",), "β": ("v",), "ɣ": ("ɡ",), "ʔ": (), "h": (),
+    "ɑ": ("a",), "ɑː": ("a",), "æ": ("a",), "ɐ": ("a",), "ɒ": ("ɔ",),
+    "ɪ": ("i",), "ᵻ": ("i",), "ʊ": ("u",), "ʌ": ("œ",), "ɜ": ("œ",), "ɜː": ("œ",), "ɚ": ("œ", "ʁ"),
+    "eɪ": ("e", "j"), "aɪ": ("a", "j"), "ɔɪ": ("ɔ", "j"),
+    "əʊ": ("o",), "oʊ": ("o",), "aʊ": ("a", "w"),
+    "iə": ("i", "j", "ə"), "eə": ("ɛ", "ʁ"),
+    "ɛɹ": ("ɛ", "ʁ"), "ɪɹ": ("i", "ʁ"), "ʊɹ": ("u", "ʁ"),
+    "ɑːɹ": ("a", "ʁ"), "ɔːɹ": ("ɔ", "ʁ"), "oːɹ": ("ɔ", "ʁ"),
+    "aɪə": ("a", "j", "ə"), "aɪɚ": ("a", "j", "œ", "ʁ"),
+    "əl": ("ə", "l"), "l̩": ("ə", "l"), "m̩": ("ə", "m"), "n̩": ("ə", "n"),
 }
 
-_QUOTES = str.maketrans({"‘": "'", "’": "'", "‚": "'", "‛": "'", "`": "'", "´": "'",
-                         "“": '"', "”": '"', "„": '"', "‟": '"', "«": '"', "»": '"',
-                         "–": "—", "―": "—", "[": "(", "{": "(", "]": ")", "}": ")"})
+_QUOTES = str.maketrans({
+    "‘": "'", "’": "'", "‚": "'", "‛": "'", "`": "'", "´": "'",
+    "“": '"', "”": '"', "„": '"', "‟": '"', "«": '"', "»": '"',
+    "–": "—", "―": "—", "[": "(", "{": "(", "]": ")", "}": ")",
+})
 _PUNCTUATION_CHARS = frozenset(PUNCTUATION)
-ABBREVIATIONS = {"mr", "mrs", "ms", "dr", "prof", "st", "jr", "sr", "vs", "etc"}
+ABBREVIATIONS = {
+    "m", "mme", "mlle", "mr", "mrs", "ms", "dr", "prof", "st", "ste",
+    "etc", "ex", "cf", "av", "bd", "fig", "vol", "env",
+}
 _LANGUAGE_TAG = re.compile(r"\((?:_?[a-z0-9]_?){2,3}(?:-(?:_?[a-z0-9]_?)+)*\)")
+_MONSIEUR_ABBR = re.compile(r"(?<![A-ZÀ-ÖØ-ÞŒ]\.\s)\bM\.\s+(?=[A-ZÀ-ÖØ-ÞŒ])")
+_ALPHA_WORD_BEFORE_DOT = re.compile(r"([A-Za-zÀ-ÖØ-öø-ÿŒœ]+)$")
+
+_ESPEAK_LOCK = threading.Lock()
+_ESPEAK_LIB = None
 
 
 class NothingToPronounce(ValueError):
@@ -100,42 +108,30 @@ class Phonemized:
 
 
 def frontend():
-    """Name of the program that produces the phonemes: ``"espeak"`` or ``"own"``."""
+    """Name of the program that produces the phonemes (``"espeak"``)."""
     return _frontend
 
 
 def set_frontend(name):
-    """Select the phonemizer for this process. Tokens of the two front ends
-    must not be mixed: annotations and checkpoints record which one made them."""
+    """Select the phonemizer for this process."""
     global _frontend
     if name not in FRONTENDS:
         raise ValueError(f"front end must be one of {FRONTENDS}, not {name!r}")
     _frontend = name
 
 
-def _dizione():
-    try:
-        import dizione
-    except ImportError as error:
-        raise RuntimeError('the "own" front end needs the dizione package: pip install dizione') from error
-    if tuple(dizione.symbols.SYMBOLS) != SYMBOLS:
-        raise RuntimeError("dizione's symbol inventory differs from this model's")
-    return dizione
-
-
 def frontend_identity():
-    if _frontend == "own":
-        phonemizer = _dizione()
-        return {"frontend_version": phonemizer.VERSION, "phonemizer": "dizione", "symbols": list(SYMBOLS)}
-    return {"frontend_version": FRONTEND_VERSION, "voice": ESPEAK_VOICE, "separator": SEPARATOR,
-            "symbols": list(SYMBOLS), "fallback": {key: list(value) for key, value in sorted(FALLBACK.items())}}
+    return {
+        "frontend_version": FRONTEND_VERSION,
+        "voice": ESPEAK_VOICE,
+        "separator": SEPARATOR,
+        "symbols": list(SYMBOLS),
+        "fallback": {key: list(value) for key, value in sorted(FALLBACK.items())},
+    }
 
 
 def frontend_runtime():
-    """What an annotation run records about the exact program behind its
-    tokens: the eSpeak version, or the fingerprint of the phonemizer build."""
-    if _frontend == "own":
-        return {"phonemizer": _dizione().identity()["fingerprint"]}
+    """What an annotation run records about the exact program behind its tokens."""
     return {"espeak_version": espeak_version()}
 
 
@@ -147,6 +143,7 @@ def normalize_text(text):
     text = unicodedata.normalize("NFKC", text).translate(_QUOTES)
     text = re.sub(r"\.{3,}", "…", text)
     text = re.sub(r"-{2,}|\s-\s", "—", text)
+    text = _MONSIEUR_ABBR.sub("Monsieur ", text)
     return re.sub(r"\s+", " ", text).strip()
 
 
@@ -158,14 +155,14 @@ def chunks(text):
     for i, char in enumerate(text):
         if char not in _PUNCTUATION_CHARS:
             continue
-        previous = text[i-1] if i else ""
-        following = text[i+1] if i+1 < len(text) else ""
+        previous = text[i - 1] if i else ""
+        following = text[i + 1] if i + 1 < len(text) else ""
         if char == "'" and previous.isalnum() and following.isalnum():
             continue
         if char in ".,:" and previous.isdigit() and following.isdigit():
             continue
         if char == ".":
-            word = re.search(r"([A-Za-z]+)$", text[:i])
+            word = _ALPHA_WORD_BEFORE_DOT.search(text[:i])
             if word and word[1].lower() in ABBREVIATIONS:
                 continue
             if previous.isalpha() and following.isalpha():
@@ -173,32 +170,80 @@ def chunks(text):
         if text[start:i].strip():
             yield False, text[start:i].strip()
         yield True, char
-        start = i+1
+        start = i + 1
     if text[start:].strip():
         yield False, text[start:].strip()
 
 
 def espeak_executable():
-    executable = shutil.which("espeak-ng")
-    if executable is None:
-        raise RuntimeError("Install espeak-ng on the cloud machine before preprocessing/inference")
-    return executable
+    return shutil.which("espeak-ng")
+
+
+def _load_libespeak():
+    global _ESPEAK_LIB
+    if _ESPEAK_LIB is not None:
+        return _ESPEAK_LIB
+    candidates = [
+        ctypes.util.find_library("espeak-ng"),
+        "/usr/lib/x86_64-linux-gnu/libespeak-ng.so.1",
+        "/usr/lib/aarch64-linux-gnu/libespeak-ng.so.1",
+    ]
+    lib = None
+    for candidate in candidates:
+        if not candidate:
+            continue
+        try:
+            lib = ctypes.CDLL(candidate)
+            break
+        except OSError:
+            continue
+    if lib is None:
+        raise RuntimeError("Install espeak-ng or libespeak-ng1 before preprocessing/inference")
+    lib.espeak_Initialize.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_char_p, ctypes.c_int]
+    lib.espeak_Initialize.restype = ctypes.c_int
+    lib.espeak_SetVoiceByName.argtypes = [ctypes.c_char_p]
+    lib.espeak_SetVoiceByName.restype = ctypes.c_int
+    lib.espeak_TextToPhonemes.argtypes = [ctypes.POINTER(ctypes.c_char_p), ctypes.c_int, ctypes.c_int]
+    lib.espeak_TextToPhonemes.restype = ctypes.c_char_p
+    if lib.espeak_Initialize(2, 0, None, 0) < 0:
+        raise RuntimeError("failed to initialize libespeak-ng")
+    if lib.espeak_SetVoiceByName(ESPEAK_VOICE.encode("utf-8")) != 0:
+        raise RuntimeError(f"failed to select eSpeak voice {ESPEAK_VOICE!r}")
+    _ESPEAK_LIB = lib
+    return lib
 
 
 def espeak_version():
-    return subprocess.run([espeak_executable(), "--version"], capture_output=True, text=True, check=True, timeout=10).stdout.strip()
+    executable = espeak_executable()
+    if executable is not None:
+        return subprocess.run([executable, "--version"], capture_output=True, text=True, check=True, timeout=10).stdout.strip()
+    _load_libespeak()
+    return "libespeak-ng"
 
 
 def espeak_words(piece):
     """Phonemize one text piece. Returns words as lists of ``(phone, stress)``.
 
-    The input must end with a newline: eSpeak NG 1.51 silently drops the last
-    character of unterminated standard input.
+    The input must end with a newline when calling the CLI: eSpeak NG 1.51
+    silently drops the last character of unterminated standard input.
     """
-    result = subprocess.run(
-        [espeak_executable(), "-q", "--ipa", "--sep=" + SEPARATOR, "-v", ESPEAK_VOICE, "--stdin"],
-        input=piece.rstrip("\n") + "\n", text=True, capture_output=True, check=True, timeout=30)
-    return parse_espeak(result.stdout)
+    executable = espeak_executable()
+    if executable is not None:
+        result = subprocess.run(
+            [executable, "-q", "--ipa", "--sep=" + SEPARATOR, "-v", ESPEAK_VOICE, "--stdin"],
+            input=piece.rstrip("\n") + "\n", text=True, capture_output=True, check=True, timeout=30)
+        return parse_espeak(result.stdout)
+    with _ESPEAK_LOCK:
+        lib = _load_libespeak()
+        buf = ctypes.c_char_p(piece.encode("utf-8"))
+        ptr = ctypes.c_char_p(buf.value)
+        mode = 0x02 | (ord(SEPARATOR) << 8)
+        clauses = []
+        while ptr.value:
+            out = lib.espeak_TextToPhonemes(ctypes.byref(ptr), 1, mode)
+            if out:
+                clauses.append(out.decode("utf-8"))
+        return parse_espeak(" ".join(clauses))
 
 
 def parse_espeak(output):
@@ -211,7 +256,8 @@ def parse_espeak(output):
                 if mark in unit:
                     stress = stress or level
                     unit = unit.replace(mark, "")
-            unit = "".join(c for c in unit if unicodedata.category(c) != "Cf" and c not in "()")
+            # Strip format characters, parentheses, and French clitic '-' markers.
+            unit = "".join(c for c in unit if unicodedata.category(c) != "Cf" and c not in "()-")
             if unit:
                 units.append((unit, stress))
         if units:
@@ -225,6 +271,12 @@ def canonical(phone):
         return (phone,)
     if phone in FALLBACK:
         return FALLBACK[phone]
+    no_length = phone.replace("ː", "")
+    if no_length != phone:
+        if no_length in PHONE_SET:
+            return (no_length,)
+        if no_length in FALLBACK:
+            return FALLBACK[no_length]
     stripped = "".join(c for c in unicodedata.normalize("NFD", phone) if not unicodedata.combining(c))
     for candidate in (stripped, stripped.replace("ː", ""), stripped + "ː"):
         if candidate != phone and candidate in PHONE_SET:
@@ -246,19 +298,26 @@ def tokenize(pieces):
                 stress.append(0)
             continue
         for word in value:
-            if symbols[-1] in PHONE_SET or symbols[-1] == UNK:
-                symbols.append(SP)
-                stress.append(0)
+            word_symbols, word_stress = [], []
             for phone, level in word:
                 mapped = canonical(phone)
                 if mapped is None:
                     unknown.append(phone)
                     mapped = (UNK,)
+                if not mapped:
+                    continue
                 # A fallback may expand to several phones: stress goes to its first vowel.
                 carrier = next((i for i, item in enumerate(mapped) if item in VOWEL_SET), 0)
                 for index, item in enumerate(mapped):
-                    symbols.append(item)
-                    stress.append(level if index == carrier else 0)
+                    word_symbols.append(item)
+                    word_stress.append(level if index == carrier else 0)
+            if not word_symbols:
+                continue
+            if symbols[-1] in PHONE_SET or symbols[-1] == UNK:
+                symbols.append(SP)
+                stress.append(0)
+            symbols.extend(word_symbols)
+            stress.extend(word_stress)
     symbols.append(EOS)
     stress.append(0)
     if not any(s in PHONE_SET or s == UNK for s in symbols):
@@ -269,8 +328,6 @@ def tokenize(pieces):
 def phonemize(text):
     if not isinstance(text, str) or not text.strip():
         raise ValueError("text must not be empty")
-    if _frontend == "own":
-        return tokenize(_dizione().pieces(text))
     pieces = []
     for punctuation, piece in chunks(normalize_text(text)):
         pieces.append((True, piece) if punctuation else (False, espeak_words(piece)))
@@ -280,3 +337,10 @@ def phonemize(text):
 def is_phone(token_ids):
     """Boolean list/tensor helper: tokens that must be realised as audio."""
     return [int(i) in PHONE_IDS for i in token_ids]
+
+
+def normalize_for_wer(text, language="fr"):
+    """Lowercase and strip punctuation/hyphens for ASR WER comparisons."""
+    text = unicodedata.normalize("NFKC", text.lower()).replace("’", "'").replace("-", " ")
+    pattern = r"[^a-z0-9' ]" if language == "en" else r"[^a-zàâäæçéèêëîïôöœùûüÿ0-9' ]"
+    return re.sub(r"\s+", " ", re.sub(pattern, " ", text)).strip()

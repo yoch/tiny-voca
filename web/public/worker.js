@@ -94,14 +94,14 @@ async function loadModel() {
   session = await ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] });
 }
 
-const ABBREVIATIONS = /(?:\b(?:mr|mrs|ms|dr|prof|sr|jr|st|vs|etc|no|inc|ltd|co|e\.g|i\.e|a\.m|p\.m)|\b[A-Z])\.$/i;
+const ABBREVIATIONS = /(?:^|[\s"“(\[\u00AB])(?:m|mme|mlle|mr|mrs|ms|dr|prof|sr|jr|st|ste|vs|etc|no|inc|ltd|co|ex|cf|av|bd|fig|vol|env|e\.g|i\.e|a\.m|p\.m|[A-Z\u00C0-\u00D6\u00D8-\u00DE\u0152\u0178])\.$/i;
 
 // Sentences, without breaking after titles, initials or inside numbers.
 // tiny_voca.infer.sentences in the Python package splits the same way; keep the two alike.
 function sentences(text) {
   const parts = [];
   let current = "";
-  for (const piece of text.replace(/\s+/g, " ").trim().split(/(?<=[.!?…]["')\]]?)\s+(?=["'(\[]?[A-Z0-9])/)) {
+  for (const piece of text.replace(/\s+/g, " ").trim().split(/(?<=[.!?…]["'”’)\]\u00BB]?)\s+(?=["'“‘(\[\u00AB]?[A-Z\u00C0-\u00D6\u00D8-\u00DE\u0152\u01780-9])/)) {
     current = current ? current + " " + piece : piece;
     if (!ABBREVIATIONS.test(current)) { parts.push(current); current = ""; }
   }
@@ -155,7 +155,7 @@ function limitPeak(samples) {
 }
 
 // Shown when no sentence of a text could be read. tiny_voca.infer.speak_text says the same.
-const ENGLISH_ONLY = "tiny-voca only reads English for now.";
+const ENGLISH_ONLY = "tiny-voca only reads French for now.";
 
 async function speak({ id, text, voice, speed }) {
   const started = performance.now();

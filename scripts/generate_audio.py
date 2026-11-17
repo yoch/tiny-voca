@@ -1,10 +1,8 @@
-"""Generate a new batch of two-voice recordings with the teacher TTS. Cloud only.
+"""Generate a batch of multi-voice recordings with the teacher TTS. Cloud only.
 
-Same recipe as the first batch (release/worker.py in the dataset repository):
-Qwen3-TTS 1.7B Base cloning the two approved VoiceDesign references, batches of
-eight, Whisper small.en screening at 15% normalized WER, one retry, peak
-normalisation to 0.95. Differences: scripts come from a local JSONL, nothing is
-uploaded from here (no token on the machine), and it stops at a budget deadline.
+Uses Qwen3-TTS 1.7B Base cloning the approved VoiceDesign references, batches
+of eight (or smaller on OOM), multilingual Whisper screening at 15% normalized
+WER, one retry, and peak normalisation to 0.95.
 
 Resumable: every clip is recorded in a SQLite file; rerun the same command.
 Output: <root>/audio/<id>.flac and <root>/manifest.jsonl (accepted clips, in the
@@ -22,6 +20,8 @@ import numpy as np
 import soundfile as sf
 import torch
 
+from tiny_voca.text import normalize_for_wer
+
 MODEL = "Qwen/Qwen3-TTS-12Hz-1.7B-Base"
 BATCH = 8
 
@@ -30,8 +30,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--scripts", type=Path, required=True)
     parser.add_argument("--root", type=Path, required=True)
-    parser.add_argument("--references", type=Path, required=True, help="Directory with F2.wav, M2.wav")
-    parser.add_argument("--voices", type=Path, required=True, help="voices.json of the first batch")
+    parser.add_argument("--references", type=Path, required=True, help="Directory with <VOICE>.wav files")
+    parser.add_argument("--voices", type=Path, required=True, help="voices JSON mapping voice_id -> {text, ...}")
+    parser.add_argument("--language", default="French", help="Teacher TTS language name (e.g. French, English)")
+    parser.add_argument("--asr-model", default="small", help="faster-whisper model for screening")
+    parser.add_argument("--asr-language", default="fr", help="Whisper ISO language code (e.g. fr, en)")
+    parser.add_argument("--asr-device", default="cpu", choices=("cpu", "cuda"))
+    parser.add_argument("--max-wer", type=float, default=0.15)
     parser.add_argument("--deadline-file", type=Path)
     parser.add_argument("--deadline-margin", type=float, default=600)
     parser.add_argument("--limit", type=int, help="Only the first N scripts (smoke test)")
@@ -41,16 +46,17 @@ def main():
     from jiwer import wer
     from qwen_tts import Qwen3TTSModel
     from scipy.signal import resample_poly
-    from transformers.models.whisper.english_normalizer import EnglishTextNormalizer
+
     audio = args.root / "audio"
     audio.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(args.root / "state.sqlite")
     db.execute("CREATE TABLE IF NOT EXISTS clips(id TEXT PRIMARY KEY, status TEXT, attempts INTEGER, payload TEXT)")
     db.commit()
+    references = json.loads(args.voices.read_text(encoding="utf-8"))
+    voice_ids = tuple(references.keys())
     rows = [json.loads(line) for line in args.scripts.read_text(encoding="utf-8").splitlines() if line.strip()]
     rows = sorted(rows, key=lambda r: (r["character_count"], r["id"]))[:args.limit]
-    jobs = [{"id": f"{row['id']}_{voice}", "voice": voice, "row": row} for row in rows for voice in ("F2", "M2")]
-    references = json.loads(args.voices.read_text())
+    jobs = [{"id": f"{row['id']}_{voice}", "voice": voice, "row": row} for row in rows for voice in voice_ids]
     started = time.time()
 
     def out_of_time():
@@ -74,11 +80,18 @@ def main():
         print(json.dumps(value), flush=True)
 
     torch.set_num_threads(6)
-    model = Qwen3TTSModel.from_pretrained(MODEL, device_map="cuda:0", dtype=torch.bfloat16, attn_implementation="sdpa")
-    prompts = {v: model.create_voice_clone_prompt(ref_audio=str(args.references / f"{v}.wav"), ref_text=references[v]["text"],
-                                                  x_vector_only_mode=False)[0] for v in ("F2", "M2")}
-    asr = WhisperModel("small.en", device="cpu", compute_type="int8", cpu_threads=6)
-    normalize = EnglishTextNormalizer({"cancelled": "canceled", "colour": "color", "favourite": "favorite", "centre": "center"})
+    dtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.float16
+    model = Qwen3TTSModel.from_pretrained(MODEL, device_map="cuda:0", dtype=dtype, attn_implementation="sdpa")
+    prompts = {
+        v: model.create_voice_clone_prompt(
+            ref_audio=str(args.references / f"{v}.wav"),
+            ref_text=references[v]["text"],
+            x_vector_only_mode=False,
+        )[0]
+        for v in voice_ids
+    }
+    compute_type = "float16" if args.asr_device == "cuda" else "int8"
+    asr = WhisperModel(args.asr_model, device=args.asr_device, compute_type=compute_type, cpu_threads=6)
     pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     futures = []
 
@@ -97,26 +110,35 @@ def main():
                 reasons.append("excessive_silence")
             transcript, error = "", 1.0
             if not reasons:
-                segments, _ = asr.transcribe(resample_poly(w.astype("float32"), 2, 3), language="en", beam_size=3, condition_on_previous_text=False)
+                factor = int(np.gcd(rate, 16000))
+                audio_16k = resample_poly(w.astype("float32"), 16000 // factor, rate // factor)
+                segments, _ = asr.transcribe(audio_16k, language=args.asr_language, beam_size=3, condition_on_previous_text=False)
                 transcript = " ".join(s.text.strip() for s in segments)
-                error = wer(normalize(row["text"]), normalize(transcript) or "<empty>")
-                if error > 0.15:
+                truth = normalize_for_wer(row["text"], args.asr_language)
+                hyp = normalize_for_wer(transcript, args.asr_language) or "<empty>"
+                error = wer(truth, hyp)
+                if error > args.max_wer:
                     reasons.append("asr_mismatch")
             if np.isfinite(w).all() and peak > 0:
                 sf.write(audio / (job["id"] + ".flac"), w * (0.95 / peak), rate, subtype="PCM_16")
-            payload = {"id": job["id"], "text_id": row["id"], "voice_id": job["voice"], "text": row["text"], "split": row["split"],
-                       "category": row["category"], "origin": row["origin"], "source_id": row["source_id"],
-                       "source_license": row["source_license"], "source_url": row["source_url"], "teacher_model": MODEL,
-                       "reference_audio": job["voice"] + ".wav", "audio": f"audio/{job['id']}.flac", "duration_seconds": round(duration, 3),
-                       "generation_seed": seed, "generation_batch": batch_id, "attempt": attempt, "generation_seconds": seconds,
-                       "asr_transcript": transcript, "normalized_wer": round(float(error), 4), "review_reasons": reasons}
-            records.append((job["id"], "review" if reasons else "accepted", attempt, json.dumps(payload)))
+            payload = {
+                "id": job["id"], "text_id": row["id"], "voice_id": job["voice"], "text": row["text"], "split": row["split"],
+                "category": row["category"], "origin": row["origin"], "source_id": row["source_id"],
+                "source_license": row["source_license"], "source_url": row["source_url"], "teacher_model": MODEL,
+                "reference_audio": job["voice"] + ".wav", "audio": f"audio/{job['id']}.flac", "duration_seconds": round(duration, 3),
+                "generation_seed": seed, "generation_batch": batch_id, "attempt": attempt, "generation_seconds": seconds,
+                "asr_transcript": transcript, "normalized_wer": round(float(error), 4), "review_reasons": reasons,
+            }
+            records.append((job["id"], "review" if reasons else "accepted", attempt, json.dumps(payload, ensure_ascii=False)))
         return records
 
     def collect(future):
         records = future.result()
-        db.executemany("INSERT INTO clips(id, status, attempts, payload) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET "
-                       "status=excluded.status, attempts=excluded.attempts, payload=excluded.payload", records)
+        db.executemany(
+            "INSERT INTO clips(id, status, attempts, payload) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET "
+            "status=excluded.status, attempts=excluded.attempts, payload=excluded.payload",
+            records,
+        )
         db.commit()
 
     def generate(batch, attempt, batch_id):
@@ -124,8 +146,12 @@ def main():
         torch.manual_seed(seed)
         start = time.time()
         try:
-            waves, rate = model.generate_voice_clone(text=[j["row"]["text"] for j in batch], language=["English"] * len(batch),
-                                                     voice_clone_prompt=[prompts[j["voice"]] for j in batch], max_new_tokens=600)
+            waves, rate = model.generate_voice_clone(
+                text=[j["row"]["text"] for j in batch],
+                language=[args.language] * len(batch),
+                voice_clone_prompt=[prompts[j["voice"]] for j in batch],
+                max_new_tokens=600,
+            )
         except torch.cuda.OutOfMemoryError:
             torch.cuda.empty_cache()
             if len(batch) == 1:
@@ -141,8 +167,11 @@ def main():
     stopped = False
     for attempt in (1, 2):
         existing = {uid: (status, n) for uid, status, n in db.execute("SELECT id, status, attempts FROM clips")}
-        pending = [j for j in jobs if (attempt == 1 and j["id"] not in existing)
-                   or (attempt == 2 and j["id"] in existing and existing[j["id"]][0] == "review" and existing[j["id"]][1] < 2)]
+        pending = [
+            j for j in jobs
+            if (attempt == 1 and j["id"] not in existing)
+            or (attempt == 2 and j["id"] in existing and existing[j["id"]][0] == "review" and existing[j["id"]][1] < 2)
+        ]
         size = BATCH if attempt == 1 else 1
         for start in range(0, len(pending), size):
             if out_of_time():

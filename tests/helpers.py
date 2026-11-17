@@ -15,7 +15,7 @@ def small_config():
                   predictor_channels=16, cep_causal=12, cep_anti=4, noise_cep=8, max_frames=400)
 
 
-SYMBOLS = ("<bos>", "h", "ə", "l", "oʊ", "<sp>", "w", "ɜː", "l", "d", ".", "<eos>")
+SYMBOLS = ("<bos>", "b", "ɔ̃", "ʒ", "u", "<sp>", "t", "u", "s", "a", ".", "<eos>")
 STRESS = (0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0)
 
 

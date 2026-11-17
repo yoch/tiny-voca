@@ -32,7 +32,7 @@ class DataTests(unittest.TestCase):
 
     def test_existing_acoustic_features_stay_compatible_while_tokens_are_versioned_separately(self):
         c = Config()
-        self.assertEqual(c.legacy_feature_fingerprint, REAL_LEGACY_FEATURES)
+        self.assertEqual(Config(speakers=("F2", "M2")).legacy_feature_fingerprint, REAL_LEGACY_FEATURES)
         changed = replace(c, channels=128, dropout=0.2, acoustic_layers=3, cep_causal=64)
         self.assertEqual(c.acoustic_fingerprint, changed.acoustic_fingerprint)      # model changes reuse features
         self.assertNotEqual(c.fingerprint, changed.fingerprint)
@@ -95,10 +95,10 @@ class DataTests(unittest.TestCase):
                 AnnotatedDataset(legacy, c)
             # The annotation step itself accepts those feature files (audio only) and current ones.
             (Path(directory) / "train.preparation.json").write_text(json.dumps({"complete": True}))
-            rows = [{"id": "a", "features": REAL_LEGACY_FEATURES, "speaker": "F2"}, {"id": "b", "acoustic": Config().acoustic_fingerprint, "speaker": "M2"}]
+            rows = [{"id": "a", "features": Config().legacy_feature_fingerprint, "speaker": "F1"}, {"id": "b", "acoustic": Config().acoustic_fingerprint, "speaker": "M1"}]
             legacy.write_text("".join(json.dumps(r) + "\n" for r in rows))
             self.assertEqual(len(load_acoustic_rows(Path(directory), "train", Config())), 2)
-            legacy.write_text(json.dumps({"id": "a", "features": "something-else", "speaker": "F2"}) + "\n")
+            legacy.write_text(json.dumps({"id": "a", "features": "something-else", "speaker": "F1"}) + "\n")
             with self.assertRaisesRegex(ValueError, "compatible audio/DSP"):
                 load_acoustic_rows(Path(directory), "train", Config())
 
@@ -133,12 +133,12 @@ class DataTests(unittest.TestCase):
         self.assertEqual([restored.next() for _ in range(25)], following)
 
     def test_balanced_selection_and_leakage_report(self):
-        rows = [{"speaker": "F2"}] * 8 + [{"speaker": "M2"}] * 8
+        rows = [{"speaker": "F1"}] * 8 + [{"speaker": "M1"}] * 8
         indices = balanced_indices(SimpleNamespace(rows=rows), 4)
-        self.assertEqual([rows[i]["speaker"] for i in indices], ["F2", "M2", "F2", "M2"])
-        train = SimpleNamespace(rows=[{"id": "a_F2", "text_hash": "same", "text": "Hello."}])
-        validation = SimpleNamespace(rows=[{"id": "a_M2", "text_hash": "same", "text": "Hello."}])
-        with self.assertRaisesRegex(ValueError, "a_M2.*a_F2"):
+        self.assertEqual([rows[i]["speaker"] for i in indices], ["F1", "M1", "F1", "M1"])
+        train = SimpleNamespace(rows=[{"id": "a_F1", "text_hash": "same", "text": "Bonjour."}])
+        validation = SimpleNamespace(rows=[{"id": "a_M1", "text_hash": "same", "text": "Bonjour."}])
+        with self.assertRaisesRegex(ValueError, "a_M1.*a_F1"):
             check_leakage(train, validation)
 
     def test_spectral_loss_masks_padding_and_survives_silence(self):
@@ -181,7 +181,7 @@ class DataTests(unittest.TestCase):
             stream = io.BytesIO()
             sf.write(stream, 0.1 * np.sin(2 * np.pi * 200 * time), rate, format="WAV")
             return {"bytes": stream.getvalue()}
-        rows = [{"id": str(i), "text": "Hello.", "voice_id": "F2", "audio": audio(24000), "reference_audio": b"reference bytes",
+        rows = [{"id": str(i), "text": "Bonjour.", "voice_id": "F1", "audio": audio(24000), "reference_audio": b"reference bytes",
                  "source_license": "test-synthetic"} for i in range(5)]
         rows[2]["text"] = None
         rows[3]["audio"] = None

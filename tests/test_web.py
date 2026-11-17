@@ -23,7 +23,7 @@ except ImportError:
     dizione, HAVE_DIZIONE = None, False
 
 PUBLIC = Path(__file__).resolve().parents[1] / "web" / "public"
-ENGLISH_ONLY = "tiny-voca only reads English for now."
+ENGLISH_ONLY = "tiny-voca only reads French for now."
 
 CLOCK = r"""
 const fs = require("fs");
@@ -202,7 +202,7 @@ const done = (id, seconds) => ({ type: "done", id, audio: tone(RATE * seconds, 0
   const page = open(true);
   page.click();
   const asked = page.sent[page.sent.length - 1];
-  page.say({ type: "error", id: 1, message: "tiny-voca only reads English for now.", plain: true });
+  page.say({ type: "error", id: 1, message: "tiny-voca only reads French for now.", plain: true });
   const plain = page.look();
   page.click();
   page.say({ type: "error", id: 2, message: "the model broke" });
@@ -454,9 +454,9 @@ class PageTests(Times):
     def test_the_page_opens_with_the_m2_voice(self):
         # F2 is still there and still the first button. M2 is the one chosen when the page opens, and its value is
         # M2's place among the model's voices.
-        self.assertEqual(self.facts["voices"], [{"value": "0", "name": "F2", "checked": False},
-                                                {"value": "1", "name": "M2", "checked": True}])
-        self.assertEqual(Config().speakers, ("F2", "M2"))
+        self.assertEqual(self.facts["voices"], [{"value": "0", "name": "F1", "checked": False},
+                                                {"value": "1", "name": "M1", "checked": True}])
+        self.assertEqual(Config().speakers, ("F1", "M1"))
         self.assertEqual(self.facts["messages"]["asked"]["voice"], 1)    # what an untouched page asks the worker for
 
     def test_a_text_it_cannot_read_gets_the_plain_message(self):

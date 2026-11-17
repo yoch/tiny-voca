@@ -19,9 +19,9 @@ class Config:
     n_mels: int = 80
     f0_min: float = 50.0
     f0_max: float = 600.0
-    speakers: tuple[str, ...] = ("F2", "M2")
-    # Phoneme tokens from tiny_voca.text.SYMBOLS (front-end version 3).
-    vocab_size: int = 76
+    speakers: tuple[str, ...] = ("F1", "M1")
+    # Phoneme tokens from tiny_voca.text.SYMBOLS (French front-end version 4).
+    vocab_size: int = 54
     # Text encoder and frame-level transformer.
     channels: int = 192
     heads: int = 4

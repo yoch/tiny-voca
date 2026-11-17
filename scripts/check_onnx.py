@@ -23,12 +23,12 @@ from tiny_voca.infer import load_model, match_frontend
 from tiny_voca.text import phonemize
 
 SENTENCES = (
-    "Hello! This is tiny voca.",
-    "The weather is nice today, and I feel very relaxed.",
-    "Did you really pay $42.50 for that on March 3rd, 2024?",
-    "She sells seashells by the seashore; the shells she sells are surely seashells.",
-    "After a long and difficult journey across the mountains, the travellers finally reached the small village, "
-    "where they were welcomed with warm food, a place to sleep and many questions about the road behind them.",
+    "Bonjour ! Voici tiny voca en français.",
+    "Il fait très beau aujourd'hui, et je me sens vraiment détendu.",
+    "As-tu vraiment payé quarante-deux euros et cinquante centimes pour cela ?",
+    "Les chaussettes de l'archiduchesse sont-elles sèches, archi-sèches ?",
+    "Après un long et difficile voyage à travers les montagnes, les voyageurs atteignirent enfin le petit village, "
+    "où ils furent accueillis avec un repas chaud, un endroit pour dormir et mille questions sur le chemin parcouru.",
 )
 
 

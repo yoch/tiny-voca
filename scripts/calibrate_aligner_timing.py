@@ -22,7 +22,7 @@ from tiny_voca.align import ALIGNER_RATE, ALIGNER_STRIDE, PhoneRecognizer, token
 from tiny_voca.config import Config
 from tiny_voca.text import PHONE_SET, VOWEL_SET, phonemize
 
-FRICATIVES, STOPS = {"f", "θ", "s", "ʃ"}, {"p", "t", "k"}
+FRICATIVES, STOPS = {"f", "s", "ʃ"}, {"p", "t", "k"}
 
 
 def main():
