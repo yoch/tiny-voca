@@ -1,39 +1,46 @@
-Tu reprends E04 (accélération du vocoder ONNX) dans le dépôt https://github.com/yoch/tiny-voca,
-branche `codex/e04-fft-vocoder`. Travaille sur cette branche et sur sa PR brouillon si elle existe ; ne merge pas.
+Tu reprends E04 dans https://github.com/yoch/tiny-voca, branche
+`codex/e04-fft-vocoder`, PR brouillon #1. Travaille sur cette branche ; ne merge pas.
 
-Lis d'abord `docs/e04/README.md`, les résultats JSON et `scripts/fft_candidates.py`.
-L'agent précédent tournait sur un i7-3770 AVX sans AVX2. Vérifie que ton runner expose
-AVX2 et consigne le matériel et les versions. Les variantes ONNX DFT et radix-2
-étaient plus lentes sur l'ancien runner ; l'absence d'AVX2 n'est pas une explication
-établie. L'export de production a donc été laissé INCHANGÉ. Les implémentations
-expérimentales sont isolées dans scripts/, avec tests et benchmarks reproductibles.
+Lis `docs/e04/README.md`, `docs/e04/avx2/REPORT.md`, les JSON bruts et les trois
+scripts de benchmark. L'export de production est INCHANGÉ. Aucun réentraînement,
+aucune modification des poids ou du DSP n'est autorisé pour fabriquer un gain.
 
-Objectif : remplacer les convolutions FFT denses de src/tiny_voca/export.py seulement
-si un gain réel est démontré, sans réentraînement ni dégradation numérique/acoustique.
+Deux runners ont été mesurés : i7-3770 sans AVX2, puis EPYC 9V74 avec AVX2 et
+AVX-512 exposés. DFT et radix-2 restent plus lents que dense sur CPU et Web,
+dans les deux ordres de mesure. Les gains entre machines ne sont pas attribuables
+à AVX2 seul. Ne recommence pas par supposer que la seule présence d'AVX2 suffit.
 
-1. Reproduis les tests tests/test_export.py et tests/test_fft_candidates.py. Utilise
-   le checkpoint public inchangé (URL/SHA et commandes dans le README), du bruit
-   déterministe commun et les mêmes entrées pour tous les backends. Vérifie les
-   durées, longueurs, deux voix, plusieurs longueurs/vitesses/hauteurs, les limites
-   de fenêtres, identité, silence et impulsions. Compare à dense ONNX, pas seulement
-   à Torch : les différences préexistantes entre runtimes ne sont pas l'erreur FFT.
-2. Exécute scripts/benchmark_fft.py sur CPU 1 et 4 threads, puis
-   scripts/benchmark_fft_web.cjs dans Chromium avec ORT Web/WASM 1.20.1. Mesure
-   filtrage isolé ET synthèse complète, médiane/p95, mémoire et taille d'artefact.
-   Pas de benchmarks simultanés. Répète en variant l'ordre, conserve les JSON bruts.
-   Les anciens champs peak_rss_mib « preliminary » sont invalides ; le script corrigé
-   utilise VmHWM dans un processus neuf. Le RSS Web est instantané, pas un pic.
-3. Si les candidats restent plus lents, cherche une meilleure solution (éventuellement
-   FFT WASM spécialisée avec DSP hors graphe et FFT native CPU), en mesurant aussi
-   les coûts de transfert. Ne change pas la définition du DSP ni les poids pour
-   obtenir artificiellement un gain. Conserve le fallback dense.
-4. Ne promeus un candidat dans export.py que si les gains sont répétables sur les
-   runtimes ciblés avec les seuils de fidélité du README. Sinon conserve la production,
-   documente le résultat négatif et indique que l'accélération reste à réaliser.
-5. Mets à jour docs/e04, ajoute les tests nécessaires, vérifie ONNX Runtime CPU et
-   Web réellement, et ouvre/mets à jour la PR SANS merger. Rapporte les gains mesurés,
-   leurs limites, les validations et le lien PR ; aucune extrapolation de gain AVX2.
+Une piste CPU est désormais concrète : `scripts/benchmark_fft_native.py` exporte
+la partie neuronale ONNX puis effectue le DSP avec les FFT natives de NumPy.
+Les sorties ONNX et le passage Python/NumPy sont inclus dans le temps total.
+C'est un prototype isolé, sans implémentation Web et sans validation d'écoute ;
+il n'est donc pas promu dans export.py.
 
-Tu as autorisation de modifier le repo, installer les dépendances de test, télécharger
-les poids publics, pousser la branche et créer/mettre à jour la PR. Aucun réentraînement,
-aucun merge. Les fichiers /tmp de l'ancien runner ne sont pas nécessaires.
+1. Reproduis les tests et les benchmarks selon avx2/REPORT.md, avec le checkpoint
+   public inchangé, son SHA256 vérifié, du bruit commun déterministe, les deux
+   voix et plusieurs longueurs/vitesses/hauteurs. Les phrases doivent employer
+   le phonémiseur correspondant au checkpoint, avec ses données publiques déjà
+   construites : ne réentraîne rien. Compare les candidats au dense ONNX du même
+   runtime. Conserve séparément les écarts CPU/WASM préexistants.
+2. Tous les benchmarks doivent être séquentiels, 5 chauffes puis 30 mesures,
+   CPU et Chromium/WASM ORT Web 1.20.1 à 1 et 4 threads, filtrage et synthèse
+   complète, médiane/p95, taille et mémoire. Répète dans l'ordre inverse et garde
+   les temps individuels JSON. VmHWM CPU : processus neuf ; RSS Web : instantané,
+   pas pic ni taille du tas WASM. Relève matériel, versions et charge du runner.
+3. Cherche une FFT WASM spécialisée hors graphe correspondant au prototype
+   natif CPU. Mesure explicitement les transferts JS/WASM, les sorties neuronales,
+   le framing, la multiplication complexe, l'overlap-add et le crop. Évalue les
+   deux tailles, les frontières, identité, silence et impulsions sans changer le
+   DSP. Le prototype NumPy ne constitue pas une preuve de gain Web.
+4. Ne promeus une optimisation dans export.py que si les gains de bout en bout
+   sont répétables dans le périmètre visé, avec durées/longueurs inchangées et
+   les seuils de fidélité du README. Complète une validation acoustique d'écoute.
+   Conserve un fallback dense explicite ; un gain CPU ne justifie pas une bascule
+   globale Web. Sinon documente le résultat et laisse la production intacte.
+5. Mets à jour docs/e04 et la PR SANS merger. Rapporte les mesures, leurs limites,
+   les validations et le lien PR. L'accélération E04 reste à livrer.
+
+Tu as autorisation de modifier le repo, installer les dépendances de test,
+télécharger les poids/données publics, pousser la branche et mettre à jour la PR.
+Aucun merge et aucun réentraînement. Les fichiers /tmp des anciens runners ne
+sont pas nécessaires : tout doit rester reproductible depuis ce dépôt.

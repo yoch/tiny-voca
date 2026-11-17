@@ -1,0 +1,51 @@
+{
+  "recorded_at_utc": "2026-11-17T21:56:26Z",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "packages": {
+    "torch": "2.15.0+cpu",
+    "numpy": "2.5.4",
+    "onnx": "1.23.2",
+    "onnxruntime": "1.32.0",
+    "pytest": "9.2.0",
+    "soundfile": "0.14.0"
+  },
+  "lscpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           46 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  5\nOn-line CPU(s) list:                     0-4\nVendor ID:                               AuthenticAMD\nModel name:                              AMD EPYC 9V74 80-Core Processor\nCPU family:                              25\nModel:                                   17\nThread(s) per core:                      1\nCore(s) per socket:                      5\nSocket(s):                               1\nStepping:                                1\nBogoMIPS:                                5192.30\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext cpuid_fault vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx512_bf16 clzero xsaveerptr arat npt nrip_save tsc_scale vmcb_clean flushbyasid pausefilter pfthreshold v_vmsave_vmload avx512vbmi umip avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm arch_capabilities\nHypervisor vendor:                       KVM\nVirtualization type:                     full\nL1d cache:                               96 KiB (3 instances)\nL1i cache:                               96 KiB (3 instances)\nL2 cache:                                3 MiB (3 instances)\nL3 cache:                                32 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-4\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Vulnerable\nVulnerability Spec store bypass:         Vulnerable\nVulnerability Spectre v1:                Vulnerable: __user pointer sanitization and usercopy barriers only; no swapgs barriers\nVulnerability Spectre v2:                Vulnerable; STIBP: disabled; PBRSB-eIBRS: Not affected; BHI: Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Vulnerable\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected\n",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "torch_cpu_capability": "AVX512",
+  "avx2": true,
+  "cpu_quota": "400000 100000",
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "loadavg_start": "0.21 0.13 0.05 1/177 1137",
+  "checkpoint_url": "https://huggingface.co/n4ze3m/tiny-voca/resolve/main/tiny-voca.pt",
+  "checkpoint_sha256": "ebb22871524c5732520fb1652e6aefcec708a7452e83bdd00adcf6181db5ef70",
+  "notes": "AVX2 and AVX512 exposed. No ISA forced; no attribution of speed to AVX2 alone. CPU cgroup quota is four CPU equivalents despite five visible vCPUs.",
+  "huggingface_revision": "d94d2a0338fd1e0eab7dd896ec0ad23d8cdf7c14",
+  "phonemizer_git_revision": "8cd889e4de7be6bd1dd2e6891344a0729fa14dd4",
+  "phonemizer_data_sha256": {
+    "sources.json": "f4c54924d30a5bc0bc1e3d7b058adb924484b3fab8541bc8d8bcecfb028fdbad",
+    "lexicon.tsv": "3fc930345c6b3cabc533981c4b212fa309eec83913fcdbd42919338270d64b06",
+    "lexicon.json": "4d67c1f94b86405a5b8766fb13b8cd92a1371204767dd709582a337e8e0ab334",
+    "LICENSE.homograph-data": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "align.json": "864763dbd558a864950266b2c30627f1cad203e75062ee842ee63c653e823b75",
+    "LICENSE.cmudict": "bd4ce8e44170a5f9f481310ca85c51de3c4f851a65e679b40e603b143bd3542a",
+    "g2p.npz": "eb3fd519ff00e72d850928d2fccb968adc36134bca2f3bda09de7e794c2ed01b",
+    "homographs.json": "9c3a96fcdf79fa27d1b3686dc6a507c37e4f754966928608ee9ddb617ba39192",
+    "g2p.json": "c518fd839ea0109c0b2b4f778c17506bf0d7653557b8b8c97a4c8dd9883d4432"
+  },
+  "benchmark_base_commit": "60b0a5c8b06000dc93b9542711470fecac8c96e1",
+  "script_sha256": {
+    "scripts/benchmark_fft.py": "df971eb0349d1417b76eb9914801417c028988daa05855bfebce8584424ee9a3",
+    "scripts/benchmark_fft_web.cjs": "caea32eeb966539201661bf916790d67c23696abf784f80c09d976212e150063",
+    "scripts/benchmark_fft_native.py": "ba29436688be97f0d8deb301315b158f7744feea29f1f263d268f1d348009545",
+    "scripts/fft_candidates.py": "63fc345cc3b08d501eed6b0aaccf70058b8667e2d0610f14417a9292b8d14914"
+  },
+  "loadavg_end": "0.16 0.48 0.35 1/243 3989",
+  "cpu_stat_end": "usage_usec 463615728\nuser_usec 402901882\nsystem_usec 60713845\nnice_usec 0\nnr_periods 5349\nnr_throttled 215\nthrottled_usec 4564010\nnr_bursts 0\nburst_usec 0\n",
+  "completed_at_utc": "2026-11-17T22:04:53Z"
+}

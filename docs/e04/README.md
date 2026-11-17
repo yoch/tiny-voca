@@ -1,11 +1,15 @@
 # E04 — FFT vocoder experiments and handoff
 
-Status: **no production change accepted**. Continue on an AVX2 runner before deciding.
+Status: **no production change accepted**. The AVX2 rerun is complete: DFT and
+radix-2 still regress on CPU and Web. A staged native CPU FFT prototype has also
+been measured, but has no Web implementation or listening validation.
+See [AVX2 results and reproduction](avx2/REPORT.md), including both run orders,
+raw timings, fidelity checks and the decision to retain dense production export.
 `src/tiny_voca/export.py` is unchanged. Both candidates are isolated in
 `scripts/fft_candidates.py`; neither is selected by the production exporter.
 No retraining, checkpoint mutation, frontend change or merge.
 
-## Findings on this runner
+## Findings on the original runner
 
 Intel Core i7-3770, 4 cores / 8 logical CPUs, AVX, **no AVX2**. Linux x86_64,
 Python 3.14.7, PyTorch 2.15.0+cpu, ONNX 1.23.2, ONNX Runtime CPU 1.32.0.
@@ -134,8 +138,10 @@ never merge and never claim an undemonstrated gain.
   18,432 audio samples); its error/SNR fields likewise use the older Torch reference.
   Use the new candidate tests for strict dense-ONNX FFT parity.
 
-No listening validation or AVX2 measurement has been completed. Acceleration E04
-is unfinished; this branch is a reproducible handoff, not an accepted optimization.
+These are historical handoff results. The subsequent AVX2 measurements and
+expanded CPU/Web fidelity checks are recorded in [avx2/REPORT.md](avx2/REPORT.md).
+No listening validation has been completed. Acceleration E04 remains unfinished;
+this branch contains experiments, not an accepted production optimization.
 
 Sequential rerun (milliseconds and peak process RSS in MiB):
 

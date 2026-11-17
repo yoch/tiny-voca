@@ -6,3 +6,5 @@ onnxruntime==1.32.0
 pytest==9.2.0
 soundfile==0.14.0
 torch==2.15.0+cpu
+# Only needed by --sentences, with the public prebuilt phonemizer data.
+dizione @ git+https://github.com/n4ze3m/dizione@8cd889e4de7be6bd1dd2e6891344a0729fa14dd4

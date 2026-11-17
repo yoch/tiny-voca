@@ -7,6 +7,7 @@ import numpy as np
 import torch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from fft_candidates import Exportable, export
+from benchmark_fft_native import native_filter
 from test_export import small_model, utterance
 
 
@@ -19,7 +20,7 @@ class FFTFilterTest(unittest.TestCase):
     def test_deterministic_filters_match_dense_and_native(self):
         from tiny_voca.model import filtered
         dense = Exportable(self.model, fft_backend="dense")
-        fft_wrapper = Exportable(self.model, fft_backend="radix2")
+        fft_wrappers = [Exportable(self.model, fft_backend=b) for b in ("dft", "radix2")]
         rng = torch.Generator().manual_seed(42)
         for name, size, hop in (("synth", 512, 128), ("noise", 256, 64)):
             window = getattr(self.model.vocoder, name + "_window")
@@ -37,15 +38,69 @@ class FFTFilterTest(unittest.TestCase):
                         x.zero_()
                     if kind == "impulse":
                         x.zero_(); x[0, 0] = 1; x[0, -1] = -1
-                    with torch.no_grad():
-                        actual = fft_wrapper._filter(x, r, i, name, size, hop)
-                        previous = dense._filter(x, r, i, name, size, hop)
-                    self.assertTrue(torch.isfinite(actual).all())
-                    torch.testing.assert_close(actual, previous, atol=3e-6, rtol=2e-5)
-                    if kind == "identity":
-                        native = filtered(x, torch.complex(r[:, :-2], i[:, :-2]), size, hop, window)
-                        torch.testing.assert_close(actual, native, atol=3e-6, rtol=2e-5)
-                        torch.testing.assert_close(actual, x, atol=1e-6, rtol=1e-5)
+                    for fft_wrapper in fft_wrappers:
+                        with torch.no_grad():
+                            actual = fft_wrapper._filter(x, r, i, name, size, hop)
+                            previous = dense._filter(x, r, i, name, size, hop)
+                        self.assertTrue(torch.isfinite(actual).all())
+                        torch.testing.assert_close(actual, previous, atol=3e-6, rtol=2e-5)
+                        if kind == "identity":
+                            native = filtered(x, torch.complex(r[:, :-2], i[:, :-2]), size, hop, window)
+                            torch.testing.assert_close(actual, native, atol=3e-6, rtol=2e-5)
+                            torch.testing.assert_close(actual, x, atol=1e-6, rtol=1e-5)
+
+    def test_filter_onnx_boundaries(self):
+        try:
+            import onnxruntime as ort
+            import onnx
+        except ImportError:
+            self.skipTest("requires onnx and onnxruntime")
+        options = ort.SessionOptions()
+        options.intra_op_num_threads = 1
+        class Filter(torch.nn.Module):
+            def __init__(self, backend, name, size, hop):
+                super().__init__()
+                self.wrapper = Exportable(FFTFilterTest.model, fft_backend=backend)
+                self.name, self.size, self.hop = name, size, hop
+            def forward(self, source, real, imaginary):
+                return self.wrapper._filter(source, real, imaginary, self.name, self.size, self.hop)
+        rng = np.random.default_rng(42)
+        with tempfile.TemporaryDirectory() as directory, torch.no_grad():
+            for name, size, hop in (("synth",512,128),("noise",256,64)):
+                sessions = {}
+                for backend in ('dense','dft','radix2'):
+                    path = Path(directory)/f'{name}-{backend}.onnx'
+                    source = torch.zeros(1, size)
+                    response = torch.ones(1, size//hop+3, size//2+1)
+                    torch.onnx.export(Filter(backend,name,size,hop), (source,response,torch.zeros_like(response)), str(path),
+                                      input_names=['source','real','imaginary'], output_names=['audio'],
+                                      dynamic_axes={n:{1:'samples' if n in ('source','audio') else 'frames'} for n in ('source','real','imaginary','audio')},
+                                      opset_version=17, dynamo=False)
+                    sessions[backend] = ort.InferenceSession(str(path), options, providers=['CPUExecutionProvider'])
+                for samples in (hop-1,hop,hop+1,size-1,size,size+1,48001):
+                    shape = (1,samples//hop+3,size//2+1)
+                    source = rng.standard_normal((1,samples)).astype(np.float32)
+                    real = rng.standard_normal(shape).astype(np.float32)*.2
+                    imaginary = rng.standard_normal(shape).astype(np.float32)*.2
+                    for kind in ('random','identity','silence','zero-response','impulse'):
+                        x, r, i = source.copy(), real.copy(), imaginary.copy()
+                        if kind == 'identity': r.fill(1); i.fill(0)
+                        if kind == 'silence': x.fill(0)
+                        if kind == 'zero-response': r.fill(0); i.fill(0)
+                        if kind == 'impulse':
+                            x.fill(0)
+                            for position in (0,hop-1,hop,size-1,samples-1):
+                                if position < samples: x[0,position] = 1 if position%2 else -1
+                        feeds = dict(source=x,real=r,imaginary=i)
+                        reference = sessions['dense'].run(None,feeds)[0]
+                        window = getattr(self.model.vocoder,name+'_window').numpy()
+                        native = native_filter(x,r,i,window,hop)
+                        np.testing.assert_allclose(native,reference,atol=3e-6,rtol=2e-5)
+                        for backend in ('dft','radix2'):
+                            actual = sessions[backend].run(None,feeds)[0]
+                            self.assertEqual(actual.shape,(1,samples))
+                            self.assertTrue(np.isfinite(actual).all())
+                            np.testing.assert_allclose(actual,reference,atol=3e-6,rtol=2e-5)
 
     def test_full_onnx_parity_and_fallback(self):
         try:
@@ -83,6 +138,9 @@ class FFTFilterTest(unittest.TestCase):
                     self.assertGreater(10*np.log10(np.sum(reference.astype(np.float64)**2)/np.sum(error**2)), 100)
 
     def test_invalid_backend_and_opset(self):
+        from fft_candidates import _RadixFFT
+        with self.assertRaises(ValueError):
+            _RadixFFT(300)
         with self.assertRaises(ValueError):
             Exportable(self.model, fft_backend="unknown")
         with self.assertRaises(ValueError):
