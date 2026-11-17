@@ -1,4 +1,6 @@
+import json
 import os
+from pathlib import Path
 import shutil
 import unittest
 from unittest.mock import patch
@@ -82,6 +84,60 @@ class FrontEndTests(unittest.TestCase):
         self.assertEqual(result.unknown, ())
         self.assertGreater(len(set(result.symbols) & PHONE_SET), 25)
         self.assertEqual(sum(result.stress[i] > 0 and s not in PHONE_SET for i, s in enumerate(result.symbols)), 0)
+
+    @unittest.skipUnless(HAVE_ESPEAK, "requires espeak-ng or libespeak-ng")
+    def test_french_e01_normalization_liaisons_elisions_and_state_isolation(self):
+        # Inventory / frontend fingerprint stays strictly compatible with checkpoint format 4.
+        self.assertEqual(
+            frontend_fingerprint(),
+            "31807ddbd16771299960e70d15addc80902ab70ae20738240178903e23c7f7a6",
+        )
+        # libespeak lookahead buffer must not leak across calls after abbreviation+dot+digit.
+        self.assertEqual(phonemize("Voir fig. 2.").symbols[1:-1], ("v", "w", "a", "ʁ", SP, "f", "i", "ɡ", "y", "ʁ", SP, "d", "ø", "."))
+        self.assertEqual(phonemize("etc.").symbols[1:-1], ("ɛ", "t", "s", "e", "t", "e", "ʁ", "a"))
+        self.assertEqual(phonemize("Cʼest dʼaujourdʼhui.").ids, phonemize("C'est d'aujourd'hui.").ids)
+
+        expected = {
+            "14h30": ("k", "a", "t", "ɔ", "ʁ", "z", SP, "œ", "ʁ", SP, "t", "ʁ", "ɑ̃", "t"),
+            "12,50 €": ("d", "u", "z", SP, "ø", "ʁ", "o", SP, "s", "ɛ̃", "k", "ɑ̃", "t"),
+            "-5 °C": ("m", "w", "ɛ̃", SP, "s", "ɛ̃", "k", SP, "d", "ə", "ɡ", "ʁ", "e", SP, "s", "ɛ", "l", "s", "j", "y", "s"),
+            "n° 12": ("n", "y", "m", "e", "ʁ", "o", SP, "d", "u", "z"),
+            "MM. Dupont": ("m", "e", "s", "j", "ø", SP, "d", "y", "p", "ɔ̃"),
+            "M. de Gaulle": ("m", "ə", "s", "j", "ø", SP, "d", "ə", SP, "ɡ", "o", "l"),
+            "deux heures et demie": ("d", "ø", "z", SP, "œ", "ʁ", SP, "e", SP, "d", "ə", "m", "i"),
+            "du beurre doux et bon": ("d", "y", SP, "b", "œ", "ʁ", SP, "d", "u", SP, "e", SP, "b", "ɔ̃"),
+            "ils partent en voyage": ("i", "l", SP, "p", "a", "ʁ", "t", SP, "ɑ̃", SP, "v", "w", "a", "j", "a", "ʒ"),
+            "des choses étranges": ("d", "e", SP, "ʃ", "o", "z", SP, "e", "t", "ʁ", "ɑ̃", "ʒ"),
+            "les enfants jouent": ("l", "e", "z", SP, "ɑ̃", "f", "ɑ̃", SP, "ʒ", "u"),
+            "vas-y": ("v", "a", "z", "i"),
+            "d'aujourd'hui": ("d", "o", "ʒ", "u", "ʁ", "d", "y", "i"),
+            "l'enthousiasme": ("l", "ɑ̃", "t", "u", "z", "j", "a", "s", "m"),
+            "qu'homme": ("k", "ɔ", "m"),
+            "Annecy": ("a", "n", "s", "i"),
+            "un dos droit": ("œ̃", SP, "d", "o", SP, "d", "ʁ", "w", "a"),
+            "tous deux": ("t", "u", SP, "d", "ø"),
+            "en plus": ("ɑ̃", SP, "p", "l", "y", "s"),
+            "à l'est": ("a", SP, "l", "ɛ", "s", "t"),
+            "une vis": ("y", "n", SP, "v", "i", "s"),
+            "mes fils": ("m", "e", SP, "f", "i", "s"),
+            "se fier": ("s", "ə", SP, "f", "j", "e"),
+        }
+        for phrase, phones in expected.items():
+            got = phonemize(phrase)
+            self.assertEqual(got.unknown, (), phrase)
+            self.assertEqual(got.symbols[1:-1], phones, phrase)
+
+    @unittest.skipUnless(HAVE_ESPEAK, "requires espeak-ng or libespeak-ng")
+    def test_french_benchmark_regression(self):
+        cases = json.loads((Path(__file__).resolve().with_name("french_phoneme_benchmark.json")).read_text(encoding="utf-8"))
+        exact = 0
+        for case in cases:
+            got = phonemize(case["text"])
+            self.assertEqual(got.unknown, (), case["id"])
+            got_seq = tuple(s for s in got.symbols if s in PHONE_SET or s == UNK)
+            if any(got_seq == tuple(ref.split()) for ref in case["variants"]):
+                exact += 1
+        self.assertGreaterEqual(exact, 260)
 
 
 if __name__ == "__main__":

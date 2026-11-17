@@ -94,7 +94,7 @@ async function loadModel() {
   session = await ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] });
 }
 
-const ABBREVIATIONS = /(?:^|[\s"“(\[\u00AB])(?:m|mme|mlle|mr|mrs|ms|dr|prof|sr|jr|st|ste|vs|etc|no|inc|ltd|co|ex|cf|av|bd|fig|vol|env|e\.g|i\.e|a\.m|p\.m|[A-Z\u00C0-\u00D6\u00D8-\u00DE\u0152\u0178])\.$/i;
+const ABBREVIATIONS = /(?:^|[\s"“(\[\u00AB])(?:m|mm|mme|mlle|mr|mrs|ms|dr|prof|mgr|sr|jr|st|ste|vs|etc|no|inc|ltd|co|ex|cf|av|ap|bd|fig|vol|chap|art|env|e\.g|i\.e|a\.m|p\.m|[A-Z\u00C0-\u00D6\u00D8-\u00DE\u0152\u0178])\.$/i;
 
 // Sentences, without breaking after titles, initials or inside numbers.
 // tiny_voca.infer.sentences in the Python package splits the same way; keep the two alike.

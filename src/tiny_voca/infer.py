@@ -14,7 +14,7 @@ ENGLISH_ONLY = "tiny-voca only reads French for now"
 _SPACE = re.compile("[\\s" + chr(0xFEFF) + "]+")    # JavaScript's \s, which the demo uses, takes U+FEFF too
 _SENTENCE_END = re.compile(r"""(?:(?<=[.!?…])|(?<=[.!?…]["'”’)\]»]))\s+(?=["'“‘(\[«]?[A-ZÀ-ÖØ-ÞŒŸ0-9])""")
 _NOT_AN_END = re.compile(
-    r"(?:^|[\s\"“(\[«])(?:m|mme|mlle|mr|mrs|ms|dr|prof|sr|jr|st|ste|vs|etc|no|inc|ltd|co|ex|cf|av|bd|fig|vol|env|e\.g|i\.e|a\.m|p\.m"
+    r"(?:^|[\s\"“(\[«])(?:m|mm|mme|mlle|mr|mrs|ms|dr|prof|mgr|sr|jr|st|ste|vs|etc|no|inc|ltd|co|ex|cf|av|ap|bd|fig|vol|chap|art|env|e\.g|i\.e|a\.m|p\.m"
     r"|[A-ZÀ-ÖØ-ÞŒŸ])\.$",
     re.IGNORECASE,
 )

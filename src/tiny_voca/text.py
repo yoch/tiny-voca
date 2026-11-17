@@ -76,17 +76,139 @@ FALLBACK = {
 
 _QUOTES = str.maketrans({
     "‘": "'", "’": "'", "‚": "'", "‛": "'", "`": "'", "´": "'",
+    "ʼ": "'", "ʻ": "'", "ʹ": "'", "′": "'",
     "“": '"', "”": '"', "„": '"', "‟": '"', "«": '"', "»": '"',
-    "–": "—", "―": "—", "[": "(", "{": "(", "]": ")", "}": ")",
+    "–": "—", "―": "—", "‐": "-", "‑": "-", "−": "-",
+    "[": "(", "{": "(", "]": ")", "}": ")",
 })
 _PUNCTUATION_CHARS = frozenset(PUNCTUATION)
 ABBREVIATIONS = {
-    "m", "mme", "mlle", "mr", "mrs", "ms", "dr", "prof", "st", "ste",
-    "etc", "ex", "cf", "av", "bd", "fig", "vol", "env",
+    "m", "mm", "mme", "mlle", "mgr", "mr", "mrs", "ms", "dr", "prof", "st", "ste",
+    "etc", "ex", "cf", "av", "ap", "bd", "fig", "vol", "env", "p", "chap", "art", "tél",
 }
 _LANGUAGE_TAG = re.compile(r"\((?:_?[a-z0-9]_?){2,3}(?:-(?:_?[a-z0-9]_?)+)*\)")
-_MONSIEUR_ABBR = re.compile(r"(?<![A-ZÀ-ÖØ-ÞŒ]\.\s)\bM\.\s+(?=[A-ZÀ-ÖØ-ÞŒ])")
+_MONSIEUR_ABBR = re.compile(r"(?<![A-ZÀ-ÖØ-ÞŒ]\.\s)(?<!\.)\bM\.\s+(?=[A-Za-zÀ-ÖØ-öø-ÿŒœ])")
 _ALPHA_WORD_BEFORE_DOT = re.compile(r"([A-Za-zÀ-ÖØ-öø-ÿŒœ]+)$")
+
+_MONTHS_FR = (
+    "janvier", "février", "mars", "avril", "mai", "juin",
+    "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+)
+_UNITS_FR = (
+    "zéro", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf",
+    "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf",
+)
+_TENS_FR = {2: "vingt", 3: "trente", 4: "quarante", 5: "cinquante", 6: "soixante"}
+_ROMAN_VALUES = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+_ROMAN_VALID = re.compile(r"^M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})$")
+_ROMAN_ORDINAL_RE = re.compile(
+    r"\b((?:I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII|XIII|XIV|XV|XVI|XVII|XVIII|XIX|"
+    r"XX|XXI|XXII|XXIII|XXIV|XXV|XXVI|XXVII|XXVIII|XXIX|XXX)(?:er|ers|re|res|ère|ères|e|es|ème|èmes)|"
+    r"I(?:er|ers|re|res|ère|ères))\b"
+)
+_ROMAN_CONTEXT_RE = re.compile(
+    r"\b(Louis|Henri|Charles|François|Philippe|Napoléon|Jean-Paul|Benoît|Pie|Léon|Clément|"
+    r"Innocent|Grégoire|Alexandre|Édouard|George|Georges|Albert|Baudouin|Léopold|"
+    r"tome|chapitre|acte|scène|livre|partie|volume|article|siècle)\s+([IVX]+)\b"
+)
+_ARABIC_ORDINAL_RE = re.compile(r"\b(\d+)(er|ers|re|res|ère|ères|e|es|ème|èmes)\b")
+_FRENCH_INITIALISMS = frozenset({
+    "UE", "IA", "PME", "PMI", "RSA", "RER", "TER", "IRM", "IVG", "PIB", "CGU", "CDI", "CDD",
+    "SPA", "JO", "VIP", "EDF", "GDF", "BTP", "BNP", "QG", "PNB", "CPU", "GPU", "API", "TTS",
+    "ASR", "USB", "SSD", "RAM", "SQL", "SSH", "XML", "CSV", "FAQ",
+})
+_ACRONYM_HINTS = {"INSEE": "ainsé", "ZUP": "zuppe"}
+_FRENCH_WORD_HINTS = {
+    "annecy": "anneci",
+    "nancy": "nanssi",
+    "fleury": "fleuri",
+    "coud": "cou",
+    "couds": "cou",
+    "bruns": "brun",
+    "vécut": "vécue",
+    "traversons": "traverçons",
+    "sied": "sié",
+    "sieds": "sié",
+    "assied": "assié",
+    "assieds": "assié",
+    "pull": "pulle",
+    "pulls": "pulle",
+    "wallon": "ouallon",
+    "wallons": "ouallons",
+    "wallonne": "ouallone",
+    "wallonnes": "ouallones",
+    "v'là": "vla",
+    "zénith": "zénite",
+    "zéniths": "zénite",
+    "rythme": "ritme",
+    "rythmes": "ritme",
+    "mythe": "mite",
+    "mythes": "mite",
+    "luth": "lutte",
+    "luths": "lutte",
+    "labyrinthe": "labyrinte",
+    "labyrinthes": "labyrinte",
+    "lithographie": "litografie",
+    "lithographies": "litografie",
+    "misanthrope": "misantrope",
+    "misanthropes": "misantrope",
+    "euthanasie": "eutanasie",
+    "enthousiasme": "antouziasme",
+    "enthousiasmes": "antouziasme",
+    "enthousiasmer": "antouziasmer",
+    "enthousiasma": "antouziasma",
+    "enthousiasmé": "antouziasmé",
+    "enthousiasmée": "antouziasmé",
+    "enthousiasmés": "antouziasmé",
+    "enthousiasmées": "antouziasmé",
+    "arithmétique": "aritmétique",
+    "arithmétiques": "aritmétique",
+    "absinthe": "absinte",
+    "absinthes": "absinte",
+    "éther": "étère",
+    "éthers": "étère",
+    "jacinthe": "jacinte",
+    "jacinthes": "jacinte",
+    "léthifère": "létifère",
+    "reims": "rince",
+    "amer": "amère",
+    "amers": "amère",
+    "cuiller": "cuillère",
+    "cuillers": "cuillère",
+    "esther": "Estère",
+    "héroïne": "éroïne",
+    "héroïnes": "éroïnes",
+    "héroïque": "éroïque",
+    "héroïques": "éroïques",
+    "héroïsme": "éroïsme",
+    "quatre-vingt-onze": "91",
+}
+_FRENCH_WORD_HINT_RE = re.compile(
+    r"\b(" + "|".join(sorted((re.escape(k) for k in _FRENCH_WORD_HINTS), key=len, reverse=True)) + r")\b",
+    re.IGNORECASE,
+)
+_DOS_WORD_RE = re.compile(r"\b(?:Dos|dos)\b")
+_OUENT_RE = re.compile(r"\b([a-zà-öø-ÿœ'-]*[bcdfghjklmnpqrstvwxzç]ou)(?:es|ent)\b", re.IGNORECASE)
+_ELIDED_PREFIX_PHONES = {
+    "d": [("d", 0)],
+    "l": [("l", 0)],
+    "n": [("n", 0)],
+    "s": [("s", 0)],
+    "m": [("m", 0)],
+    "t": [("t", 0)],
+    "j": [("ʒ", 0)],
+    "c": [("s", 0)],
+    "qu": [("k", 0)],
+    "jusqu": [("ʒ", 0), ("y", 0), ("s", 0), ("k", 0)],
+    "lorsqu": [("l", 0), ("ɔ", 0), ("ʁ", 0), ("s", 0), ("k", 0)],
+    "puisqu": [("p", 0), ("y", 0), ("i", 0), ("s", 0), ("k", 0)],
+    "quoiqu": [("k", 0), ("w", 0), ("a", 0), ("k", 0)],
+}
+_ELIDED_WORD_RE = re.compile(
+    r"\b(jusqu|lorsqu|puisqu|quoiqu|qu|[dlnsmtjc])'([A-Za-zÀ-ÖØ-öø-ÿŒœ]+(?:['-][A-Za-zÀ-ÖØ-öø-ÿŒœ]+)*)\b",
+    re.IGNORECASE,
+)
+_NO_LIAISON_SPLIT_RE = re.compile(r"(?i)(?:(?<!\bvingt)\s+(?=\bet\b)|\s+(?=\bhameaux?\b))")
 
 _ESPEAK_LOCK = threading.Lock()
 _ESPEAK_LIB = None
@@ -137,6 +259,226 @@ def frontend_runtime():
 
 def frontend_fingerprint():
     return hashlib.sha256(json.dumps(frontend_identity(), sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def _number_fr(n):
+    if n < 20:
+        return _UNITS_FR[n]
+    if n < 70:
+        t, u = divmod(n, 10)
+        if u == 0:
+            return _TENS_FR[t]
+        if u == 1:
+            return f"{_TENS_FR[t]} et un"
+        return f"{_TENS_FR[t]}-{_UNITS_FR[u]}"
+    if n < 80:
+        u = n - 60
+        return "soixante et onze" if u == 11 else f"soixante-{_UNITS_FR[u]}"
+    if n < 100:
+        u = n - 80
+        return "quatre-vingts" if u == 0 else f"quatre-vingt-{_UNITS_FR[u]}"
+    if n < 1000:
+        h, rest = divmod(n, 100)
+        prefix = "cent" if h == 1 else f"{_UNITS_FR[h]} cents" if rest == 0 else f"{_UNITS_FR[h]} cent"
+        return prefix if rest == 0 else f"{prefix} {_number_fr(rest)}"
+    if n < 1_000_000:
+        k, rest = divmod(n, 1000)
+        prefix = "mille" if k == 1 else f"{_number_fr(k)} mille"
+        return prefix if rest == 0 else f"{prefix} {_number_fr(rest)}"
+    return str(n)
+
+
+def _ordinal_fr(n, feminine=False, plural=False):
+    if n == 1:
+        base = "première" if feminine else "premier"
+    else:
+        word = _number_fr(n)
+        if word.endswith("s"):
+            word = word[:-1]
+        if word.endswith("e"):
+            word = word[:-1]
+        elif word.endswith("q"):
+            word = word + "u"
+        elif word.endswith("f"):
+            word = word[:-1] + "v"
+        base = word + "ième"
+    return base + "s" if plural else base
+
+
+def _roman_to_int(token):
+    if not token or not _ROMAN_VALID.match(token):
+        return None
+    total, prev = 0, 0
+    for ch in reversed(token):
+        val = _ROMAN_VALUES[ch]
+        total = total - val if val < prev else total + val
+        prev = val
+    return total
+
+
+def _expand_french_text(text):
+    """Expand French numbers, dates, clock times, currencies, units, ordinals,
+    abbreviations and eSpeak French pitfalls into speakable French text."""
+    # 1. Archaic grand' compounds ("grand'mère", "grand'chose") -> hyphenated form.
+    text = re.sub(r"\b([Gg]rand)'(?=[bcdfghjklmnpqrstvwxzçBDFGHJKLMNPQRSTVWXZÇ])", r"\1-", text)
+    # 2. Negative numbers ("-5 °C") without touching dates/ranges ("2026-11-17").
+    text = re.sub(r"(?<![\w.,-])[-−](?=\d+(?:[.,]\d+)?(?![/-]\d))", "moins ", text)
+    # 3. Abbreviations.
+    text = re.sub(r"\bMM\.\s*", "Messieurs ", text)
+    text = re.sub(r"\bMgr\.?\s+", "Monseigneur ", text)
+    text = re.sub(r"\bav\.\s*J\.-?C\.?", "avant Jésus-Christ", text)
+    text = re.sub(r"\bap\.\s*J\.-?C\.?", "après Jésus-Christ", text)
+    text = re.sub(r"\bpar\s+ex\.", "par exemple", text)
+    text = re.sub(r"\bp\.\s*(?=\d)", "page ", text)
+    text = re.sub(r"\bfig\.\s*(?=\d)", "figure ", text)
+    text = re.sub(r"\bvol\.\s*(?=\d)", "volume ", text)
+    text = re.sub(r"\bchap\.\s*(?=\d)", "chapitre ", text)
+    text = re.sub(r"\benv\.\s*(?=\d)", "environ ", text)
+    text = re.sub(r"\b[nN][°º]\s*", "numéro ", text)
+
+    # 4. Dates (DD/MM/YYYY and YYYY-MM-DD).
+    def _date(day, month, year):
+        d = "premier" if int(day) == 1 else str(int(day))
+        return f"{d} {_MONTHS_FR[int(month) - 1]} {year}"
+
+    text = re.sub(
+        r"\b(0?[1-9]|[12]\d|3[01])/(0?[1-9]|1[0-2])/([12]\d{3})\b",
+        lambda m: _date(m[1], m[2], m[3]),
+        text,
+    )
+    text = re.sub(
+        r"\b([12]\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b",
+        lambda m: _date(m[3], m[2], m[1]),
+        text,
+    )
+
+    # 5. Clock times ("14h30", "9h05", "14h00", "8h", "1h30", "00h15").
+    def _clock(m):
+        hour, mins = int(m[1]), m[2]
+        if hour == 1:
+            head = "une heure"
+        elif hour == 0:
+            head = "zéro heure"
+        elif hour == 9:
+            head = "neuf heures"
+        else:
+            head = f"{hour} heures"
+        if mins is None or mins == "00":
+            return head
+        return f"{head} {int(mins)}"
+
+    text = re.sub(r"\b(\d{1,3})\s*[hH](?:\s*([0-5]\d))?\b", _clock, text)
+
+    # 6. Currencies ("12,50 €", "1 €", "12 €", "$100", "£50").
+    def _euro_cents(m):
+        whole, cents = m[1].strip(), m[2]
+        unit = "euro" if whole in ("0", "1") else "euros"
+        base = f"{'un' if whole == '1' else whole} {unit}"
+        return base if cents == "00" else f"{base} {int(cents)}"
+
+    num = r"(?<!\d)(?:\d{1,3}(?:[ .]\d{3})+|\d+)"
+    text = re.sub(rf"({num}),(\d{{2}})\s*(?:€|EUR\b)", _euro_cents, text)
+    text = re.sub(r"\b1\s*(?:€|EUR\b)", "un euro", text)
+    text = re.sub(rf"({num}(?:,\d+)?)\s*(?:€|EUR\b)", r"\1 euros", text)
+    text = re.sub(rf"(?:€|EUR\b)\s*({num}),(\d{{2}})\b", lambda m: _euro_cents(m), text)
+    text = re.sub(rf"(?:€|EUR\b)\s*({num}(?:,\d+)?)\b", r"\1 euros", text)
+    text = text.replace("€", " euros ")
+    text = re.sub(rf"\$\s*({num}(?:[.,]\d+)?)\b", r"\1 dollars", text)
+    text = re.sub(rf"£\s*({num}(?:[.,]\d+)?)\b", r"\1 livres", text)
+
+    # 7. Temperatures & units.
+    text = re.sub(r"°\s*C\b", " degrés Celsius", text)
+    text = re.sub(r"°\s*F\b", " degrés Fahrenheit", text)
+    text = re.sub(r"\bkm/h\b", "kilomètres par heure", text)
+    text = re.sub(r"\bm/s\b", "mètres par seconde", text)
+    text = re.sub(r"\bkm²", " kilomètres carrés", text)
+    text = re.sub(r"\bm²", " mètres carrés", text)
+    text = re.sub(r"\bm³", " mètres cubes", text)
+    text = re.sub(r"\b1\s*min\b", "une minute", text)
+    text = re.sub(r"\b(\d+(?:,\d+)?)\s*min\b", r"\1 minutes", text)
+    text = re.sub(r"\b(\d+(?:,\d+)?)\s*g\b", r"\1 grammes", text)
+    text = re.sub(r"\b(\d+(?:,\d+)?)\s*m\b", r"\1 mètres", text)
+    text = re.sub(r"\b(\d+(?:,\d+)?)\s*[Ll]\b", r"\1 litres", text)
+    text = re.sub(r"\b(\d+(?:,\d+)?)\s+s\b", r"\1 secondes", text)
+
+    # 8. Ordinals & contextual Roman numerals.
+    def _arabic_ord(m):
+        val = int(m[1])
+        if val < 1 or val >= 1_000_000:
+            return m[0]
+        suf = m[2]
+        return _ordinal_fr(val, feminine=("re" in suf or "ère" in suf), plural=suf.endswith("s"))
+
+    def _roman_ord(m):
+        raw_token = m[0]
+        match = re.match(r"^([IVXLCDM]+)(er|ers|re|res|ère|ères|e|es|ème|èmes)$", raw_token)
+        val = _roman_to_int(match[1]) if match else None
+        if not val:
+            return raw_token
+        suf = match[2]
+        return _ordinal_fr(val, feminine=("re" in suf or "ère" in suf), plural=suf.endswith("s"))
+
+    text = _ARABIC_ORDINAL_RE.sub(_arabic_ord, text)
+    text = _ROMAN_ORDINAL_RE.sub(_roman_ord, text)
+    text = _ROMAN_CONTEXT_RE.sub(lambda m: f"{m[1]} {_roman_to_int(m[2]) or m[2]}", text)
+
+    # 9. Acronyms / initialisms.
+    def _acronym(m):
+        word = m[0]
+        if word in _ACRONYM_HINTS:
+            return _ACRONYM_HINTS[word]
+        if word in _FRENCH_INITIALISMS:
+            return " ".join(word)
+        return word
+
+    text = re.sub(r"\b[A-Z]{2,}\b", _acronym, text)
+
+    # 10. High-precision French homograph disambiguations.
+    text = re.sub(
+        r"\b(à|de|du|vers|dans|par|pour|sur|en|sous|jusqu'à)\s+(l)'[Ee]st\b",
+        r"\1 \2'este",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(r"\b(l|L)'Est\b", r"\1'este", text)
+    text = re.sub(
+        r"\btous\s+(deux|trois|quatre|cinq|six|sept|huit|neuf|dix)\b",
+        r"tou \1",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\ben\s+plus(?=\s+de\b|\s*[,.;:!?—…)]|\s*$)",
+        "en plusse",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(r"\b(une|cette|des)\s+vis\b", r"\1 visse", text, flags=re.IGNORECASE)
+    text = re.sub(
+        r"(\b(?:je|tu|il|elle|on|nous|vous|ils|elles|qui|ne)\s+)\b(la|les)\s+vis\b|\b(la|les)\s+vis\b",
+        lambda m: m[0] if m[1] else f"{m[3]} visse",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\b(les|des|ces|mes|tes|ses|nos|vos|leurs|quelques|plusieurs)\s+os\b",
+        r"\1 eaux",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\b(mes|tes|ses|nos|vos|leurs)\s+fils\b(?!\s+(?:électriques?|métalliques?|conducteurs?|de\s+(?:fer|soie|coton|laine|cuivre|nylon|acier|plomb)))",
+        r"\1 fisse",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(r"\b(me|te|se|nous|vous)\s+fier\b", r"\1 fié", text, flags=re.IGNORECASE)
+
+    # 11. French words misclassified as (en) or mispronounced by eSpeak NG, and -oues/-ouent.
+    text = _DOS_WORD_RE.sub("dô", text)
+    text = _FRENCH_WORD_HINT_RE.sub(lambda m: _FRENCH_WORD_HINTS[m[1].lower()], text)
+    text = _OUENT_RE.sub(r"\1e", text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def normalize_text(text):
@@ -221,29 +563,71 @@ def espeak_version():
     return "libespeak-ng"
 
 
-def espeak_words(piece):
-    """Phonemize one text piece. Returns words as lists of ``(phone, stress)``.
+def _raw_espeak(piece):
+    """Run eSpeak NG on one text piece and return its raw IPA clause output.
 
-    The input must end with a newline when calling the CLI: eSpeak NG 1.51
-    silently drops the last character of unterminated standard input.
+    Both the CLI and libespeak-ng require a trailing newline: eSpeak NG 1.51
+    can otherwise drop or retain trailing tokens across sequential calls.
     """
+    terminated = piece.rstrip("\n") + "\n"
     executable = espeak_executable()
     if executable is not None:
         result = subprocess.run(
             [executable, "-q", "--ipa", "--sep=" + SEPARATOR, "-v", ESPEAK_VOICE, "--stdin"],
-            input=piece.rstrip("\n") + "\n", text=True, capture_output=True, check=True, timeout=30)
-        return parse_espeak(result.stdout)
+            input=terminated, text=True, capture_output=True, check=True, timeout=30)
+        return result.stdout
     with _ESPEAK_LOCK:
         lib = _load_libespeak()
-        buf = ctypes.c_char_p(piece.encode("utf-8"))
-        ptr = ctypes.c_char_p(buf.value)
+        encoded = terminated.encode("utf-8")
+        buf = ctypes.create_string_buffer(encoded)
+        ptr = ctypes.c_char_p(ctypes.addressof(buf))
         mode = 0x02 | (ord(SEPARATOR) << 8)
         clauses = []
         while ptr.value:
             out = lib.espeak_TextToPhonemes(ctypes.byref(ptr), 1, mode)
             if out:
                 clauses.append(out.decode("utf-8"))
-        return parse_espeak(" ".join(clauses))
+        return " ".join(clauses)
+
+
+def _espeak_subpiece(sub):
+    raw = _raw_espeak(sub)
+    if "(en)" in raw:
+        for match in _ELIDED_WORD_RE.finditer(sub):
+            if "(en)" not in _raw_espeak(match[0]):
+                continue
+            prefix_phones = _ELIDED_PREFIX_PHONES.get(match[1].lower())
+            if prefix_phones is None:
+                continue
+            left = sub[:match.start()].strip()
+            stem_start = match.start() + len(match[1]) + 1
+            rest = sub[stem_start:].strip()
+            words = _espeak_subpiece(left) if left else []
+            if rest:
+                rest_words = _espeak_subpiece(rest)
+                if rest_words:
+                    words.append(list(prefix_phones) + rest_words[0])
+                    words.extend(rest_words[1:])
+            return words
+    return parse_espeak(raw)
+
+
+def espeak_words(piece):
+    """Phonemize one text piece. Returns words as lists of ``(phone, stress)``."""
+    words = []
+    for sub in _NO_LIAISON_SPLIT_RE.split(piece):
+        sub = sub.strip()
+        if sub:
+            words.extend(_espeak_subpiece(sub))
+    for word in words:
+        while len(word) >= 2 and word[-1][0] in ("t", "z") and word[-2][0] == word[-1][0]:
+            word[-2] = (word[-2][0], max(word[-2][1], word[-1][1]))
+            word.pop()
+    if re.search(r"-[yY]\b", piece):
+        for word in words:
+            if len(word) >= 5 and [p for p, _ in word[-5:]] == ["i", "ɡ", "ʁ", "ɛ", "k"]:
+                word[-5:] = [("i", max(word[-5][1], word[-2][1]))]
+    return words
 
 
 def parse_espeak(output):
@@ -329,7 +713,7 @@ def phonemize(text):
     if not isinstance(text, str) or not text.strip():
         raise ValueError("text must not be empty")
     pieces = []
-    for punctuation, piece in chunks(normalize_text(text)):
+    for punctuation, piece in chunks(_expand_french_text(normalize_text(text))):
         pieces.append((True, piece) if punctuation else (False, espeak_words(piece)))
     return tokenize(pieces)
 

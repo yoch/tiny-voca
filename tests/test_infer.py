@@ -104,11 +104,14 @@ console.log(JSON.stringify(JSON.parse(fs.readFileSync(0, "utf8")).map((text) => 
             "Dr. Smith paid $3.50 for version 2.0. Then he left", "J. K. Lee wrote it, e.g. in May. Yes",
             '"Stop!" she said. "Go." (Really.) 3 times', "It works. it really does", "We met at 5 p.m. Then we left",
             "Écoutez bien. À demain ! Il l'a. Et toi ?", "M. Dupont arrive. Mme Martin part",
+            "MM. Dupont et Mgr Martin arrivent. Ils parlent.", "Voir fig. 2, p. 12 et chap. 3. Ensuite on lit.",
             "... !!! Hello. :)", "No mark here " + BOM, "Shopping list:\n- eggs\n- milk\n- bread\n"]
         done = subprocess.run(["node", "-e", harness, str(worker)], input=json.dumps(texts), capture_output=True, text=True,
                               encoding="utf-8", check=True)
         for text, (ended, parts) in zip(texts, json.loads(done.stdout)):
             self.assertEqual((ended, parts), (finished(text), sentences(finished(text))), text)
+        self.assertEqual(sentences("MM. Dupont et Mgr Martin arrivent. Ils parlent."),
+                         ["MM. Dupont et Mgr Martin arrivent.", "Ils parlent."])
 
     def test_shorter_pieces(self):
         self.assertEqual(shorter("first, second; third: fourth — fifth"), ["first,", "second;", "third:", "fourth —", "fifth"])
