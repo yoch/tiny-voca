@@ -1,5 +1,9 @@
 # Tiny Voca anglais autonome
 
+La [finalisation](FINALIZATION.md) contient les décisions courantes, le paquet
+Hugging Face et les mesures complémentaires. Le présent document conserve
+le protocole de recherche et ses résultats.
+
 ## Référence et protocole
 
 La branche part de `main` à `db851f75c6287a15be4c4e995f931bce3a86b47b`.

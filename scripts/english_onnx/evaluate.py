@@ -268,7 +268,11 @@ def independent_metrics(asr_path, speaker_path):
 
 
 def evaluate(args):
-    samples = list(cases(args.split))
+    samples = (
+        json.loads(args.fixture.read_text())
+        if args.fixture
+        else list(cases(args.split))
+    )
     if args.cases:
         args.cases.write_text(json.dumps(samples, indent=2) + "\n")
     original = session(args.original, args.threads)
@@ -276,7 +280,7 @@ def evaluate(args):
         p.stem.removesuffix("-fixed"): session(p, args.threads) for p in args.trials
     }
     report = {
-        "split": args.split,
+        "split": args.fixture.stem if args.fixture else args.split,
         "baseline_sha256": sha(args.original),
         "candidates": {p.stem.removesuffix("-fixed"): sha(p) for p in args.trials},
         "cases": [],
@@ -297,13 +301,8 @@ def evaluate(args):
         source = features(reference)
         transcript, embedding = secondary(reference) if secondary else (None, None)
         result = {"case": case, "reference_transcript": transcript, "metrics": {}}
-        if args.wavs and (i // 2 in (0, 6, 25, 44, 63, 82)):
-            sf.write(
-                args.wavs / f"original-{case['id']}.wav",
-                peak_limit(reference),
-                RATE,
-                subtype="PCM_16",
-            )
+        save_wavs = args.wavs and (args.fixture or i // 2 in (0, 6, 25, 44, 63, 82))
+        pair = {"original": reference} if save_wavs else None
         for name, runtime in trials.items():
             audio, durations = render(runtime, data)
             row = summary(
@@ -318,10 +317,17 @@ def evaluate(args):
                 if embedding is not None:
                     row["speaker_cosine"] = float(np.dot(embedding, trial_embedding))
             result["metrics"][name] = row
-            if args.wavs and (i // 2 in (0, 6, 25, 44, 63, 82)):
+            if pair is not None:
+                pair[name] = audio
+        if pair is not None:
+            # A single gain across candidates avoids accidental loudness cues
+            # from independent peak normalization in the listening fixture.
+            largest = max(float(np.abs(audio).max()) for audio in pair.values())
+            gain = 0.99 / largest if largest > 0.99 else 1.0
+            for name, audio in pair.items():
                 sf.write(
                     args.wavs / f"{name}-{case['id']}.wav",
-                    peak_limit(audio),
+                    audio * gain,
                     RATE,
                     subtype="PCM_16",
                 )
@@ -343,6 +349,9 @@ if __name__ == "__main__":
         "--split", choices=("calibration", "holdout"), default="calibration"
     )
     parser.add_argument("--threads", type=int, default=1)
+    parser.add_argument(
+        "--fixture", type=Path, help="Use pre-encoded cases and save every WAV"
+    )
     parser.add_argument(
         "--independent",
         nargs="+",

@@ -1,0 +1,15 @@
+Tiny Voca English ONNX variants
+
+Based on tiny-voca by Muhammed Nazeem (n4ze3m).
+Original model and code distributed under the Apache License, Version 2.0.
+Upstream model: https://huggingface.co/n4ze3m/tiny-voca
+Upstream code: https://github.com/n4ze3m/tiny-voca
+Pinned model revision: d94d2a0338fd1e0eab7dd896ec0ad23d8cdf7c14
+
+These derivative ONNX graphs modify inference operations. The compact
+variant also applies dynamic INT8 quantization to acoustic projections.
+The English checkpoint was not retrained. See LICENSE for the license text.
+
+The optional dizione frontend and source dictionaries are fetched
+separately. They are not distributed with this package. Their source
+and license files are linked in the model card.

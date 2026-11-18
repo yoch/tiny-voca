@@ -8,6 +8,9 @@ const {chromium} = require('playwright');
 const [models, fixture, output, ...variants] = process.argv.slice(2);
 const fixed = process.env.EN_ONNX_FIXED === '1';
 const runs = Number(process.env.EN_ONNX_RUNS || 25);
+const threadCounts = (process.env.EN_ONNX_THREADS || '1,4').split(',').map(Number);
+if (!threadCounts.length || new Set(threadCounts).size !== threadCounts.length
+    || threadCounts.some(n => ![1, 4].includes(n))) throw Error('Use EN_ONNX_THREADS=1, 4, or 1,4');
 const cases = JSON.parse(fs.readFileSync(fixture));
 const roots = {
   ort: path.join(path.dirname(path.dirname(require.resolve('onnxruntime-web'))), 'dist'),
@@ -172,7 +175,7 @@ phones("Warm up.")
   const orders = fixed ? ['forward'] : ['forward', 'reverse'];
   try {
     for (const order of orders) {
-      const sequence = [1, 4].flatMap(threads => variants.map(graph => ({threads, graph})));
+      const sequence = threadCounts.flatMap(threads => variants.map(graph => ({threads, graph})));
       if (order === 'reverse') sequence.reverse();
       for (const options of fixed ? sequence.filter(x => x.graph === variants[0]) : sequence) {
         const browserServer = await chromium.launchServer({headless: true, args: ['--no-sandbox']});

@@ -106,3 +106,36 @@ python -m pytest -q tests/test_standalone_onnx.py tests/test_export.py tests/tes
 
 Pour l’écoute, distribuer seulement `AB.zip`, décompresser puis ouvrir
 `index.html`. Enregistrer les réponses avant de divulguer la clé.
+
+## Finalisation ciblée
+
+Avec les graphes et les variables du protocole ci-dessus, préparer un
+dossier de travail séparé pour l’essai borné et le jeu indépendant. Le
+paquet et la clé d’écoute ont des destinations séparées.
+
+```bash
+work="$EN_ONNX_WORK/finalization"
+mkdir -p "$work/graphs"
+cp "$root"/models.json "$root"/{public,public-fixed,exact,exact-fixed,exact-int8,exact-int8-fixed,matmulola,matmulola-fixed}.onnx "$work/graphs/"
+python scripts/english_onnx/release_cases.py "$work/graphs/public.onnx" "$work/fixtures"
+python scripts/english_onnx/quantize.py --root "$work/graphs" matmulola int8
+python scripts/english_onnx/evaluate.py --fixture "$work/fixtures/release.json" \
+  --original "$work/graphs/public-fixed.onnx" --output "$work/release-quality.json" --wavs "$work/wavs" \
+  --asr "$EN_ONNX_WORK/asr" --speaker "$EN_ONNX_WORK/speaker/wespeaker.onnx" \
+  "$work/graphs/exact-fixed.onnx" "$work/graphs/exact-int8-fixed.onnx"
+python scripts/english_onnx/evaluate.py --fixture "$work/fixtures/release.json" \
+  --original "$work/graphs/exact-int8-fixed.onnx" --output "$work/ola-quality.json" \
+  "$work/graphs/matmulola-int8-fixed.onnx"
+bash scripts/english_onnx/release_benchmark.sh "$work"
+python scripts/english_onnx/listening.py --fixture "$work/fixtures/release.json" --wavs "$work/wavs" \
+  --output "$work/AB-INT8.zip" --key "$work/private-key.json" exact-int8
+python scripts/english_onnx/stage_hf.py "$work/graphs" "$work/package"
+(cd "$work/package" && sha256sum -c SHA256SUMS && python infer.py exact-int8.onnx "$work/example.wav")
+```
+
+L’assemblage utilise les fichiers dont les empreintes correspondent
+aux benchmarks. Pour un réexport fonctionnel dont le SHA-256 diffère,
+répéter la qualification et mettre explicitement à jour le manifeste.
+Avant de divulguer la clé, récupérer les retours de l’écoute. Pour
+lire un retour complet, exécuter
+`python scripts/english_onnx/listening.py --key "$work/private-key.json" --score responses.json`.
