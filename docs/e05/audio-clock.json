@@ -1,0 +1,58 @@
+[
+  {
+    "recording": "Rhap-M0004",
+    "mp3_delay_ms": 69.04166666666667,
+    "similarity": 0.9602021534424439,
+    "wav_seconds": 15.344375,
+    "mp3_seconds": 15.48
+  },
+  {
+    "recording": "Rhap-M0008",
+    "mp3_delay_ms": 69.04166666666667,
+    "similarity": 0.9718706937549993,
+    "wav_seconds": 18.9195,
+    "mp3_seconds": 19.044
+  },
+  {
+    "recording": "Rhap-M0010",
+    "mp3_delay_ms": 69.04166666666667,
+    "similarity": 0.9773506789434563,
+    "wav_seconds": 17.452625,
+    "mp3_seconds": 17.568
+  },
+  {
+    "recording": "Rhap-M0012",
+    "mp3_delay_ms": 69.08333333333333,
+    "similarity": 0.971174691724155,
+    "wav_seconds": 22.995625,
+    "mp3_seconds": 23.112
+  },
+  {
+    "recording": "Rhap-M0013",
+    "mp3_delay_ms": 69.08333333333333,
+    "similarity": 0.8977865720638113,
+    "wav_seconds": 51.94675,
+    "mp3_seconds": 52.056
+  },
+  {
+    "recording": "Rhap-M0021",
+    "mp3_delay_ms": 0.0,
+    "similarity": 0.9908989611302713,
+    "wav_seconds": 88.97816666666667,
+    "mp3_seconds": 88.97816666666667
+  },
+  {
+    "recording": "Rhap-M2001",
+    "mp3_delay_ms": 69.04166666666667,
+    "similarity": 0.9041014868226787,
+    "wav_seconds": 217.159375,
+    "mp3_seconds": 217.296
+  },
+  {
+    "recording": "Rhap-M2005",
+    "mp3_delay_ms": 0.0,
+    "similarity": 0.9960300044730767,
+    "wav_seconds": 111.89104166666667,
+    "mp3_seconds": 111.89104166666667
+  }
+]
