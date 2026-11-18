@@ -17,7 +17,7 @@ export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
 export ZIG_GLOBAL_CACHE_DIR=/tmp/e04b-zig
 uv pip install --python "$PYTHON" ziglang==0.15.1
 "$PYTHON" scripts/e04b/prepare.py /tmp/e04-checkpoint.pt /tmp/e04b
-bash scripts/e04b/build.sh /tmp/e04b
+E04B_MARCH=x86-64-v3 bash scripts/e04b/build.sh /tmp/e04b
 
 npm install --prefix /tmp/e04-web onnxruntime-web@1.20.1 playwright@1.65.1 pyodide@0.26.4
 export NODE_PATH=/tmp/e04-web/node_modules PLAYWRIGHT_BROWSERS_PATH=/tmp/e04-browsers

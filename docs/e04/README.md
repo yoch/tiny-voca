@@ -1,5 +1,9 @@
 # E04 — FFT vocoder experiments and handoff
 
+[E04-C](e04c/REPORT.md) qualifies the compact backend in the production Web
+worker behind an opt-in flag, with dense fallback, checked native/WASM DSP and
+platform-specific results. It is a pilot, pending blind listening.
+
 [E04-B](e04b/REPORT.md) measures a shared native and WASM FFT core with two
 ONNX boundaries on real text. It includes operator profiles, repeated latency
 measurements, same-runtime fidelity and comparative WAVs. The status below
