@@ -68,10 +68,11 @@ def _synthesis_kernel(window):
 class Exportable(nn.Module):
     """Single-utterance synthesis in ONNX-friendly operations."""
 
-    def __init__(self, model, external_noise=False):
+    def __init__(self, model, external_noise=False, omit_mask=True):
         super().__init__()
         self.model = model
         self.external_noise = external_noise
+        self.omit_mask = omit_mask
         c = model.config
         v = model.vocoder
         causal = list(range(c.cep_causal))
@@ -168,7 +169,7 @@ class Exportable(nn.Module):
     def forward(self, tokens, stress, voice, speed, pitch_shift, pitch_range, noise=None):
         m = self.model
         c = m.config
-        token_mask = torch.ones_like(tokens, dtype=torch.bool)
+        token_mask = None if self.omit_mask else torch.ones_like(tokens, dtype=torch.bool)
         hidden = m.encoder(m.tokens(tokens) + m.stress(stress) + m.voices(voice)[:, None], token_mask)
         # Durations.
         output = m.duration(hidden, token_mask)
@@ -186,7 +187,7 @@ class Exportable(nn.Module):
         features = torch.stack((relative, 1 - relative, torch.log1p(owned.to(hidden.dtype)) / 4), dim=-1)
         expanded = hidden.gather(1, index[..., None].expand(-1, -1, hidden.shape[-1]))
         expanded = expanded + m.frame_position(features) + m.frame_voices(voice)[:, None]
-        frame_mask = torch.ones_like(frame, dtype=torch.bool)
+        frame_mask = None if self.omit_mask else torch.ones_like(frame, dtype=torch.bool)
         # Pitch, voicing, energy.
         prosody_hidden = m.prosody_stack(expanded, frame_mask)
         prosody = m.prosody_head(prosody_hidden)
@@ -207,8 +208,8 @@ def example_inputs(length=24):
     return tokens, torch.zeros_like(tokens), torch.tensor([0]), one(1.0), one(0.0), one(1.0)
 
 
-def export(model, path, external_noise=False, opset=17):
-    wrapper = Exportable(model, external_noise).eval()
+def export(model, path, external_noise=False, opset=17, omit_mask=True):
+    wrapper = Exportable(model, external_noise, omit_mask=omit_mask).eval()
     inputs = example_inputs()
     names = list(INPUTS)
     axes = {"tokens": {1: "tokens"}, "stress": {1: "tokens"}, "audio": {1: "samples"}, "durations": {1: "tokens"}}
@@ -236,12 +237,13 @@ def main():
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--external-noise", action="store_true", help="Take the noise signal as an input (for exact comparisons)")
+    parser.add_argument("--keep-mask", action="store_true", help="Keep redundant all-true attention masks in single-utterance ONNX")
     parser.add_argument("--opset", type=int, default=17)
     args = parser.parse_args()
     match_frontend(args.checkpoint)
     model = load_model(args.checkpoint, "cpu")
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    export(model, args.output, args.external_noise, args.opset)
+    export(model, args.output, args.external_noise, args.opset, omit_mask=not args.keep_mask)
     args.output.with_suffix(".json").write_text(json.dumps(metadata(model, args.checkpoint), ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"wrote {args.output} ({args.output.stat().st_size / 1e6:.1f} MB) and {args.output.with_suffix('.json').name}")
 
