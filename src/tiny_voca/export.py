@@ -33,7 +33,7 @@ from torch import nn
 import torch.nn.functional as F
 
 from .infer import load_model, match_frontend
-from .text import SYMBOLS, frontend_fingerprint, frontend_identity
+from .text import SYMBOLS, frontend_fingerprint, frontend_identity, frontend_rules_fingerprint
 
 INPUTS = ("tokens", "stress", "voice", "speed", "pitch_shift", "pitch_range")
 OUTPUTS = ("audio", "durations")
@@ -229,6 +229,7 @@ def metadata(model, checkpoint):
     return {"sample_rate": c.sample_rate, "hop": c.hop, "voices": list(c.speakers), "symbols": list(SYMBOLS),
             "max_tokens": c.max_tokens, "max_frames": c.max_frames, "step": state.get("step"),
             "frontend": frontend_identity().get("phonemizer", "espeak"), "frontend_fingerprint": frontend_fingerprint(),
+            "frontend_rules_fingerprint": frontend_rules_fingerprint(),
             "inputs": list(INPUTS), "outputs": list(OUTPUTS)}
 
 

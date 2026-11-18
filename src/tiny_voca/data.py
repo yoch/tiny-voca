@@ -11,7 +11,8 @@ from pathlib import Path
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
-from .text import PHONE_IDS, SYMBOL_TO_ID, VOWELS, frontend_fingerprint
+from .config import ANNOTATION_VERSION
+from .text import PHONE_IDS, SYMBOL_TO_ID, VOWELS, frontend_fingerprint, frontend_rules_fingerprint
 
 VOWEL_IDS = frozenset(SYMBOL_TO_ID[v] for v in VOWELS)
 
@@ -63,9 +64,17 @@ class AnnotatedDataset:
         if not self.rows:
             raise ValueError("empty dataset")
         frontend = frontend_fingerprint()
+        rules = frontend_rules_fingerprint()
+        identity = metadata.get("identity") if isinstance(metadata.get("identity"), dict) else {}
+        meta_rules = metadata.get("frontend_rules", identity.get("frontend_rules"))
+        meta_ann_ver = metadata.get("annotation_version", identity.get("annotation_version"))
+        if meta_rules != rules or (meta_ann_ver is not None and meta_ann_ver != ANNOTATION_VERSION):
+            raise ValueError("annotations were produced with outdated phonetic rules or annotation version; re-run annotation")
         for row in self.rows:
             if "durations" not in row or row.get("frontend") != frontend:
                 raise ValueError("tokens were produced by a different front end; re-run annotation")
+            if row.get("frontend_rules") != rules:
+                raise ValueError("tokens were produced with different phonetic rules; re-run annotation")
             if row.get("acoustic") != config.acoustic_fingerprint:
                 raise ValueError("acoustic feature settings differ from this configuration")
             if row.get("annotation") != self.annotation:

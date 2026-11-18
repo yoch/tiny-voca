@@ -24,7 +24,7 @@ def main():
         raise ValueError("checkpoint format or front end does not match this code")
     model = TinyVoca(Config.from_dict(state["config"]))
     model.load_state_dict({k.removeprefix("model."): v for k, v in state["system"].items() if k.startswith("model.")}, strict=True)
-    export_model(model, args.output, state["step"], state["annotation"])
+    export_model(model, args.output, state["step"], state["annotation"], frontend_rules=state.get("frontend_rules"))
     print(f"exported step {state['step']} with {sum(p.numel() for p in model.parameters()):,} parameters to {args.output}")
 
 

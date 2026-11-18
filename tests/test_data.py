@@ -75,6 +75,9 @@ class DataTests(unittest.TestCase):
         cases = [
             (dict(edit=lambda r: r.update(frontend="front-end-2-byte-tokens")), "different front end"),
             (dict(edit=lambda r: r.pop("durations")), "different front end"),
+            (dict(edit=lambda r: r.pop("frontend_rules")), "different phonetic rules"),
+            (dict(edit=lambda r: r.update(frontend_rules="pre-e01-rules")), "different phonetic rules"),
+            (dict(meta_edit=lambda m: (m.pop("frontend_rules", None), m.update(annotation_version=3))), "outdated phonetic rules"),
             (dict(edit=lambda r: r.update(acoustic="other")), "acoustic feature settings"),
             (dict(edit=lambda r: r.update(annotation="another-run")), "different annotation run"),
             (dict(edit=lambda r: r["durations"].__setitem__(4, r["durations"][4] - 1)), "do not cover the frames"),
@@ -87,6 +90,25 @@ class DataTests(unittest.TestCase):
                 manifest = write_annotations(directory, c, "train", **options)
                 with self.assertRaisesRegex(ValueError, message):
                     AnnotatedDataset(manifest, c)
+
+    def test_legacy_format4_checkpoint_remains_loadable_while_stale_rules_fail_training(self):
+        from tiny_voca.infer import load_model
+        from tiny_voca.model import TinyVoca
+        from tiny_voca.text import frontend_fingerprint, frontend_identity
+        c = small_config()
+        model = TinyVoca(c).eval()
+        with tempfile.TemporaryDirectory() as directory:
+            ckpt = Path(directory) / "legacy_opt1_like.pt"
+            torch.save({
+                "format_version": 4,
+                "config": c.to_dict(),
+                "step": 1317,
+                "frontend": {**frontend_identity(), "fingerprint": frontend_fingerprint()},
+                "annotation": "legacy-annotation",
+                "model": model.state_dict(),
+            }, ckpt)
+            loaded = load_model(ckpt, "cpu", check_frontend=True)
+            self.assertEqual(loaded.config, c)
         with tempfile.TemporaryDirectory() as directory:
             # A manifest from the old preparation (no annotation layer next to it) is refused outright.
             legacy = Path(directory) / "train.jsonl"

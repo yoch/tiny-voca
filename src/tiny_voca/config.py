@@ -3,7 +3,7 @@ import hashlib
 import json
 
 CHECKPOINT_FORMAT = 4  # 2-3: byte tokens + learned aligner (rejected explicitly).
-ANNOTATION_VERSION = 3
+ANNOTATION_VERSION = 4  # 4 separates vocab compatibility from effective E01 phonetic rules.
 
 
 def _digest(value):

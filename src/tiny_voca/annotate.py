@@ -29,8 +29,8 @@ import torch
 from .align import ALIGNER_MODEL, AlignmentSettings, PhoneRecognizer, align_utterance
 from .config import ANNOTATION_VERSION, Config
 from .journal import append, atomic_json, file_hash, recover
-from .text import (PHONE_SET, SYMBOL_TO_ID, UNK, VOICELESS, VOWEL_SET, Phonemized, frontend_fingerprint,
-                   frontend_identity, frontend_runtime, phonemize)
+from .text import (FRONTEND_RULES_VERSION, PHONE_SET, SYMBOL_TO_ID, UNK, VOICELESS, VOWEL_SET, Phonemized,
+                   frontend_fingerprint, frontend_identity, frontend_rules_fingerprint, frontend_runtime, phonemize)
 
 SPLITS = ("train", "validation", "test")
 FRICATIVES = frozenset(("f", "s", "ʃ"))
@@ -173,6 +173,7 @@ def main():
     recognizer = PhoneRecognizer(args.device)
     identity = {
         "annotation_version": ANNOTATION_VERSION, "acoustic": config.acoustic_fingerprint, "frontend": frontend_fingerprint(),
+        "frontend_rules": frontend_rules_fingerprint(), "frontend_rules_version": FRONTEND_RULES_VERSION,
         **frontend_runtime(), "aligner": {"model": ALIGNER_MODEL, "revision": recognizer.revision},
         "alignment": settings.to_dict(), "dataset_revision": args.dataset_revision, "limit": args.limit,
         "sources": {split: file_hash(args.features / (split + ".jsonl")) for split in args.splits},
@@ -292,7 +293,8 @@ def main():
                      "path": row["path"], "frames": row["frames"], "symbols": " ".join(result.symbols), "tokens": list(result.ids),
                      "stress": list(result.stress), "durations": durations, "unknown": list(result.unknown), "qc": record["qc"],
                      "provenance": {**row.get("provenance", {}), "dataset_revision": args.dataset_revision},
-                     "acoustic": config.acoustic_fingerprint, "frontend": frontend_fingerprint(), "annotation": fingerprint}
+                     "acoustic": config.acoustic_fingerprint, "frontend": frontend_fingerprint(),
+                     "frontend_rules": frontend_rules_fingerprint(), "annotation": fingerprint}
             if sum(durations) != row["frames"] or len(durations) != len(result.ids):
                 raise RuntimeError(f"durations of {row['id']} do not match its frames/tokens")
             reasons = gate(entry, limits)

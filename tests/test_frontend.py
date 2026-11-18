@@ -7,8 +7,9 @@ from unittest.mock import patch
 
 from tiny_voca import text
 from tiny_voca.config import Config
-from tiny_voca.text import (BOS, EOS, PHONE_SET, PHONES, SP, SYMBOLS, SYMBOL_TO_ID, UNK, canonical, chunks, frontend_fingerprint,
-                            normalize_text, parse_espeak, phonemize, tokenize)
+from tiny_voca.text import (BOS, EOS, PHONE_SET, PHONES, SP, SYMBOLS, SYMBOL_TO_ID, UNK, canonical, chunks,
+                            frontend_fingerprint, frontend_rules_fingerprint, normalize_text, parse_espeak, phonemize,
+                            tokenize, vocabulary_fingerprint)
 
 HAVE_ESPEAK = shutil.which("espeak-ng") is not None or os.path.exists("/usr/lib/x86_64-linux-gnu/libespeak-ng.so.1")
 
@@ -64,6 +65,18 @@ class FrontEndTests(unittest.TestCase):
             self.assertNotEqual(frontend_fingerprint(), baseline)
         with patch.object(text, "SYMBOLS", SYMBOLS + ("new",)):
             self.assertNotEqual(frontend_fingerprint(), baseline)
+
+    def test_vocabulary_compatibility_separates_from_effective_phonetic_rules(self):
+        vocab_base = vocabulary_fingerprint()
+        rules_base = frontend_rules_fingerprint()
+        self.assertEqual(vocab_base, frontend_fingerprint())
+        self.assertEqual(vocab_base, "31807ddbd16771299960e70d15addc80902ab70ae20738240178903e23c7f7a6")
+        with patch.object(text, "FRONTEND_RULES_VERSION", 999):
+            self.assertEqual(frontend_fingerprint(), vocab_base)
+            self.assertNotEqual(frontend_rules_fingerprint(), rules_base)
+        with patch.dict(text._FRENCH_WORD_HINTS, {"exemple_audit": "egzample"}):
+            self.assertEqual(frontend_fingerprint(), vocab_base)
+            self.assertNotEqual(frontend_rules_fingerprint(), rules_base)
 
     @unittest.skipUnless(HAVE_ESPEAK, "requires espeak-ng or libespeak-ng")
     def test_real_espeak_keeps_the_last_phoneme_of_every_clause_and_handles_french(self):

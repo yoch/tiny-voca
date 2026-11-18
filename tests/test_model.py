@@ -303,6 +303,13 @@ class ModelTests(unittest.TestCase):
             atomic_save({**resumed, "format_version": 3}, root / "old.pt")
             failed = run(["--output", str(root / "resumed"), "--steps", "3", "--resume", str(root / "old.pt")], expect=1)
             self.assertIn("cannot be resumed", failed.stderr)
+            from tiny_voca.text import frontend_rules_fingerprint
+            self.assertEqual(resumed["frontend_rules"], frontend_rules_fingerprint())
+            atomic_save({**resumed, "frontend_rules": "pre-e01"}, root / "stale_rules.pt")
+            failed = run(["--output", str(root / "resumed"), "--steps", "3", "--resume", str(root / "stale_rules.pt")], expect=1)
+            self.assertIn("phonetic rules", failed.stderr)
+            run(["--output", str(root / "branched_new_data"), "--steps", "3", "--init-from", str(root / "stale_rules.pt"), "--new-data"])
+            self.assertEqual(torch.load(root / "branched_new_data/last.pt", weights_only=True)["step"], 3)
             # A changed recipe cannot be resumed, but it can be branched into a new run, which then resumes normally.
             changed = ["--gan-ratio", "0.4", "--weights", '{"mel": 5}']
             failed = run(["--output", str(root / "resumed"), "--steps", "3", "--resume", str(root / "resumed/last.pt")] + changed, expect=1)

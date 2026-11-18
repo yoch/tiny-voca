@@ -20,7 +20,7 @@ from .config import CHECKPOINT_FORMAT, Config
 from .data import AnnotatedDataset, BucketSampler, collate
 from .losses import Discriminators, SpectralLoss, discriminator_loss, generator_gan_loss, masked_mean
 from .model import TinyVoca
-from .text import frontend_fingerprint, frontend_identity
+from .text import FRONTEND_RULES_VERSION, frontend_fingerprint, frontend_identity, frontend_rules_fingerprint
 
 WEIGHTS = {"duration": 1.0, "pause": 1.0, "pitch": 2.0, "pitch_spread": 2.0, "voicing": 1.0, "energy": 1.0, "mel_head": 2.0,
            "stft": 2.0, "mel": 10.0}
@@ -177,10 +177,12 @@ def atomic_save(value, path):
     os.replace(temporary, path)
 
 
-def export_model(model, path, step, annotation=None):
+def export_model(model, path, step, annotation=None, frontend_rules=None):
     atomic_save({"format_version": CHECKPOINT_FORMAT, "config": model.config.to_dict(), "step": step,
-                 "frontend": {**frontend_identity(), "fingerprint": frontend_fingerprint()}, "annotation": annotation,
-                 "model": {k: v.detach().cpu() for k, v in model.state_dict().items()}}, path)
+                 "frontend": {**frontend_identity(), "fingerprint": frontend_fingerprint(),
+                              "rules_version": FRONTEND_RULES_VERSION,
+                              "rules_fingerprint": frontend_rules or frontend_rules_fingerprint()},
+                 "annotation": annotation, "model": {k: v.detach().cpu() for k, v in model.state_dict().items()}}, path)
 
 
 def load_compatible(module, state):
@@ -369,8 +371,10 @@ def main():
     def compatible(state, what, same_data=True):
         if state.get("format_version") != CHECKPOINT_FORMAT:
             raise ValueError(f"checkpoint predates phoneme tokens and supervised durations (format < 4); it cannot be {what}")
-        if same_data and (state["frontend"] != frontend_fingerprint() or state["annotation"] != train.annotation):
-            raise ValueError("checkpoint was trained with a different front end or annotation run "
+        if same_data and (state["frontend"] != frontend_fingerprint()
+                          or state.get("frontend_rules") != frontend_rules_fingerprint()
+                          or state["annotation"] != train.annotation):
+            raise ValueError("checkpoint was trained with a different front end, phonetic rules or annotation run "
                              "(branch with --init-from and --new-data to fine-tune on new annotations)")
         if state["config"] != c.to_dict():
             raise ValueError("checkpoint was trained with a different model configuration")
@@ -408,12 +412,14 @@ def main():
             optimizer.load_state_dict(state["optimizer"])
         recipe["branched_from"] = {"step": step, "recipe": state["recipe"], "datasets": state["datasets"], "loaded": loaded}
         if args.new_data:
-            recipe["branched_from"].update(frontend=state["frontend"], annotation=state["annotation"])
+            recipe["branched_from"].update(frontend=state["frontend"], frontend_rules=state.get("frontend_rules"),
+                                           annotation=state["annotation"])
     if step >= args.steps:
         raise ValueError("checkpoint already reached requested total steps")
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "config.json").write_text(json.dumps(c.to_dict(), indent=2) + "\n")
     (args.output / "recipe.json").write_text(json.dumps({**recipe, "annotation": train.annotation, "frontend": frontend_fingerprint(),
+                                                         "frontend_rules": frontend_rules_fingerprint(),
                                                          "train_utterances": len(pool), "datasets": fingerprints}, indent=2) + "\n")
     print(json.dumps({"inference_parameters": count, "training_only_parameters": sum(p.numel() for p in system.mel_head.parameters())
                       + sum(p.numel() for p in critics.parameters()), "train_utterances": len(pool), "start_step": step,
@@ -422,7 +428,8 @@ def main():
     system.train()
 
     def snapshot():
-        return {"format_version": CHECKPOINT_FORMAT, "config": c.to_dict(), "frontend": frontend_fingerprint(), "annotation": train.annotation,
+        return {"format_version": CHECKPOINT_FORMAT, "config": c.to_dict(), "frontend": frontend_fingerprint(),
+                "frontend_rules": frontend_rules_fingerprint(), "annotation": train.annotation,
                 "step": step, "datasets": fingerprints, "recipe": recipe, "system": system.state_dict(), "critics": critics.state_dict(),
                 "optimizer": optimizer.state_dict(), "critic_optimizer": critic_optimizer.state_dict(), "sampler": sampler.state(),
                 "torch_rng": torch.get_rng_state(), "cuda_rng": torch.cuda.get_rng_state_all() if str(args.device).startswith("cuda") else None}

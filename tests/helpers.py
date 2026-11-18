@@ -6,8 +6,8 @@ import math
 from pathlib import Path
 import torch
 
-from tiny_voca.config import Config
-from tiny_voca.text import SYMBOL_TO_ID, frontend_fingerprint
+from tiny_voca.config import ANNOTATION_VERSION, Config
+from tiny_voca.text import SYMBOL_TO_ID, frontend_fingerprint, frontend_rules_fingerprint
 
 
 def small_config():
@@ -32,7 +32,7 @@ def sample(c, voice=0, durations=(3, 4, 5, 4, 9, 0, 4, 10, 5, 4, 0, 6)):
             "prosody": torch.stack((pitch, voiced, torch.zeros(frames)), dim=-1), "pitch_trusted": voiced.clone()}
 
 
-def write_annotations(root, c, split, count=4, complete=True, annotation="test-annotation", edit=None):
+def write_annotations(root, c, split, count=4, complete=True, annotation="test-annotation", edit=None, meta_edit=None):
     """Feature files plus an annotation manifest shaped like the real pipeline's."""
     root = Path(root)
     features, annotations = root / "features", root / "annotations"
@@ -51,11 +51,15 @@ def write_annotations(root, c, split, count=4, complete=True, annotation="test-a
                "text_hash": hashlib.sha256(text.encode()).hexdigest(), "path": path, "frames": int(item["mel"].shape[0]),
                "symbols": " ".join(SYMBOLS), "tokens": item["tokens"].tolist(), "stress": item["stress"].tolist(),
                "durations": item["durations"].tolist(), "unknown": [], "qc": {}, "provenance": {"source_license": "test-synthetic"},
-               "acoustic": c.acoustic_fingerprint, "frontend": frontend_fingerprint(), "annotation": annotation}
+               "acoustic": c.acoustic_fingerprint, "frontend": frontend_fingerprint(),
+               "frontend_rules": frontend_rules_fingerprint(), "annotation": annotation}
         if edit:
             edit(row)
         rows.append(row)
     (annotations / (split + ".jsonl")).write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
-    (annotations / "annotations.json").write_text(json.dumps({"fingerprint": annotation, "complete": complete,
-                                                              "acoustic_root": str(features.resolve())}))
+    meta = {"fingerprint": annotation, "complete": complete, "acoustic_root": str(features.resolve()),
+            "annotation_version": ANNOTATION_VERSION, "frontend_rules": frontend_rules_fingerprint()}
+    if meta_edit:
+        meta_edit(meta)
+    (annotations / "annotations.json").write_text(json.dumps(meta))
     return annotations / (split + ".jsonl")

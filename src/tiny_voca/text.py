@@ -26,6 +26,9 @@ import threading
 import unicodedata
 
 FRONTEND_VERSION = 4
+# Bump whenever normalization, expansion, liaison/elision or post-eSpeak rules change
+# without altering the 54-symbol inventory / fallback vocabulary.
+FRONTEND_RULES_VERSION = 2
 ESPEAK_VOICE = "fr"
 SEPARATOR = "_"
 FRONTENDS = ("espeak",)
@@ -259,6 +262,40 @@ def frontend_runtime():
 
 def frontend_fingerprint():
     return hashlib.sha256(json.dumps(frontend_identity(), sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def vocabulary_identity():
+    """Token vocabulary / checkpoint compatibility identity (preserved across E01 rule fixes)."""
+    return frontend_identity()
+
+
+def vocabulary_fingerprint():
+    """Compatibility hash governing checkpoint/ONNX token ID compatibility."""
+    return frontend_fingerprint()
+
+
+def frontend_rules_identity():
+    """Effective phonetic-rule identity tracked separately from vocabulary compatibility.
+
+    Separating vocabulary compatibility (``frontend_fingerprint()``) from effective
+    phonemization rules prevents stale pre-E01 annotations from being reused silently
+    while keeping earlier format-4 checkpoints loadable for inference.
+    """
+    return {
+        "vocab_fingerprint": frontend_fingerprint(),
+        "rules_version": FRONTEND_RULES_VERSION,
+        "abbreviations": sorted(ABBREVIATIONS),
+        "initialisms": sorted(_FRENCH_INITIALISMS),
+        "acronym_hints": dict(sorted(_ACRONYM_HINTS.items())),
+        "word_hints": dict(sorted(_FRENCH_WORD_HINTS.items())),
+        "elided_prefixes": sorted(_ELIDED_PREFIX_PHONES),
+    }
+
+
+def frontend_rules_fingerprint():
+    return hashlib.sha256(
+        json.dumps(frontend_rules_identity(), sort_keys=True, ensure_ascii=False).encode()
+    ).hexdigest()
 
 
 def _number_fr(n):
