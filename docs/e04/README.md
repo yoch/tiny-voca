@@ -1,5 +1,8 @@
 # E04 — FFT vocoder experiments and handoff
 
+[Research closeout](close/README.md) summarizes the results and the last native
+French benchmark. E04 is closed for research.
+
 [E04-C](e04c/REPORT.md) qualifies the compact backend in the production Web
 worker behind an opt-in flag, with dense fallback, checked native/WASM DSP and
 platform-specific results. It is a pilot, pending blind listening.
