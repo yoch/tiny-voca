@@ -1,0 +1,69 @@
+{
+  "language": "en",
+  "frontend": "own",
+  "mixed_excitation": false,
+  "geometry": {
+    "sample_rate": 24000,
+    "hop": 256,
+    "synth_fft": 512,
+    "synth_hop": 128,
+    "noise_fft": 256,
+    "noise_hop": 64,
+    "cep_causal": 80,
+    "cep_anti": 16,
+    "noise_cep": 32
+  },
+  "ort": "1.32.0",
+  "checkpoint_sha256": "ebb22871524c5732520fb1652e6aefcec708a7452e83bdd00adcf6181db5ef70",
+  "library_sha256": "c4c19c1b909840f5d03a77da8a0dd5bea501774f92f856792051ee9d575e9907",
+  "rows": [
+    {
+      "threads": 1,
+      "text": "Fresh fish and shells. Did you hear that?",
+      "voice": "F2",
+      "samples": 69376,
+      "snr_db": 118.84127980124568,
+      "normalized_peak_error": 1.70349696638479e-06
+    },
+    {
+      "threads": 1,
+      "text": "Wait… then listen to the final soft breath.",
+      "voice": "M2",
+      "samples": 47104,
+      "snr_db": 117.26824139585538,
+      "normalized_peak_error": 2.255679907742692e-06
+    },
+    {
+      "threads": 1,
+      "text": "We paused to watch the quiet waves and listen to the wind in the trees.We paused to watch the quiet waves and listen to the wind in the trees.We paused to watch the quiet waves and listen to the wind in the trees.",
+      "voice": "F2",
+      "samples": 243712,
+      "snr_db": 116.49395140940405,
+      "normalized_peak_error": 1.8871281683533997e-06
+    },
+    {
+      "threads": 4,
+      "text": "Fresh fish and shells. Did you hear that?",
+      "voice": "F2",
+      "samples": 69376,
+      "snr_db": 118.84127980124568,
+      "normalized_peak_error": 1.70349696638479e-06
+    },
+    {
+      "threads": 4,
+      "text": "Wait… then listen to the final soft breath.",
+      "voice": "M2",
+      "samples": 47104,
+      "snr_db": 117.26824139585538,
+      "normalized_peak_error": 2.255679907742692e-06
+    },
+    {
+      "threads": 4,
+      "text": "We paused to watch the quiet waves and listen to the wind in the trees.We paused to watch the quiet waves and listen to the wind in the trees.We paused to watch the quiet waves and listen to the wind in the trees.",
+      "voice": "F2",
+      "samples": 243712,
+      "snr_db": 116.49395140940405,
+      "normalized_peak_error": 1.8871281683533997e-06
+    }
+  ]
+}

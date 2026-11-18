@@ -1,0 +1,69 @@
+{
+  "language": "fr",
+  "frontend": "espeak",
+  "mixed_excitation": true,
+  "geometry": {
+    "sample_rate": 24000,
+    "hop": 256,
+    "synth_fft": 512,
+    "synth_hop": 128,
+    "noise_fft": 256,
+    "noise_hop": 64,
+    "cep_causal": 80,
+    "cep_anti": 16,
+    "noise_cep": 32
+  },
+  "ort": "1.32.0",
+  "checkpoint_sha256": "61c00f50dffeda1cc8773243b4722a1d64b57a016db90ecd96477aae6225b3a9",
+  "library_sha256": "c4c19c1b909840f5d03a77da8a0dd5bea501774f92f856792051ee9d575e9907",
+  "rows": [
+    {
+      "threads": 1,
+      "text": "Bonjour ! Comment allez-vous aujourd’hui ?",
+      "voice": "FR_F1",
+      "samples": 58880,
+      "snr_db": 129.78724956407834,
+      "normalized_peak_error": 5.279621282206184e-07
+    },
+    {
+      "threads": 1,
+      "text": "Je cherche six chaises sèches. Chut… écoutez le vent.",
+      "voice": "FR_M1",
+      "samples": 114688,
+      "snr_db": 129.73696463832925,
+      "normalized_peak_error": 4.844349661283071e-07
+    },
+    {
+      "threads": 1,
+      "text": "Sur le rivage, la brise souffle et les vagues viennent mourir sur les rochers. Sur le rivage, la brise souffle et les vagues viennent mourir sur les rochers. Sur le rivage, la brise souffle et les vagues viennent mourir sur les rochers. ",
+      "voice": "FR_M1",
+      "samples": 315648,
+      "snr_db": 129.5362154365399,
+      "normalized_peak_error": 8.101846396063033e-07
+    },
+    {
+      "threads": 4,
+      "text": "Bonjour ! Comment allez-vous aujourd’hui ?",
+      "voice": "FR_F1",
+      "samples": 58880,
+      "snr_db": 129.78724956407834,
+      "normalized_peak_error": 5.279621282206184e-07
+    },
+    {
+      "threads": 4,
+      "text": "Je cherche six chaises sèches. Chut… écoutez le vent.",
+      "voice": "FR_M1",
+      "samples": 114688,
+      "snr_db": 129.73696463832925,
+      "normalized_peak_error": 4.844349661283071e-07
+    },
+    {
+      "threads": 4,
+      "text": "Sur le rivage, la brise souffle et les vagues viennent mourir sur les rochers. Sur le rivage, la brise souffle et les vagues viennent mourir sur les rochers. Sur le rivage, la brise souffle et les vagues viennent mourir sur les rochers. ",
+      "voice": "FR_M1",
+      "samples": 315648,
+      "snr_db": 129.5362154365399,
+      "normalized_peak_error": 8.101846396063033e-07
+    }
+  ]
+}

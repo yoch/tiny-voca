@@ -1,0 +1,59 @@
+{
+  "base": "db851f75c6287a15be4c4e995f931bce3a86b47b",
+  "start": "6ddf59e374df6838e273612eef7a28160877c3a6",
+  "browser_packs": {
+    "playwright": "1.65.1",
+    "pyodide": "0.26.4",
+    "ort_web": "1.20.1",
+    "zig": "0.15.1"
+  },
+  "lscpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           46 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  5\nOn-line CPU(s) list:                     0-4\nVendor ID:                               AuthenticAMD\nModel name:                              AMD EPYC 9V74 80-Core Processor\nCPU family:                              25\nModel:                                   17\nThread(s) per core:                      1\nCore(s) per socket:                      5\nSocket(s):                               1\nStepping:                                1\nBogoMIPS:                                5192.30\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext cpuid_fault vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx512_bf16 clzero xsaveerptr arat npt nrip_save tsc_scale vmcb_clean flushbyasid pausefilter pfthreshold v_vmsave_vmload avx512vbmi umip avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm arch_capabilities\nHypervisor vendor:                       KVM\nVirtualization type:                     full\nL1d cache:                               96 KiB (3 instances)\nL1i cache:                               96 KiB (3 instances)\nL2 cache:                                3 MiB (3 instances)\nL3 cache:                                32 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-4\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Vulnerable\nVulnerability Spec store bypass:         Vulnerable\nVulnerability Spectre v1:                Vulnerable: __user pointer sanitization and usercopy barriers only; no swapgs barriers\nVulnerability Spectre v2:                Vulnerable; STIBP: disabled; PBRSB-eIBRS: Not affected; BHI: Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Vulnerable\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected\n",
+  "affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "cpu_quota": "400000 100000",
+  "wasm_stack_bytes": 65536,
+  "bundle": {
+    "abi": 1,
+    "geometry": {
+      "sample_rate": 24000,
+      "hop": 256,
+      "synth_fft": 512,
+      "synth_hop": 128,
+      "noise_fft": 256,
+      "noise_hop": 64,
+      "cep_causal": 80,
+      "cep_anti": 16,
+      "noise_cep": 32
+    },
+    "checkpoint_sha256": "ebb22871524c5732520fb1652e6aefcec708a7452e83bdd00adcf6181db5ef70",
+    "frontend_fingerprint": "c729f235e10daa1a08ce7711169c1cb93fb552b3c24eecb16527513d7b69d4da",
+    "assets": {
+      "model.onnx": {
+        "sha256": "5d7a097e21bd3fd5eeea15d9588d2ccb627a81d6faf29249c9d26232f365a56d",
+        "bytes": 21386372
+      },
+      "model-compact.onnx": {
+        "sha256": "be984030b1fa74f0050d382b2042ffb3a1596730615c18508bb8fa3f74deb63d",
+        "bytes": 18495420
+      },
+      "dsp-constants.f32": {
+        "sha256": "53a50f4ebb6d288c6b794f09e89bc4b8e7eeeb8a1685154970f1ccf25546e226",
+        "bytes": 3584
+      },
+      "dsp.wasm": {
+        "sha256": "653514b9fe8c133b3125059a3f0aa8111425561d689f40d9cb7ec1d3dac2f9e9",
+        "bytes": 23060
+      }
+    }
+  },
+  "fr_git_sha": "4cc26ab23d934e3d33796eb06bf11f23f4c9ab34",
+  "fr_hf_sha": "73f7700f514e70eef3b459aedcc49829d41945d4",
+  "browser_notes": {
+    "firefox": "XDG config/cache writable; MOZ_DISABLE_CONTENT_SANDBOX and MOZ_DISABLE_RDD_SANDBOX in managed test runner",
+    "webkit": "Linux WPE bundled engine, custom library path and disabled browser-internal sandbox in runner"
+  }
+}
