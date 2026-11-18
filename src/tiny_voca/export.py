@@ -65,13 +65,51 @@ def _synthesis_kernel(window):
     return (torch.cat((real, imaginary)) * window.double())[:, None].float().contiguous()
 
 
+class _FrameOwners(torch.autograd.Function):
+    """Count token ends once, then scan the acoustic timeline."""
+
+    @staticmethod
+    def forward(ctx, ends, frame):
+        zeros = torch.cat((torch.zeros_like(frame), ends.new_zeros((1, 1))), dim=1)
+        counts = zeros.scatter_add(1, ends, torch.ones_like(ends))
+        return counts.cumsum(1)[:, :-1]
+
+    @staticmethod
+    def symbolic(g, ends, frame):
+        from torch.onnx import symbolic_helper as onnx
+
+        zero = g.op("Constant", value_t=torch.tensor([[0]], dtype=torch.int64))
+        shape = g.op("Shape", frame)
+        zeros = g.op("ConstantOfShape", shape, value_t=torch.zeros(1, dtype=torch.int64))
+        zeros = g.op("Concat", zeros, zero, axis_i=1)
+        ones = g.op("ConstantOfShape", g.op("Shape", ends), value_t=torch.ones(1, dtype=torch.int64))
+        counts = g.op("ScatterElements", zeros, ends, ones, axis_i=1, reduction_s="add")
+        axis = g.op("Constant", value_t=torch.tensor(1))
+        return onnx._slice_helper(g, g.op("CumSum", counts, axis), axes=[1], starts=[0], ends=[-1])
+
+
+def _envelope_rows(window):
+    # In the kept crop the left edge lacks the fourth window for exactly one hop.
+    # The right crop ends before the last analysis frame contributes any samples.
+    quarters = window.double().square().float().reshape(4, -1)
+    w0, w1, w2, w3 = quarters.unbind()
+    prefix = (w2 + w1) + w0
+    return prefix, ((w3 + w2) + w1) + w0
+
+
 class Exportable(nn.Module):
     """Single-utterance synthesis in ONNX-friendly operations."""
 
-    def __init__(self, model, external_noise=False):
+    def __init__(self, model, external_noise=False, *, omit_mask=False, packed=False, scan_owners=False, frame_ola=False):
         super().__init__()
         self.model = model
         self.external_noise = external_noise
+        self.omit_mask = omit_mask
+        self.packed = packed
+        self.scan_owners = scan_owners
+        self.frame_ola = frame_ola
+        if frame_ola and not packed:
+            raise ValueError("frame overlap-add requires the packed analysis geometry")
         c = model.config
         v = model.vocoder
         causal = list(range(c.cep_causal))
@@ -80,12 +118,19 @@ class Exportable(nn.Module):
                                         ("noise", _cepstrum_matrices(list(range(c.noise_cep)), c.noise_fft))):
             self.register_buffer(f"{name}_real", real, persistent=False)
             self.register_buffer(f"{name}_imaginary", imaginary, persistent=False)
+            if packed:
+                self.register_buffer(f"{name}_response", torch.cat((real, imaginary), dim=1), persistent=False)
         for name, window in (("synth", v.synth_window), ("noise", v.noise_window)):
             real, imaginary = _analysis_kernels(window)
             self.register_buffer(f"{name}_analysis_real", real, persistent=False)
             self.register_buffer(f"{name}_analysis_imaginary", imaginary, persistent=False)
             self.register_buffer(f"{name}_synthesis", _synthesis_kernel(window), persistent=False)
             self.register_buffer(f"{name}_envelope", (window.double() ** 2).float()[None, None].contiguous(), persistent=False)
+            if packed:
+                self.register_buffer(f"{name}_analysis", torch.cat((real, imaginary)), persistent=False)
+                prefix, steady = _envelope_rows(window)
+                self.register_buffer(f"{name}_prefix", prefix[None], persistent=False)
+                self.register_buffer(f"{name}_steady", steady[None], persistent=False)
         self.register_buffer("ramp", torch.arange(c.hop, dtype=torch.float32) / c.hop, persistent=False)
         self.phase_steps = 1 << 24
 
@@ -102,10 +147,39 @@ class Exportable(nn.Module):
         envelope = F.conv_transpose1d(torch.ones_like(s_real[:, :1]), getattr(self, f"{name}_envelope"), stride=hop)
         return (wave / envelope)[:, 0, fft // 2:fft // 2 + samples]
 
+    def _packed_filter(self, source, real, imaginary, name, fft, hop):
+        samples = source.shape[1]
+        # The final analysis frame in the reference starts just after the crop.
+        padded = F.pad(source[:, None], (fft // 2, fft - hop))
+        analysis = F.conv1d(padded, getattr(self, f"{name}_analysis"), stride=hop)
+        s_real, s_imaginary = analysis.split(fft // 2 + 1, dim=1)
+        real, imaginary = real.transpose(1, 2), imaginary.transpose(1, 2)
+        product = torch.cat((s_real * real - s_imaginary * imaginary, s_real * imaginary + s_imaginary * real), dim=1)
+        synthesis = getattr(self, f"{name}_synthesis")
+        if self.frame_ola:
+            # Four shifted, non-overlapping strips reproduce the cropped
+            # overlap-add after one conventional matrix multiplication.
+            windows = product.transpose(1, 2) @ synthesis[:, 0]
+            a, b, c, d = windows.split(hop, dim=-1)
+            count = samples // hop
+            d = torch.cat((d.new_zeros((1, 1, hop)), d[:, :count - 1]), dim=1)
+            wave = ((d + c[:, :count]) + b[:, 1:count + 1]) + a[:, 2:count + 2]
+            wave = wave.reshape(1, -1)
+        else:
+            wave = F.conv_transpose1d(product, synthesis, stride=hop, padding=fft // 2)[:, 0, :samples]
+        steady = getattr(self, f"{name}_steady").expand(samples // hop - 1, -1)
+        envelope = torch.cat((getattr(self, f"{name}_prefix"), steady)).reshape(1, -1)
+        return wave / envelope
+
     @staticmethod
     def _response(cepstrum, real, imaginary):
         magnitude = torch.exp((cepstrum @ real).clamp(-14, 6))
         angle = cepstrum @ imaginary
+        return magnitude * torch.cos(angle), magnitude * torch.sin(angle)
+
+    def _packed_response(self, cepstrum, name, fft):
+        amplitude, angle = (cepstrum @ getattr(self, f"{name}_response")).split(fft // 2 + 1, dim=-1)
+        magnitude = torch.exp(amplitude.clamp(-14, 6))
         return magnitude * torch.cos(angle), magnitude * torch.sin(angle)
 
     def _pulses(self, f0):
@@ -137,38 +211,46 @@ class Exportable(nn.Module):
         c = self.model.config
         v = self.model.vocoder
         last = total - 1
+        tail = 2 if self.packed else 3
         # Harmonic branch.
         h = v.harmonic(hidden)
         split = c.cep_causal + c.cep_anti
         steps = v.harmonic_steps
-        sub = torch.minimum(torch.arange(steps * total + 3, device=hidden.device), steps * total - 1)
+        sub = torch.minimum(torch.arange(steps * total + tail, device=hidden.device), steps * total - 1)
         here = torch.div(sub, steps, rounding_mode="floor")
         following = torch.minimum(torch.div(sub + 1, steps, rounding_mode="floor"), last)
         envelope = 0.5 * (h[..., :split].index_select(1, here) + h[..., :split].index_select(1, following))
         envelope = envelope * torch.cat((v.causal_lifter, v.anti_lifter))
         gain = h[..., split:].flatten(1).index_select(1, sub)[..., None]
         envelope = torch.cat((envelope[..., :1] + gain, envelope[..., 1:]), dim=-1)
-        harmonic_real, harmonic_imaginary = self._response(envelope, self.harmonic_real, self.harmonic_imaginary)
+        if self.packed:
+            harmonic_real, harmonic_imaginary = self._packed_response(envelope, "harmonic", c.synth_fft)
+        else:
+            harmonic_real, harmonic_imaginary = self._response(envelope, self.harmonic_real, self.harmonic_imaginary)
         # Noise branch.
         n = v.noise(hidden)
         steps = v.noise_steps
-        sub = torch.minimum(torch.arange(steps * total + 3, device=hidden.device), steps * total - 1)
+        sub = torch.minimum(torch.arange(steps * total + tail, device=hidden.device), steps * total - 1)
         shape = n[..., :c.noise_cep].index_select(1, torch.div(sub, steps, rounding_mode="floor")) * v.noise_lifter
         gain = n[..., c.noise_cep:].flatten(1).index_select(1, sub)[..., None]
         shape = torch.cat((shape[..., :1] + gain, shape[..., 1:]), dim=-1)
-        noise_real, noise_imaginary = self._response(shape, self.noise_real, self.noise_imaginary)
+        if self.packed:
+            noise_real, noise_imaginary = self._packed_response(shape, "noise", c.noise_fft)
+        else:
+            noise_real, noise_imaginary = self._response(shape, self.noise_real, self.noise_imaginary)
         pulses = self._pulses(f0)
         if noise is None:
             noise = torch.randn_like(pulses)
         else:
             noise = noise.index_select(1, torch.arange(c.hop * total, device=hidden.device))
-        return (self._filter(pulses, harmonic_real, harmonic_imaginary, "synth", c.synth_fft, c.synth_hop)
-                + self._filter(noise, noise_real, noise_imaginary, "noise", c.noise_fft, c.noise_hop))
+        filter_source = self._packed_filter if self.packed else self._filter
+        return (filter_source(pulses, harmonic_real, harmonic_imaginary, "synth", c.synth_fft, c.synth_hop)
+                + filter_source(noise, noise_real, noise_imaginary, "noise", c.noise_fft, c.noise_hop))
 
     def forward(self, tokens, stress, voice, speed, pitch_shift, pitch_range, noise=None):
         m = self.model
         c = m.config
-        token_mask = torch.ones_like(tokens, dtype=torch.bool)
+        token_mask = None if self.omit_mask else torch.ones_like(tokens, dtype=torch.bool)
         hidden = m.encoder(m.tokens(tokens) + m.stress(stress) + m.voices(voice)[:, None], token_mask)
         # Durations.
         output = m.duration(hidden, token_mask)
@@ -179,14 +261,14 @@ class Exportable(nn.Module):
         ends = durations.cumsum(1)
         total = ends[0, -1]
         frame = torch.arange(total, device=tokens.device)[None]
-        index = (ends[:, None, :] <= frame[:, :, None]).sum(-1)
+        index = _FrameOwners.apply(ends, frame) if self.scan_owners else (ends[:, None, :] <= frame[:, :, None]).sum(-1)
         owned = durations.gather(1, index).clamp_min(1)
         offset = frame - (ends.gather(1, index) - durations.gather(1, index))
         relative = (offset.to(hidden.dtype) + 0.5) / owned
         features = torch.stack((relative, 1 - relative, torch.log1p(owned.to(hidden.dtype)) / 4), dim=-1)
         expanded = hidden.gather(1, index[..., None].expand(-1, -1, hidden.shape[-1]))
         expanded = expanded + m.frame_position(features) + m.frame_voices(voice)[:, None]
-        frame_mask = torch.ones_like(frame, dtype=torch.bool)
+        frame_mask = None if self.omit_mask else torch.ones_like(frame, dtype=torch.bool)
         # Pitch, voicing, energy.
         prosody_hidden = m.prosody_stack(expanded, frame_mask)
         prosody = m.prosody_head(prosody_hidden)
@@ -207,8 +289,10 @@ def example_inputs(length=24):
     return tokens, torch.zeros_like(tokens), torch.tensor([0]), one(1.0), one(0.0), one(1.0)
 
 
-def export(model, path, external_noise=False, opset=17):
-    wrapper = Exportable(model, external_noise).eval()
+def export(model, path, external_noise=False, opset=17, **options):
+    if options.get("scan_owners") and opset < 16:
+        raise ValueError("ScatterElements reduction requires opset 16 or later")
+    wrapper = Exportable(model, external_noise, **options).eval()
     inputs = example_inputs()
     names = list(INPUTS)
     axes = {"tokens": {1: "tokens"}, "stress": {1: "tokens"}, "audio": {1: "samples"}, "durations": {1: "tokens"}}
