@@ -26,11 +26,13 @@ from tiny_voca.align import (
     spans_from_states,
 )
 from tiny_voca.text import (
-    LANGUAGE,
     PHONE_SET,
     UNK,
+    VOWEL_SET,
     espeak_version,
     frontend_fingerprint,
+    frontend_identity,
+    frontend_rules_fingerprint,
     phonemize,
 )
 
@@ -38,6 +40,8 @@ RATE, HOP = 24000, 256
 OFFSETS = (-0.050, -0.040, -0.030, -0.019, -0.010, 0.0, 0.010)
 POLICIES = ("legacy", "contiguous", "bridge_one")
 BASELINE = ("legacy", -0.019)
+FIXED_CANDIDATE = ("legacy", -0.030)
+WAV_FORMATS = {"WAV", "WAVEX", "RF64"}
 FRICATIVES = frozenset(("f", "v", "s", "z", "ʃ", "ʒ"))
 STOPS = frozenset(("p", "b", "t", "d", "k", "ɡ"))
 NASAL_VOWELS = frozenset(("ɑ̃", "ɔ̃", "ɛ̃", "œ̃"))
@@ -146,6 +150,14 @@ def phone_group(phone):
         return "nasal_vowels"
     if phone == "ə":
         return "schwa"
+    if phone in VOWEL_SET:
+        return "oral_vowels"
+    if phone in ("m", "n", "ɲ", "ŋ"):
+        return "nasal_consonants"
+    if phone in ("l", "ʁ", "j", "w"):
+        return "liquids_glides"
+    if phone in ("tʃ", "dʒ"):
+        return "affricates"
     return "other"
 
 
@@ -162,6 +174,21 @@ def compare(symbols, durations, reference, correspondence):
     predicted = np.ones(frames, dtype=bool)
     for i in only_phones:
         predicted[starts[i] : ends[i]] = False
+    reference_edge = (seconds < reference[0]["start"]) | (
+        seconds >= reference[-1]["end"]
+    )
+    predicted_edge = (np.arange(frames) < starts[only_phones[0]]) | (
+        np.arange(frames) >= ends[only_phones[-1]]
+    )
+
+    def pause_counts(guess, gold):
+        return dict(
+            tp=int(np.sum(guess & gold)),
+            fp=int(np.sum(guess & ~gold)),
+            fn=int(np.sum(~guess & gold)),
+        )
+
+    pause = pause_counts(predicted, ~speech)
     boundary = []
     for gold, guess in correspondence:
         i = only_phones[guess]
@@ -179,20 +206,35 @@ def compare(symbols, durations, reference, correspondence):
     return dict(
         boundaries=boundary,
         frames=frames,
-        pause_tp=int(np.sum(predicted & ~speech)),
-        pause_fp=int(np.sum(predicted & speech)),
-        pause_fn=int(np.sum(~predicted & ~speech)),
+        pause_tp=pause["tp"],
+        pause_fp=pause["fp"],
+        pause_fn=pause["fn"],
+        pause_edge=pause_counts(predicted_edge, reference_edge),
+        pause_internal=pause_counts(
+            predicted & ~predicted_edge, ~speech & ~reference_edge
+        ),
         phones_one_frame=int(np.sum(durations[only_phones] == 1)),
+    )
+
+
+def pause_stats(tp, fp, fn):
+    return dict(
+        tp=tp,
+        fp=fp,
+        fn=fn,
+        f1=(2 * tp / (2 * tp + fp + fn)) if tp + fp + fn else None,
+        precision=tp / (tp + fp) if tp + fp else None,
+        recall=tp / (tp + fn) if tp + fn else None,
     )
 
 
 def overview(rows):
     boundaries = [q for r in rows for q in r["boundaries"]]
-    if not boundaries:
-        return {}
 
     def boundary_stats(values):
         x = np.asarray(values)
+        if not x.size:
+            return dict(count=0, mae_ms=None, p95_ms=None)
         return dict(
             count=int(x.size),
             bias_ms=float(x.mean()),
@@ -207,30 +249,93 @@ def overview(rows):
         onset=boundary_stats([x["onset_ms"] for x in boundaries]),
         end=boundary_stats([x["end_ms"] for x in boundaries]),
         duration=boundary_stats([x["duration_ms"] for x in boundaries]),
-        pause=dict(
-            tp=tp,
-            fp=fp,
-            fn=fn,
-            f1=(2 * tp / max(1, 2 * tp + fp + fn)),
-            precision=tp / max(1, tp + fp),
-            recall=tp / max(1, tp + fn),
-        ),
+        pause=pause_stats(tp, fp, fn),
         one_frame=sum(row["phones_one_frame"] for row in rows),
     )
-    out["onset_by_group"] = {
-        name: boundary_stats(
-            [x["onset_ms"] for x in boundaries if phone_group(x["phone"]) == name]
+    for scope in ("edge", "internal"):
+        out["pause_" + scope] = pause_stats(
+            *(
+                sum(row["pause_" + scope][key] for row in rows)
+                for key in ("tp", "fp", "fn")
+            )
         )
+    out["by_group"] = {
+        name: {
+            metric: boundary_stats(
+                [
+                    x[metric + "_ms"]
+                    for x in boundaries
+                    if phone_group(x["phone"]) == name
+                ]
+            )
+            for metric in ("onset", "end", "duration")
+        }
         for name in sorted(set(phone_group(x["phone"]) for x in boundaries))
     }
     return out
 
 
+def paired_timing(baseline, candidate):
+    """Candidate minus baseline MAE, resampling whole recordings."""
+    by_recording = defaultdict(list)
+    for first, second in zip(baseline, candidate, strict=True):
+        if first["id"] != second["id"]:
+            raise ValueError("Unpaired timing scores")
+        for a, b in zip(first["boundaries"], second["boundaries"], strict=True):
+            by_recording[first["recording"]].append(
+                [abs(b[key]) - abs(a[key]) for key in ("onset_ms", "end_ms")]
+            )
+    groups = [
+        (key, np.sum(rows, axis=0), len(rows))
+        for key, rows in sorted(by_recording.items())
+        if rows
+    ]
+    result = {
+        name: dict(
+            onset_ms=float(sums[0] / count), end_ms=float(sums[1] / count), phones=count
+        )
+        for name, sums, count in groups
+    }
+    ci = {}
+    if len(groups) >= 2:
+        sums = np.stack([values for _, values, _ in groups])
+        counts = np.array([count for _, _, count in groups])
+        rng = np.random.default_rng(0)
+        indices = rng.integers(len(groups), size=(5000, len(groups)))
+        sampled = sums[indices].sum(axis=1) / counts[indices].sum(axis=1)[:, None]
+        ci = dict(
+            zip(
+                ("onset_ms", "end_ms"),
+                np.percentile(sampled, [2.5, 97.5], axis=0).T.tolist(),
+            )
+        )
+    return dict(by_recording=result, bootstrap95_ms=ci)
+
+
 def probe(args):
-    if LANGUAGE != "fr":
-        raise ValueError("Set TINY_VOCA_LANGUAGE=fr")
+    if frontend_identity()["voice"] not in ("fr", "fr-fr"):
+        raise ValueError("This probe needs a French frontend")
     started = time.perf_counter()
-    manifest = json.loads((args.corpus / "manifest.json").read_text())
+    manifest_path = args.corpus / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest_sha = digest(manifest_path)
+    target = (
+        json.loads((args.corpus / "qualification.json").read_text())
+        if args.target
+        else None
+    )
+    if args.target and (
+        target.get("kind") != "independent_teacher_wavs"
+        or {row.get("speaker") for row in manifest} != {"F1", "M1"}
+        or {row["split"] for row in manifest} != {"holdout"}
+        or target.get("manifest_sha256") != manifest_sha
+    ):
+        raise ValueError("Target comparison requires the prepared F1/M1 holdout")
+    variants = (
+        (BASELINE, FIXED_CANDIDATE)
+        if target
+        else tuple((policy, offset) for policy in POLICIES for offset in OFFSETS)
+    )
     vocabulary = json.loads(args.vocab.read_text())
     if not PHONE_SET <= vocabulary.keys():
         raise ValueError(
@@ -249,14 +354,26 @@ def probe(args):
     args.cache.mkdir(exist_ok=True, parents=True)
     for row in manifest:
         wave_path = args.corpus / row["file"]
+        wave_sha = digest(wave_path)
+        if (
+            row.get("source_format") != "original_wav"
+            or row.get("fixture_sha256") != wave_sha
+            or sf.info(wave_path).format not in WAV_FORMATS
+        ):
+            raise ValueError(f"Invalid WAV provenance for {row['id']}")
         wave, rate = sf.read(wave_path, dtype="float32")
-        if rate != RATE or wave.ndim != 1 or len(wave) % HOP:
+        if (
+            rate != RATE
+            or wave.ndim != 1
+            or len(wave) % HOP
+            or not np.isfinite(wave).all()
+        ):
             raise ValueError(f"Invalid audio fixture {row['id']}")
         reference = row["reference"]
         expected = [x["phone"] for x in reference]
         if list(filter(PHONE_SET.__contains__, row["oracle"])) != expected:
             raise ValueError("Oracle sequence differs from reference intervals")
-        cached = args.cache / (digest(wave_path) + "-" + model_sha + ".npz")
+        cached = args.cache / (wave_sha + "-" + model_sha + ".npz")
         cache_hit = cached.exists()
         elapsed = None
         if cache_hit:
@@ -308,6 +425,8 @@ def probe(args):
                 starts_at=row["start"],
                 ends_at=row["end"],
                 source_sha256=row["source_sha256"],
+                fixture_sha256=wave_sha,
+                text_revision=row.get("text_revision"),
             )
         )
         level = frame_energy_db(wave, HOP)
@@ -321,62 +440,85 @@ def probe(args):
             ("g2p", g2p.symbols, equal),
         ):
             _, spans, prob = align(logits, symbols, vocabulary, vocabulary["<pad>"])
-            for policy in POLICIES:
-                mask = pause_mask(
+            masks = {
+                policy: pause_mask(
                     silent, spans, policy, AlignmentSettings.min_pause_frames
                 )
-                for offset in OFFSETS:
-                    settings = replace(AlignmentSettings(), onset_offset_seconds=offset)
-                    durations = assemble(
-                        symbols, spans, len(level), mask, HOP, RATE, settings
+                for policy in dict.fromkeys(policy for policy, _ in variants)
+            }
+            for policy, offset in variants:
+                settings = replace(AlignmentSettings(), onset_offset_seconds=offset)
+                durations = assemble(
+                    symbols, spans, len(level), masks[policy], HOP, RATE, settings
+                )
+                scored = compare(symbols, durations, reference, matches)
+                corpus[split, mode, policy, offset].append(
+                    dict(
+                        id=row["id"],
+                        recording=row["recording"],
+                        speaker=row.get("speaker"),
+                        ctc_mean=float(np.mean(prob)),
+                        ctc_weak=float(np.mean(np.asarray(prob) < 0.1)),
+                        **scored,
                     )
-                    scored = compare(symbols, durations, reference, matches)
-                    corpus[split, mode, policy, offset].append(
-                        dict(
-                            id=row["id"],
-                            recording=row["recording"],
-                            ctc_mean=float(np.mean(prob)),
-                            ctc_weak=float(np.mean(np.asarray(prob) < 0.1)),
-                            **scored,
-                        )
-                    )
+                )
         timing = "cached" if cache_hit else f"{elapsed:.2f}s model"
         print(row["id"], split, len(expected), len(edits), timing, flush=True)
     summaries = {key: overview(rows) for key, rows in corpus.items()}
-    best_offset = min(
-        OFFSETS,
-        key=lambda off: summaries["dev", "oracle", "legacy", off]["onset"]["mae_ms"],
-    )
-    best_policy = max(
-        POLICIES,
-        key=lambda pol: summaries["dev", "oracle", pol, BASELINE[1]]["pause"]["f1"],
-    )
-    candidate = (best_policy, best_offset)
-    chosen = list(
-        dict.fromkeys(
-            [
-                BASELINE,
-                ("contiguous", BASELINE[1]),
-                ("bridge_one", BASELINE[1]),
-                ("legacy", best_offset),
-                candidate,
-            ]
+    candidate = None
+    chosen = (BASELINE, FIXED_CANDIDATE)
+    if not target:
+        best_offset = min(
+            OFFSETS,
+            key=lambda off: summaries["dev", "oracle", "legacy", off]["onset"][
+                "mae_ms"
+            ],
         )
-    )
+        best_policy = max(
+            POLICIES,
+            key=lambda pol: (
+                summaries["dev", "oracle", pol, BASELINE[1]]["pause"]["f1"] or 0.0
+            ),
+        )
+        candidate = (best_policy, best_offset)
+        chosen = (
+            *chosen,
+            ("contiguous", BASELINE[1]),
+            ("bridge_one", BASELINE[1]),
+            ("legacy", best_offset),
+            candidate,
+        )
+
+    timing = {}
+    for mode in ("oracle", "g2p"):
+        a = corpus[("holdout", mode, *BASELINE)]
+        b = corpus[("holdout", mode, *FIXED_CANDIDATE)]
+        timing[f"holdout/{mode}/all"] = paired_timing(a, b)
+        for speaker in sorted({row["speaker"] for row in a if row["speaker"]}):
+            before = [row for row in a if row["speaker"] == speaker]
+            after = [row for row in b if row["speaker"] == speaker]
+            timing[f"holdout/{mode}/{speaker}"] = {
+                "baseline": overview(before),
+                "candidate": overview(after),
+                "paired": paired_timing(before, after),
+            }
 
     def present(key):
         return "/".join([*key[:-1], f"{key[-1]:+.3f}"])
 
     report = dict(
         model_sha256=model_sha,
+        manifest_sha256=manifest_sha,
         vocab_sha256=digest(args.vocab),
         ort=ort.__version__,
         threads=args.threads,
         text_frontend=frontend_fingerprint(),
+        frontend_rules=frontend_rules_fingerprint(),
         espeak=espeak_version(),
         wall_seconds=time.perf_counter() - started,
-        best_dev=list(candidate),
-        source="Rhapsodie, published phone/word tiers",
+        best_dev=list(candidate) if candidate else None,
+        source=target or "Rhapsodie, published phone/word tiers",
+        fixed_comparison=timing,
         edit_counts=dict(edit_counts),
         edit_pairs={
             split: [
@@ -400,4 +542,9 @@ if __name__ == "__main__":
     for key in ("corpus", "model", "vocab", "cache", "output"):
         p.add_argument("--" + key, type=Path, required=True)
     p.add_argument("--threads", type=int, default=4)
+    p.add_argument(
+        "--target",
+        action="store_true",
+        help="Only compare the two fixed offsets on the F1/M1 holdout",
+    )
     probe(p.parse_args())

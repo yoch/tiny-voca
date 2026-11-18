@@ -1,0 +1,15 @@
+{
+  "revision": "rhapsodie-e05-e01-text-v1",
+  "edits": {
+    "M0010-2": {
+      "text_sha256": "64dc7656d0edcb8db634c27c75e3e959366aadec25b4765da42672b00c0bbe33",
+      "before": "pantalons ensuite",
+      "after": "pantalons. Ensuite"
+    },
+    "M2005-2": {
+      "text_sha256": "d8d28df90c5a92ccd0af1e449d7651308e8dfed1385399bb1767d9179375f367",
+      "before": "mortels on",
+      "after": "mortels. On"
+    }
+  }
+}

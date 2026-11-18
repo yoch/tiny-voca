@@ -26,6 +26,7 @@ import time
 import numpy as np
 import torch
 
+from . import align as alignment_code, text as frontend_code
 from .align import ALIGNER_MODEL, AlignmentSettings, PhoneRecognizer, align_utterance
 from .config import ANNOTATION_VERSION, Config
 from .journal import append, atomic_json, file_hash, recover
@@ -34,6 +35,25 @@ from .text import (FRONTEND_RULES_VERSION, PHONE_SET, SYMBOL_TO_ID, UNK, VOICELE
 
 SPLITS = ("train", "validation", "test")
 FRICATIVES = frozenset(("f", "s", "ʃ"))
+ALIGNMENT_PROFILES = {
+    "e01-refresh": AlignmentSettings.onset_offset_seconds,
+    "e05-onset-candidate": -0.030,
+}
+
+
+def annotation_settings(min_pause_frames, profile):
+    if profile is None:
+        return AlignmentSettings(min_pause_frames=min_pause_frames), {}
+    settings = AlignmentSettings(
+        onset_offset_seconds=ALIGNMENT_PROFILES[profile],
+        min_pause_frames=min_pause_frames,
+    )
+    provenance = {
+        "annotation_profile": profile,
+        "frontend_code_sha256": file_hash(frontend_code.__file__),
+        "alignment_code_sha256": file_hash(alignment_code.__file__),
+    }
+    return settings, provenance
 
 
 def load_acoustic_rows(features, split, config):
@@ -150,6 +170,10 @@ def main():
     parser.add_argument("--refine", type=int, default=0, help="Boundary refinement passes with the from-scratch frame classifier")
     parser.add_argument("--refine-band", type=int, default=4)
     parser.add_argument("--stage", default="ctc", help="Durations used for the final manifests: ctc or refined-<n>")
+    parser.add_argument(
+        "--alignment-profile", choices=tuple(ALIGNMENT_PROFILES),
+        help="Version an E01 refresh or an experimental E05 candidate in a new annotation directory",
+    )
     parser.add_argument("--min-pause-frames", type=int, default=AlignmentSettings.min_pause_frames)
     parser.add_argument("--max-weak-phone-fraction", type=float, default=0.25)
     parser.add_argument("--min-token-probability", type=float, default=0.5)
@@ -159,7 +183,7 @@ def main():
     parser.add_argument("--max-phones-per-second", type=float, default=30.0)
     args = parser.parse_args()
     config = Config.from_dict(json.loads(args.config.read_text())) if args.config else Config()
-    settings = AlignmentSettings(min_pause_frames=args.min_pause_frames)
+    settings, profile_provenance = annotation_settings(args.min_pause_frames, args.alignment_profile)
     limits = {key: getattr(args, key) for key in ("max_weak_phone_fraction", "min_token_probability", "max_phone_frames",
                                                     "min_vowel_voiced", "min_phones_per_second", "max_phones_per_second")}
     started = time.time()
@@ -177,6 +201,7 @@ def main():
         **frontend_runtime(), "aligner": {"model": ALIGNER_MODEL, "revision": recognizer.revision},
         "alignment": settings.to_dict(), "dataset_revision": args.dataset_revision, "limit": args.limit,
         "sources": {split: file_hash(args.features / (split + ".jsonl")) for split in args.splits},
+        **profile_provenance,
     }
     fingerprint = hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
     args.output.mkdir(parents=True, exist_ok=True)
