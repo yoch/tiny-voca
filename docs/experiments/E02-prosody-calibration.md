@@ -1,18 +1,28 @@
-# E02 — Calibration prosodique à l'inférence (protocole et harnais)
+# E02 — Calibration prosodique à l'inférence (protocole, harnais et validation `fr_ref_20k`)
 
-- **Statut** : **BLOQUÉE** (protocole, corpus inédit de 64 phrases, harnais reproductible et smoke test vérifiés ; calibration perceptuelle et recommandations par voix en attente d'un checkpoint entraîné sur `fr4k`).
-- **Branche / worktree** : `exp/e02-prosody-protocol` (basée sur `fr` `8a4f42a`)
-- **Budget GPU d'entraînement** : `0 h`
+- **Statut** : **VALIDÉE** sur `fr_ref_20k` (`step = 20 000`, `novel WER = 0.1165 <= 0.15`) — réglages neutres conservés (`pitch_range=1.0`, `pitch_jitter=0.0`, `voiced_vowels=True`) après sweep orthogonal (`896` inférences), évaluation ASR stratifiée (`faster-whisper small`) et écoute comparative ; option `pitch_range=1.15` sur `M1` à recontrôler après le Palier 2 (`35 000` pas).
+- **Branche / dépôt** : `fr` (`yoch/tiny-voca`)
+- **Budget GPU d'entraînement E02** : `0 h` (calibration exécutée localement sur CPU après entraînement de `fr_ref_20k`)
 
 > [!IMPORTANT]
-> **Pourquoi E02 est déclarée bloquée plutôt que calibrée maintenant :**
-> Le seul checkpoint français disponible à ce stade ([inference.pt](../../.local-runs/colab/opt1-1117/out/run_info/inference.pt), pilote `opt1-1117`, `step=1317`, `261` énoncés d'entraînement) présente un **WER de 21,09 % sur `novel`** et **58,17 % sur `train`** (dont **75,00 %** sur `M1`) dans [report.json](../../.local-runs/colab/opt1-1117/out/eval/report.json). Ajuster finement `pitch_range`, `pitch_jitter` ou `voiced_vowels` sur un modèle qui n'a pas encore convergé intelligibilité et alignement serait non représentatif et contraire au critère d'arrêt de E02. Aucune configuration prosodique par voix n'est donc recommandée avant l'entraînement sur `fr4k`.
+> **Déblocage et conclusion E02 sur `fr_ref_20k` :**
+> Le modèle français de référence Palier 1 ([inference.pt](../../.local-runs/colab/fr_ref_20k/fr_ref_20k_final/inference.pt), `step = 20 000`) atteint un **WER `novel` de `0.1165`** (`<= 0.15`, [report.json](../../.local-runs/colab/fr_ref_20k/fr_ref_20k_final/eval/report.json)), ce qui lève le blocage initial constaté sur le pilote `opt1-1117` (`step = 1317`, `novel WER = 0.2109`). Sur le corpus inédit de 64 phrases (`F1` et `M1`), les variantes de calibration n'introduisent pratiquement aucune différence perceptible à l'écoute utilisateur ; la configuration neutre `(pitch_range=1.0, pitch_jitter=0.0, voiced_vowels=True)` est donc retenue par défaut.
 
 ---
 
-## 1. Baseline observée et critère de déblocage
+## 1. Critère de déblocage et checkpoints français mesurés
 
-### 1.1 Artefact français de référence (`opt1-1117`)
+### 1.1 Artefact français Palier 1 (`fr_ref_20k`, déblocage E02)
+
+| Paramètre / métrique | Valeur observée |
+|---|---|
+| Checkpoint | `.local-runs/colab/fr_ref_20k/fr_ref_20k_final/inference.pt` |
+| SHA-256 | `e4642456ece7efc6578e04b48b0df09055674f50bcf59ddca5760985398d8301` |
+| Empreinte règles phonétiques | `70856b196b07f0a0584e8392c593bb90e669ce883433cb79f35c88d26f` (`frontend_token_mismatches = []`) |
+| État | `step = 20 000`, `4 533 067` paramètres d'inférence, voix `F1` / `M1` |
+| Rapport `eval/report.json` | `novel WER = 0.1165` (`F1: 0.1206`, `M1: 0.1123`) ; `test WER = 0.0893` (réf. `0.0491` ; `F1: 0.0312/0.0312`, `M1: 0.1473/0.0670`) ; `validation WER = 0.2020` (réf. `0.1990`) ; `train WER = 0.0573` (réf. `0.0677`) |
+
+### 1.2 Historique de blocage initial sur le pilote `opt1-1117` (avant entraînement `fr4k`)
 
 | Paramètre / métrique | Valeur observée |
 |---|---|
@@ -21,7 +31,7 @@
 | État | `step = 1317`, `4 533 067` paramètres d'inférence, `frontend = espeak` (`vocab_size = 54`), voix `F1` / `M1` |
 | Évaluation ASR utilisée | `faster-whisper small` (`speed = 1.0`, `pitch_range = 1.0`, `seed = 0`) |
 
-### 1.2 Mesures du rapport `opt1-1117` (`report.json`)
+### 1.3 Mesures historiques du rapport `opt1-1117` (`report.json`)
 
 | Jeu (`samples`) | Voix | `generated_wer` | `reference_wer` | `pitch_std_st` (gén. / réf.) | `voiced_fraction` (gén. / réf.) | `duration_ratio` | `pause_ratio` |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -34,7 +44,7 @@
 | `train` (4) | `all` | `0.5817` | `0.0192` | `2.1625` / `2.1325` | `0.6065` / `0.6125` | `1.034` | `1.270` |
 | `train` (2 / 2) | `F1` / `M1` | `0.4134` / `0.7500` | `0.0384` / `0.0000` | `1.9100` / `2.4150` (`2.205` / `2.060`) | `0.6805` / `0.5325` (`0.646` / `0.579`) | `0.985` / `1.083` | `0.9905` / `1.5495` |
 
-### 1.3 Seuil de déblocage appliqué dans le harnais
+### 1.4 Seuil de déblocage appliqué dans le harnais
 
 Le script [eval_e02_prosody.py](../../scripts/eval_e02_prosody.py) vérifie `--report` (`summary.novel.all.generated_wer <= 0.15` par défaut) et refuse de lancer la campagne de calibration si le modèle ne respecte pas le critère minimal d'intelligibilité (`E02 BLOCKED: checkpoint baseline novel WER=0.2109 > 0.15`), sauf passage explicite de `--allow-unready` pour un contrôle technique du harnais.
 
@@ -102,12 +112,12 @@ Les métriques collectées par variante et par voix (`all`, `F1`, `M1`) sont : `
 
 ---
 
-## 4. Vérification technique du harnais (smoke test diagnostic uniquement)
+## 4. Vérification technique historique du harnais (`opt1-1117`, smoke test)
 
-Pour vérifier l'absence de bug du harnais sans consommer de GPU (`0 h`), un **smoke test diagnostic** (`--allow-unready --limit 8`) a été exécuté sur les 8 premières phrases (`qt_01` à `qt_08`, catégorie `questions_totales`) avec les deux voix (`16` énoncés, `49,14 s` audio par variante, `23,79 s` `F1` + `25,35 s` `M1`) sur `opt1-1117`, enregistrant `.local-runs/e02_smoke/e02_results.json` et 14 WAVs pour `qt_01`.
+Pour vérifier l'absence de bug du harnais sans consommer de GPU (`0 h`), un **smoke test diagnostic** (`--allow-unready --limit 8`) a été exécuté initialement sur les 8 premières phrases (`qt_01` à `qt_08`, catégorie `questions_totales`) avec les deux voix (`16` énoncés, `49,14 s` audio par variante, `23,79 s` `F1` + `25,35 s` `M1`) sur `opt1-1117`, enregistrant `.local-runs/e02_smoke/e02_results.json` et 14 WAVs pour `qt_01`.
 
 > [!WARNING]
-> **Ces chiffres ne constituent pas une calibration de E02.** Ils proviennent d'un sous-ensemble restreint (`8` questions totales sans virgule interne) sur un checkpoint sous-entraîné (`opt1-1117`, `step=1317`), uniquement pour valider la mécanique du pipeline.
+> **Ces chiffres historiques ne constituent pas la calibration de E02.** Ils proviennent d'un sous-ensemble restreint (`8` questions totales sans virgule interne) sur le checkpoint sous-entraîné `opt1-1117` (`step=1317`), uniquement pour valider la mécanique du pipeline avant l'entraînement `fr4k`.
 
 | Variante (`range / jitter / voiced_vowels`) | `all_finite` | `f0_std_st` (`all` / `F1` / `M1`) | `f0_iqr_st` (`all`) | `voiced_frac` (`all` / `F1` / `M1`) | `vowel_voiced` | `pause_ratio` | `internal_pause_ms` | `phones/s` | Latence méd. (`ms`) |
 |---|---|---:|---:|---|---:|---:|---:|---:|---:|
@@ -126,24 +136,56 @@ Observations mécaniques sur ce smoke test :
 
 ---
 
-## 5. Livrables et procédure à suivre après l'entraînement `fr4k`
+## 5. Calibration complète sur `fr_ref_20k` (`step = 20 000`)
 
-### 5.1 Livrables produits (prêts pour revue)
+Le sweep orthogonal complet a été exécuté localement sur CPU (`0` unité GPU) via `scripts/eval_e02_prosody.py --with-asr` avec l'intégralité des **64 phrases inédites × 2 voix × 7 variantes (`896` inférences, `128` énoncés/variante, `487,57 s` de calcul)** et évaluation ASR **`faster-whisper small`** (`cpu_threads=4`) sur un sous-ensemble stratifié équilibré de **32 phrases par variante et par voix** (`4` phrases × `8` catégories, `194` appels ASR uniques grâce à la déduplication SHA-256 PCM ; artefact local `.local-runs/e02_fr_ref_20k/e02_results.json`, `e02_transcripts.jsonl` et `56` fichiers WAV dans `wavs/`).
+
+### 5.1 Mesures prosodiques et intelligibilité ASR (`faster-whisper small`)
+
+Métriques `baseline` complémentaires (`all` / `F1` / `M1`) : `f0_iqr_st = 3.376`, `voiced_frac = 0.6517` (`0.6767` / `0.6267`), `vowel_voiced = 1.0`, `pause_ratio = 0.2066` (`0.1889` / `0.2242`), `internal_pause_ms = 261.2`, `phones/s = 13.79` (`14.13` / `13.44`).
+
+| Variante (`range / jitter / voiced_vowels`) | `f0_std_st` (`all` / `F1` / `M1`) | `wer_mean` (`all`) | `corpus_wer` | `cer_mean` (`all`) | `F1` (`wer` / `cer`) | `M1` (`wer` / `cer`) | VS `baseline` (`improved / regressed`) |
+|---|---:|---:|---:|---:|---|---|---|
+| `baseline` (`1.0 / 0.0 / True`) | `2.561` (`2.439` / `2.682`) | `0.0734` | `0.0699` | `0.0290` (`corpus_cer 0.0271`) | `0.0696` / `0.0259` | `0.0772` / `0.0320` | — |
+| `range_0.9` (`0.9 / 0.0 / True`) | `2.305` (`2.195` / `2.414`) | `0.0726` | `0.0699` | `0.0292` | `0.0737` / `0.0272` | `0.0715` / `0.0311` | `1 / 1` |
+| `range_1.15` (`1.15 / 0.0 / True`) | `2.945` (`2.805` / `3.085`) | `0.0594` | `0.0591` | `0.0226` (`corpus_cer 0.0229`) | `0.0612` / `0.0206` | `0.0576` / `0.0246` | `3 / 1` |
+| `range_1.3` (`1.3 / 0.0 / True`) | `3.329` (`3.171` / `3.487`) | `0.0645` | `0.0645` | `0.0225` | `0.0612` / `0.0166` | `0.0678` / `0.0284` | `3 / 3` |
+| `jitter_0.1` (`1.0 / 0.1 / True`) | `2.561` (`2.440` / `2.682`) | `0.0696` | `0.0699` | `0.0267` | `0.0737` / `0.0272` | `0.0654` / `0.0262` | `2 / 2` |
+| `jitter_0.2` (`1.0 / 0.2 / True`) | `2.566` (`2.446` / `2.686`) | `0.0695` | `0.0672` | `0.0267` | `0.0675` / `0.0223` | `0.0715` / `0.0311` | `2 / 1` |
+| `voiced_vowels_false` (`1.0 / 0.0 / False`) | `2.561` (`2.439` / `2.682`) | `0.0734` | — | `0.0290` | — | — | `0 / 0` (`vowel_voiced = 0.9999`, `0.9999` / `0.9998`) |
+
+### 5.2 Diagnostic par catégorie prosodique (`64 × 2` baseline)
+
+L'inspection détaillée des `64 × 2` synthèses `baseline` montre une structure prosodique cohérente :
+- **Pauses aux virgules** : `0` virgule à durée nulle (`comma_ms = 305.8–469.3 ms`), et allongement pré-pausal net en fin d'énoncé (`last_ph = 114.7–145.3 ms` contre `68.5–78.5 ms` en moyenne).
+- **Contours F0 terminaux (`f0_end_delta`)** : descente déclarative sur `assertions`, `dialogues`, `enumerations`, `exclamatives`, `liaisons`, `subordonnees` (`-1.55` à `-2.77` st) et montée interrogative marquée sur `questions_totales` (`F1 +4.82 st`, `M1 +1.79 st`) et `questions_partielles` (`F1 +4.90 st`, `M1 +2.49 st`).
+- **Silences de bord et écrêtage** : `F1` présente `<bos> = 276–309 ms` (`<eos> = 145–176 ms`, `1` pic `> 0.99`), tandis que `M1` présente un silence initial plus long (`<bos> = 552–624 ms`, `<eos> = 39–55 ms`, `9` pics `> 0.99`).
+
+### 5.3 Écoute utilisateur et recommandation par voix
+
+- **`voiced_vowels`** : avec `99,99 %` des trames vocaliques déjà voisées (`0` écart ASR `improved/regressed`, `cache = 194` vs `192` signatures PCM uniques), `voiced_vowels=False` est pratiquement indiscernable ; conserver **`True`**.
+- **`pitch_jitter`** : `0.1` et `0.2` n'apportent aucun gain audible ni amélioration ASR significative ; conserver **`0.0`**.
+- **`pitch_range`** : `range_1.15` rapproche `M1` de sa dispersion naturelle (`3.085` st vs `2.88` st en référence) et réduit le WER stratifié (`0.0734 -> 0.0594`, CER `0.0290 -> 0.0226`), mais `range_1.0` maintient `F1` (`2.439` st) dans sa plage naturelle (`2.28–2.43` st). Lors de l'écoute comparative, l'utilisateur ne discerne pratiquement aucune différence entre les variantes.
+
+**Décision conservatrice E02 (`fr_ref_20k`)** : conserver les paramètres neutres par défaut pour `F1` et `M1` (`pitch_range=1.0`, `pitch_jitter=0.0`, `voiced_vowels=True`), avec la piste `pitch_range=1.15` sur `M1` notée pour recontrôle après le Palier 2 (`35 000` pas).
+
+---
+
+## 6. Livrables et reproductibilité
+
+### 6.1 Livrables du dépôt (`yoch/tiny-voca`, branche `fr`)
 
 - [tests/french_e02_prosody_sentences.json](../../tests/french_e02_prosody_sentences.json) — 64 phrases inédites (8 catégories).
-- [scripts/eval_e02_prosody.py](../../scripts/eval_e02_prosody.py) — harnais reproductible avec garde de blocage automatique (`--max-novel-wer 0.15`).
-- [tests/test_e02.py](../../tests/test_e02.py) — tests unitaires (isolation du corpus, `0` inconnu, validation du `--dry-run` et du blocage `E02 BLOCKED`).
-- [docs/experiments/E02-prosody-calibration.md](../../docs/experiments/E02-prosody-calibration.md) — le présent protocole et constat de blocage.
+- [scripts/eval_e02_prosody.py](../../scripts/eval_e02_prosody.py) — harnais reproductible avec garde de blocage (`--max-novel-wer 0.15`), intégration `--with-asr` (`faster-whisper` + `jiwer`), déduplication PCM SHA-256 et échantillonnage stratifié `--asr-per-category`.
+- [tests/test_e02.py](../../tests/test_e02.py) — tests unitaires (isolation du corpus, `0` inconnu, `--dry-run`, blocage `E02 BLOCKED`, `_stratified_ids` et propagation des options CLI `--with-asr`).
+- [docs/experiments/E02-prosody-calibration.md](../../docs/experiments/E02-prosody-calibration.md) — protocole et validation complète sur `fr_ref_20k`.
 
-### 5.2 Commandes pour exécuter E02 sur le futur checkpoint `fr4k`
+### 6.2 Commande de reproduction sur un checkpoint français
 
 ```bash
-# 1. Vérifier l'isolation et le blocage automatique si WER > 0.15
 PYTHONPATH=src:scripts ./env/bin/python scripts/eval_e02_prosody.py \
-  --checkpoint <fr4k_inference.pt> \
-  --report <fr4k_eval_report.json> \
-  --out-dir .local-runs/e02_fr4k
-
-# 2. Mesurer le WER/CER français sur les WAV générés par variante et par voix (F1 / M1),
-#    puis conduire une écoute comparative en aveugle avant d'arrêter une configuration par voix.
+  --checkpoint .local-runs/colab/fr_ref_20k/fr_ref_20k_final/inference.pt \
+  --report .local-runs/colab/fr_ref_20k/fr_ref_20k_final/eval/report.json \
+  --with-asr --asr-model small --asr-per-category 4 \
+  --out-dir .local-runs/e02_fr_ref_20k
 ```

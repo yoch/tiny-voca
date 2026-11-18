@@ -27,7 +27,7 @@ import soundfile as sf
 import torch
 
 from tiny_voca.infer import limit_peak, load_model, match_frontend
-from tiny_voca.text import PHONE_SET, phonemize
+from tiny_voca.text import PHONE_SET, normalize_for_wer, phonemize
 
 DEFAULT_SENTENCES = ROOT / "tests" / "french_e02_prosody_sentences.json"
 DEFAULT_CHECKPOINT = ROOT / ".local-runs" / "colab" / "opt1-1117" / "out" / "run_info" / "inference.pt"
@@ -147,8 +147,31 @@ def _utterance_prosody_metrics(model, phones, wave_np: np.ndarray, meta: dict, p
     }
 
 
+def _transcribe_fr(asr, wave_np: np.ndarray, rate: int) -> str:
+    """Resample 24 kHz float waveform to 16 kHz and transcribe deterministically with Whisper."""
+    from scipy.signal import resample_poly
+    factor = int(np.gcd(rate, 16000))
+    audio16 = resample_poly(wave_np.astype(np.float32, copy=False), 16000 // factor, rate // factor).astype(np.float32)
+    segments, _ = asr.transcribe(audio16, language="fr", beam_size=5, condition_on_previous_text=False, temperature=0.0)
+    return " ".join(segment.text.strip() for segment in segments).strip()
+
+
+def _stratified_ids(items: list[dict], per_category: int) -> set[str]:
+    """Select the first ``per_category`` sentence IDs deterministically from each category."""
+    counts: dict[str, int] = {}
+    selected: set[str] = set()
+    for row in items:
+        cat = row["category"]
+        n = counts.get(cat, 0)
+        if n < per_category:
+            selected.add(row["id"])
+            counts[cat] = n + 1
+    return selected
+
+
 def evaluate_variants(checkpoint: Path, items: list[dict], out_dir: Path, seed: int = 0, limit: int | None = None,
-                      save_wavs_for: set[str] | None = None) -> dict:
+                      save_wavs_for: set[str] | None = None, with_asr: bool = False,
+                      asr_model: str = "small", asr_threads: int = 4, asr_per_category: int | None = None) -> dict:
     match_frontend(checkpoint)
     model = load_model(checkpoint, "cpu")
     rate = model.config.sample_rate
@@ -157,54 +180,99 @@ def evaluate_variants(checkpoint: Path, items: list[dict], out_dir: Path, seed: 
     if save_wavs_for:
         wav_dir.mkdir(parents=True, exist_ok=True)
 
-    tokenized = [(row, phonemize(row["text"])) for row in sample_items]
-    summary = {}
-    for vid, p_range, p_jitter, v_vowels in ORTHOGONAL_VARIANTS:
-        rows = []
-        latencies = []
-        for voice_idx, voice_name in enumerate(model.config.speakers):
-            voice_t = torch.tensor([voice_idx], dtype=torch.long)
-            for row, phones in tokenized:
-                tok_t = torch.tensor([phones.ids], dtype=torch.long)
-                str_t = torch.tensor([phones.stress], dtype=torch.long)
-                len_t = torch.tensor([len(phones)], dtype=torch.long)
-                t0 = time.perf_counter()
-                wave_t, length_t, meta = model.synthesize(
-                    tok_t, str_t, len_t, voice_t,
-                    speed=1.0, pitch_shift=0.0, seed=seed,
-                    pitch_range=p_range, pitch_jitter=p_jitter, voiced_vowels=v_vowels,
-                )
-                latencies.append((time.perf_counter() - t0) * 1000.0)
-                wave_np = limit_peak(wave_t[0, :int(length_t[0])]).cpu().numpy()
-                m = _utterance_prosody_metrics(model, phones, wave_np, meta, p_jitter, seed)
-                m["voice"] = voice_name
-                m["id"] = row["id"]
-                rows.append(m)
-                if save_wavs_for and row["id"] in save_wavs_for:
-                    sf.write(str(wav_dir / f"{row['id']}_{voice_name}_{vid}.wav"), wave_np, rate)
+    asr = None
+    jiwer = None
+    asr_cache: dict[str, str] = {}
+    asr_ids: set[str] = set()
+    transcripts_fh = None
+    if with_asr:
+        import jiwer as _jiwer
+        from faster_whisper import WhisperModel
+        jiwer = _jiwer
+        asr = WhisperModel(asr_model, device="cpu", compute_type="int8", cpu_threads=asr_threads)
+        asr_ids = _stratified_ids(sample_items, asr_per_category) if asr_per_category else {r["id"] for r in sample_items}
+        transcripts_fh = (out_dir / "e02_transcripts.jsonl").open("w", encoding="utf-8")
 
-        by_voice = {}
-        for voice_name in ("all", *model.config.speakers):
-            sub = rows if voice_name == "all" else [r for r in rows if r["voice"] == voice_name]
-            total_audio_s = sum(r["seconds"] for r in sub)
-            by_voice[voice_name] = {
-                "utterances": len(sub),
-                "all_finite": all(r["finite"] for r in sub),
-                "f0_std_st_mean": round(statistics.mean(r["f0_std_st"] for r in sub), 3),
-                "f0_iqr_st_mean": round(statistics.mean(r["f0_iqr_st"] for r in sub), 3),
-                "voiced_frac_mean": round(statistics.mean(r["voiced_frac"] for r in sub), 4),
-                "vowel_voiced_frac_mean": round(statistics.mean(r["vowel_voiced_frac"] for r in sub), 4),
-                "pause_ratio_mean": round(statistics.mean(r["pause_ratio"] for r in sub), 4),
-                "internal_pause_ms_mean": round(statistics.mean(r["internal_pause_ms"] for r in sub), 1),
-                "phones_per_sec_mean": round(statistics.mean(r["phones_per_sec"] for r in sub), 2),
-                "total_audio_seconds": round(total_audio_s, 2),
+    try:
+        tokenized = [(row, phonemize(row["text"]), normalize_for_wer(row["text"], "fr")) for row in sample_items]
+        summary = {}
+        for vid, p_range, p_jitter, v_vowels in ORTHOGONAL_VARIANTS:
+            rows = []
+            latencies = []
+            for voice_idx, voice_name in enumerate(model.config.speakers):
+                voice_t = torch.tensor([voice_idx], dtype=torch.long)
+                for row, phones, truth in tokenized:
+                    tok_t = torch.tensor([phones.ids], dtype=torch.long)
+                    str_t = torch.tensor([phones.stress], dtype=torch.long)
+                    len_t = torch.tensor([len(phones)], dtype=torch.long)
+                    t0 = time.perf_counter()
+                    wave_t, length_t, meta = model.synthesize(
+                        tok_t, str_t, len_t, voice_t,
+                        speed=1.0, pitch_shift=0.0, seed=seed,
+                        pitch_range=p_range, pitch_jitter=p_jitter, voiced_vowels=v_vowels,
+                    )
+                    latencies.append((time.perf_counter() - t0) * 1000.0)
+                    wave_np = limit_peak(wave_t[0, :int(length_t[0])]).cpu().numpy()
+                    m = _utterance_prosody_metrics(model, phones, wave_np, meta, p_jitter, seed)
+                    m["voice"] = voice_name
+                    m["id"] = row["id"]
+                    if save_wavs_for and row["id"] in save_wavs_for:
+                        sf.write(str(wav_dir / f"{row['id']}_{voice_name}_{vid}.wav"), wave_np, rate)
+                    if asr is not None and row["id"] in asr_ids:
+                        pcm_bytes = np.clip(np.round(wave_np * 32767.0), -32768, 32767).astype("<i2").tobytes()
+                        audio_key = hashlib.sha256(pcm_bytes).hexdigest()
+                        hyp = asr_cache.get(audio_key)
+                        if hyp is None:
+                            hyp = _transcribe_fr(asr, wave_np, rate)
+                            asr_cache[audio_key] = hyp
+                        hyp_norm = normalize_for_wer(hyp, "fr") or "<empty>"
+                        m["truth"] = truth
+                        m["hyp_norm"] = hyp_norm
+                        m["wer"] = float(jiwer.wer(truth, hyp_norm))
+                        m["cer"] = float(jiwer.cer(truth, hyp_norm))
+                        transcripts_fh.write(json.dumps({
+                            "variant": vid, "voice": voice_name, "id": row["id"], "category": row["category"],
+                            "text": row["text"], "hyp": hyp, "wer": round(m["wer"], 4), "cer": round(m["cer"], 4),
+                        }, ensure_ascii=False) + "\n")
+                    rows.append(m)
+                if asr is not None:
+                    print(f"[E02 ASR] {vid} {voice_name}: scored {len(asr_ids)} clips (cache={len(asr_cache)})", flush=True)
+
+            by_voice = {}
+            for voice_name in ("all", *model.config.speakers):
+                sub = rows if voice_name == "all" else [r for r in rows if r["voice"] == voice_name]
+                total_audio_s = sum(r["seconds"] for r in sub)
+                entry = {
+                    "utterances": len(sub),
+                    "all_finite": all(r["finite"] for r in sub),
+                    "f0_std_st_mean": round(statistics.mean(r["f0_std_st"] for r in sub), 3),
+                    "f0_iqr_st_mean": round(statistics.mean(r["f0_iqr_st"] for r in sub), 3),
+                    "voiced_frac_mean": round(statistics.mean(r["voiced_frac"] for r in sub), 4),
+                    "vowel_voiced_frac_mean": round(statistics.mean(r["vowel_voiced_frac"] for r in sub), 4),
+                    "pause_ratio_mean": round(statistics.mean(r["pause_ratio"] for r in sub), 4),
+                    "internal_pause_ms_mean": round(statistics.mean(r["internal_pause_ms"] for r in sub), 1),
+                    "phones_per_sec_mean": round(statistics.mean(r["phones_per_sec"] for r in sub), 2),
+                    "total_audio_seconds": round(total_audio_s, 2),
+                }
+                asr_sub = [r for r in sub if "wer" in r]
+                if asr_sub:
+                    entry.update({
+                        "asr_utterances": len(asr_sub),
+                        "wer_mean": round(statistics.mean(r["wer"] for r in asr_sub), 4),
+                        "cer_mean": round(statistics.mean(r["cer"] for r in asr_sub), 4),
+                        "corpus_wer": round(float(jiwer.wer([r["truth"] for r in asr_sub], [r["hyp_norm"] for r in asr_sub])), 4),
+                        "corpus_cer": round(float(jiwer.cer([r["truth"] for r in asr_sub], [r["hyp_norm"] for r in asr_sub])), 4),
+                    })
+                by_voice[voice_name] = entry
+            summary[vid] = {
+                "params": {"pitch_range": p_range, "pitch_jitter": p_jitter, "voiced_vowels": v_vowels},
+                "median_latency_ms": round(statistics.median(latencies), 2),
+                "metrics": by_voice,
             }
-        summary[vid] = {
-            "params": {"pitch_range": p_range, "pitch_jitter": p_jitter, "voiced_vowels": v_vowels},
-            "median_latency_ms": round(statistics.median(latencies), 2),
-            "metrics": by_voice,
-        }
-    return summary
+        return summary
+    finally:
+        if transcripts_fh is not None:
+            transcripts_fh.close()
 
 
 def main():
@@ -217,6 +285,10 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Verify dataset isolation & phonemization only")
     parser.add_argument("--allow-unready", action="store_true", help="Run synthesis diagnostics even when checkpoint fails WER gate")
     parser.add_argument("--limit", type=int, help="Optional sentence cap for quick smoke test")
+    parser.add_argument("--with-asr", action="store_true", help="Also transcribe each synthesized utterance with faster-whisper to measure WER/CER")
+    parser.add_argument("--asr-model", default="small")
+    parser.add_argument("--asr-threads", type=int, default=4)
+    parser.add_argument("--asr-per-category", type=int, help="Optional stratified cap per category for ASR scoring")
     args = parser.parse_args()
 
     items = load_sentences(args.sentences)
@@ -247,10 +319,15 @@ def main():
         raise ValueError("--out-dir required unless --dry-run")
     args.out_dir.mkdir(parents=True, exist_ok=True)
     save_ids = {"qt_01", "ex_01", "en_01", "sl_01"}
-    results = evaluate_variants(args.checkpoint, items, args.out_dir, limit=args.limit, save_wavs_for=save_ids)
+    results = evaluate_variants(
+        args.checkpoint, items, args.out_dir, limit=args.limit, save_wavs_for=save_ids,
+        with_asr=args.with_asr, asr_model=args.asr_model, asr_threads=args.asr_threads,
+        asr_per_category=args.asr_per_category,
+    )
     payload = {
         "checkpoint": str(args.checkpoint),
         "checkpoint_sha256": sha256_file(args.checkpoint),
+        "asr_model": f"faster-whisper {args.asr_model}" if args.with_asr else None,
         "isolation": isolation,
         "results": results,
     }
