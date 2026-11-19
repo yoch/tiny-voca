@@ -482,10 +482,22 @@ _FR_PRONOUNCEABLE_ACRONYM_HINTS = {
     "RAM": "rame",
     "EHPAD": "épade",
     "MEDEF": "médèfe",
+    "IA": "i a",
+}
+_LETTER_FR = {
+    "A": "a", "B": "bé", "C": "cé", "D": "dé", "E": "euh", "F": "èf", "G": "gé",
+    "H": "ache", "I": "i", "J": "ji", "K": "ka", "L": "èl", "M": "èm", "N": "èn",
+    "O": "o", "P": "pé", "Q": "ku", "R": "èr", "S": "ès", "T": "té", "U": "u",
+    "V": "vé", "W": "doublevé", "X": "ikse", "Y": "igrèk", "Z": "zède",
 }
 _ROMAN_NUMERAL_RE = re.compile(r"^M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})$")
 _ALL_CAPS_WORD_RE = re.compile(r"\b[A-Z]{2,6}\b")
 _FR_VOWELS_ASCII = frozenset("AEIOUY")
+
+
+def _spell_french_initialism(word: str) -> str:
+    """Spell an initialism as one hyphenated French word so eSpeak inserts zero <sp> pauses between letters."""
+    return "-".join(_LETTER_FR[ch] for ch in word)
 
 
 def _expand_french_acronym(m: re.Match) -> str:
@@ -493,14 +505,14 @@ def _expand_french_acronym(m: re.Match) -> str:
     if word in _FR_PRONOUNCEABLE_ACRONYM_HINTS:
         return _FR_PRONOUNCEABLE_ACRONYM_HINTS[word]
     if word in _FR_EXTRA_INITIALISMS:
-        return " ".join(word)
+        return _spell_french_initialism(word)
     # Keep titles ("MM"), emoticons ("XD"), and valid Roman numerals ("XIV", "XXI") untouched.
     if len(word) < 3 or _ROMAN_NUMERAL_RE.match(word):
         return word
     # Generic rule: any 3-6 letter ALL-CAPS token without vowels (RGPD, CNRS, HLM, CGT,
-    # PDF, LLM, SMS, GPS, BTP, SQL, SSH, PDG, SNCF, DVD...) is spelled out in French.
+    # PDF, LLM, SMS, GPS, BTP, SQL, SSH, PDG, SNCF, DVD...) is spelled out smoothly in French.
     if not any(ch in _FR_VOWELS_ASCII for ch in word):
-        return " ".join(word)
+        return _spell_french_initialism(word)
     return word
 
 
