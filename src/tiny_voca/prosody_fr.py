@@ -476,6 +476,7 @@ _FR_EXTRA_INITIALISMS = frozenset({
     "UFC", "OVH", "CIO", "TVA", "PIB", "API", "URL", "CPU", "GPU", "USB", "IA",
     "UE", "JO", "TGV", "RATP", "RER", "TER", "EDF", "GDF", "RSA", "PME", "PMI",
     "VTC", "KGB", "CDG", "QCM", "CDI", "CDD", "IVG", "IRM", "SPA", "VIP", "FAQ",
+    "CV", "TV", "CD", "PC", "QG", "RH", "BD",
 })
 _FR_PRONOUNCEABLE_ACRONYM_HINTS = {
     "RAM": "rame",
@@ -493,11 +494,11 @@ def _expand_french_acronym(m: re.Match) -> str:
         return _FR_PRONOUNCEABLE_ACRONYM_HINTS[word]
     if word in _FR_EXTRA_INITIALISMS:
         return " ".join(word)
-    # Keep titles ("MM") and valid Roman numerals ("XIV", "XXI") untouched for text.py.
-    if word == "MM" or _ROMAN_NUMERAL_RE.match(word):
+    # Keep titles ("MM"), emoticons ("XD"), and valid Roman numerals ("XIV", "XXI") untouched.
+    if len(word) < 3 or _ROMAN_NUMERAL_RE.match(word):
         return word
-    # Generic rule: any 2-6 letter ALL-CAPS token without vowels (RGPD, CNRS, HLM, CGT,
-    # PDF, LLM, SMS, GPS, BTP, SQL, SSH, PDG, SNCF, DVD, TV...) is spelled out in French.
+    # Generic rule: any 3-6 letter ALL-CAPS token without vowels (RGPD, CNRS, HLM, CGT,
+    # PDF, LLM, SMS, GPS, BTP, SQL, SSH, PDG, SNCF, DVD...) is spelled out in French.
     if not any(ch in _FR_VOWELS_ASCII for ch in word):
         return " ".join(word)
     return word
@@ -514,15 +515,16 @@ def _unit_plural(num_str: str, singular: str, plural: str) -> str:
     return f"{num_str} {unit}"
 
 
-def prepare_french_tts_text(text: str) -> str:
-    """Clean everyday French text at inference time without touching the frozen
-    training frontend fingerprint (computing/metric units, fractions, French phone
-    numbers, emails/URLs, bullet lists, abbreviations, and guillemet spacing).
+def prepare_french_structure(text: str) -> str:
+    """Pre-splitting structural cleanup (bullet lists & French guillemet spacing).
+
+    Runs BEFORE ``sentences(finished(...))`` so bullet items become separate
+    sentences and closing guillemets do not get a stray period, while keeping
+    acronyms like ``RGPD.`` intact so ``sentences()`` splits after them instead
+    of mistaking spaced letters (``R G P D.``) for a middle initial (``J. K.``).
     """
     if not text or not text.strip():
         return text
-
-    # 1. Bullet lists ("\n- 3 œufs\n- 100 g") -> clean punctuated items instead of "—".
     lines = text.splitlines()
     if any(re.match(r"^\s*[-•*]\s+\S", ln) for ln in lines):
         rebuilt: list[str] = []
@@ -536,6 +538,19 @@ def prepare_french_tts_text(text: str) -> str:
             else:
                 rebuilt.append(ln)
         text = "\n".join(rebuilt)
+    text = re.sub(r"([.!?…])\s+»", r"\1»", text)
+    return text
+
+
+def prepare_french_tts_text(text: str) -> str:
+    """Clean everyday French text at inference time without touching the frozen
+    training frontend fingerprint (computing/metric units, fractions, French phone
+    numbers, emails/URLs, bullet lists, abbreviations, acronyms, and guillemet spacing).
+    """
+    if not text or not text.strip():
+        return text
+
+    text = prepare_french_structure(text)
 
     # 2. Emails & URLs -> speakable French ("arobase", "point", "slash").
     def _email_sub(m: re.Match) -> str:
@@ -577,8 +592,5 @@ def prepare_french_tts_text(text: str) -> str:
     text = re.sub(r"\b1/4\b", "un quart", text)
     text = re.sub(r"\b3/4\b", "trois quarts", text)
     text = re.sub(r"\b(\d+(?:[.,]\d+)?)\s*[xX]\b", r"\1 fois", text)
-
-    # 7. Avoid stray period after French closing guillemets ("« On verra ! »").
-    text = re.sub(r"([.!?…])\s+»", r"\1»", text)
 
     return text

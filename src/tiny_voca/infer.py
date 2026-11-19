@@ -5,7 +5,7 @@ import re
 import torch
 from .config import CHECKPOINT_FORMAT, Config
 from .model import TinyVoca, UtteranceTooLong
-from .prosody_fr import load_prosody_refiner, prepare_french_tts_text, synthesize_with_refiner
+from .prosody_fr import load_prosody_refiner, prepare_french_structure, prepare_french_tts_text, synthesize_with_refiner
 from .text import FRONTEND_VARIABLE, FRONTENDS, NothingToPronounce, frontend_fingerprint, phonemize, set_frontend
 
 # The loudest sample of the audio that ``speak_text`` and the command return.
@@ -159,13 +159,14 @@ def speak_text(model, text, voice, speed=1.0, pitch_shift=0.0, seed=0, pitch_ran
     saved as 16-bit samples without clipping; ``peak=None`` returns the
     model's output as it is."""
     if prepare_text:
-        text = prepare_french_tts_text(text)
+        text = prepare_french_structure(text)
     limit = model.config.max_tokens - 12
     waves, spoken = [], []
 
     def read(piece):
+        clean_piece = prepare_french_tts_text(piece) if prepare_text else piece
         try:
-            phones = phonemize(piece)
+            phones = phonemize(clean_piece)
         except NothingToPronounce:
             return
         if len(phones) <= limit:
@@ -175,7 +176,7 @@ def speak_text(model, text, voice, speed=1.0, pitch_shift=0.0, seed=0, pitch_ran
                 else:
                     wave, _ = _voice(
                         model, phones, voice, speed, pitch_shift, seed + len(waves), pitch_range,
-                        prosody_refiner=prosody_refiner, text=piece, sp_pause_threshold=sp_pause_threshold,
+                        prosody_refiner=prosody_refiner, text=clean_piece, sp_pause_threshold=sp_pause_threshold,
                     )
             except UtteranceTooLong:
                 pass
@@ -183,7 +184,7 @@ def speak_text(model, text, voice, speed=1.0, pitch_shift=0.0, seed=0, pitch_ran
                 waves.append(wave)
                 spoken.append(phones)
                 return
-        pieces = shorter(piece)
+        pieces = shorter(clean_piece)
         if not pieces:
             raise ValueError(f"one word is too long to speak: {piece[:40]!r}")
         for part in pieces:

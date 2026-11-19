@@ -28,39 +28,42 @@ if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
 from tiny_voca.infer import finished, sentences, shorter
-from tiny_voca.prosody_fr import prepare_french_tts_text
+from tiny_voca.prosody_fr import prepare_french_structure, prepare_french_tts_text
 from tiny_voca.text import NothingToPronounce, phonemize
 
 
 def phonemize_for_wasm(text: str, max_tokens: int = 240, clean_text: bool = True) -> dict:
-    cleaned = prepare_french_tts_text(text) if clean_text else text
+    structured = prepare_french_structure(text) if clean_text else text
     limit = max_tokens - 12
     utterances = []
+    cleaned_sentences = []
 
     def fit(piece: str):
+        clean_piece = prepare_french_tts_text(piece) if clean_text else piece
         try:
-            ph = phonemize(piece)
+            ph = phonemize(clean_piece)
         except NothingToPronounce:
             return
         if len(ph) <= limit:
             utterances.append({
-                "text": piece,
+                "text": clean_piece,
                 "ids": list(ph.ids),
                 "stress": list(ph.stress),
                 "symbols": " ".join(ph.symbols),
             })
             return
-        parts = shorter(piece)
+        parts = shorter(clean_piece)
         if not parts:
             return
         for part in parts:
             fit(part)
 
-    for sent in sentences(finished(cleaned)):
+    for sent in sentences(finished(structured)):
+        cleaned_sentences.append(prepare_french_tts_text(sent) if clean_text else sent)
         fit(sent)
 
     return {
-        "cleaned_text": cleaned,
+        "cleaned_text": "\n".join(cleaned_sentences),
         "utterances": utterances,
     }
 
