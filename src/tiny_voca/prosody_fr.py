@@ -480,7 +480,7 @@ _FR_ACRONYM_OVERRIDES = {
     "EHPAD": "épade",
     "MEDEF": "médèfe",
     "IA": "i a",
-    "OMS": "ohèmèsse",
+    "OMS": "ohème èsse",
     "CHU": "céachu",
     "AVC": "avécé",
     "FBI": "èfbéi",
