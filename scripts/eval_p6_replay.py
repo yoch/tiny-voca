@@ -34,11 +34,11 @@ for p in (ROOT / "src", ROOT / "scripts"):
 
 from tiny_voca.config import Config
 from tiny_voca.data import AnnotatedDataset
-from tiny_voca.evaluate import dtw_distance
+from tiny_voca.evaluate import dtw_distance, normalize_for_wer
 from tiny_voca.losses import SpectralLoss
 from tiny_voca.text import PHONE_SET, SYMBOLS
 
-from eval_p4_ablation import _run_asr, stratified_text_bootstrap_ci
+from eval_p4_ablation import stratified_text_bootstrap_ci
 from eval_p5_f0_causal import (
     _apply_common_mask,
     _direction_label,
@@ -235,13 +235,31 @@ def main():
     # Pre-cache references & 35k predicted durations.
     ref_cache = {}
     pred_durs_35k = {}
+    fps = cfg.sample_rate / cfg.hop
     for row in selected:
         uid = row["id"]
         item = ds[id_to_idx[uid]]
         ref_wave = item["wave"].numpy()
-        ref_f0 = extract_unbiased_f0(ref_wave, cfg, frames=int(item["durations"].sum()))
+        ref_durs = item["durations"].numpy()
+        tokens = item["tokens"].numpy()
+        t_ref = int(ref_durs.sum())
+        ref_f0 = extract_unbiased_f0(ref_wave, cfg, frames=t_ref)
         ref_mel = spectral.log_mel(torch.from_numpy(ref_wave)[None])[0].numpy()
-        ref_cache[uid] = {"row": row, "item": item, "wave": ref_wave, "f0": ref_f0, "mel": ref_mel}
+        ref_phone = np.repeat([SYMBOLS[int(t)] in PHONE_SET for t in tokens], ref_durs)[:t_ref]
+        r_rel = ref_f0["voiced"] & ref_f0["trusted"] & ref_phone
+        ref_cache[uid] = {
+            "row": row,
+            "item": item,
+            "wave": ref_wave,
+            "f0": ref_f0,
+            "mel": ref_mel,
+            "ref_durs": ref_durs,
+            "tokens": tokens,
+            "ref_phone": ref_phone,
+            "r_rel": r_rel,
+            "r_cont_st": ref_f0["continuous_log_f0"] * SEMITONES,
+            "target_log_f0": item["prosody"][:, 0].numpy(),
+        }
         with torch.inference_mode():
             tok = item["tokens"][None]
             st = item["stress"][None]
@@ -253,7 +271,8 @@ def main():
     # --- PART 1: Host fr_ref_35k F0 injection on identical 35k predicted durations ---
     inj_names = ("35k_host", "e06_8k", "C", "D", "P")
     inj_rows: dict[str, list[dict]] = {k: [] for k in inj_names}
-    inj_wav_f0_cache: dict[str, dict[str, dict]] = {k: {} for k in inj_names}
+    inj_masks: dict[str, dict[str, np.ndarray]] = {k: {} for k in inj_names}
+    inj_curves: dict[str, dict[str, np.ndarray]] = {k: {} for k in inj_names}
 
     for i_u, row in enumerate(selected):
         uid = row["id"]
@@ -268,13 +287,17 @@ def main():
         for name in inj_names:
             donor_f0 = None if name == "35k_host" else predict_donor_log_f0(donors[name], tok, st, tl, spk, dur_35k)
             wav, meta = synthesize_decoupled_f0(host_35k, item, dur_35k, dec_log_f0=donor_f0, osc_log_f0=donor_f0, seed=syn_seed)
-            m, wf0 = _heard_f0_metrics(rc["wave"], wav, item, rc["f0"], meta, cfg, spectral, rc["mel"], oracle_dur=False)
+            m, g_rel_w, g_st_w = _heard_f0_metrics(
+                rc["wave"], rc["mel"], rc["f0"], rc["target_log_f0"], rc["ref_durs"],
+                wav, meta["durations"], meta["osc_log_f0"], rc["tokens"], cfg, spectral, "cpu",
+            )
             inj_rows[name].append({
                 "id": uid, "text_hash": row["text_hash"], "speaker": row["speaker"], "category": row["category"], **m,
             })
-            inj_wav_f0_cache[name][uid] = wf0
+            inj_masks[name][uid] = g_rel_w
+            inj_curves[name][uid] = g_st_w
 
-    inj_common_cov = _apply_common_mask(inj_rows, inj_wav_f0_cache, ref_cache, selected, oracle_dur=False, pred_durs_map=pred_durs_35k)
+    inj_common_cov = _apply_common_mask(inj_rows, inj_masks, inj_curves, ref_cache, list(inj_names), fps)
     inj_summary = {
         k: {
             "all": _summarize(inj_rows[k]),
@@ -322,8 +345,8 @@ def main():
                 torch.from_numpy(rc["wave"])[None],
                 torch.tensor([len(rc["wave"])], dtype=torch.long),
             )
-            int_m = compute_intonation_metrics(rc["wave"], gen_free, item, meta_free["durations"], cfg, ref_f0=rc["f0"])
-            rhy_m = compute_rhythm_metrics(item["durations"].numpy(), meta_free["durations"], item["tokens"].numpy(), cfg)
+            int_m = compute_intonation_metrics(rc["wave"], gen_free, rc["ref_durs"], meta_free["durations"], rc["tokens"], cfg, ref_f0_info=rc["f0"])
+            rhy_m = compute_rhythm_metrics(rc["ref_durs"], meta_free["durations"], rc["tokens"], cfg)
             native_rows[name].append({
                 "id": uid,
                 "text_hash": row["text_hash"],
@@ -341,11 +364,35 @@ def main():
 
     asr_summary = {}
     if not args.skip_asr:
+        from faster_whisper import WhisperModel
+        import jiwer
+        import librosa
+
+        print("Loading faster-whisper small (int8 CPU) once for native C, D, P...", flush=True)
+        whisper = WhisperModel("small", device="cpu", compute_type="int8")
         for name in native_arms:
-            print(f"Running faster-whisper small ASR on native {name} ({len(asr_batches[name])} WAVs)...", flush=True)
-            asr_res = _run_asr(asr_batches[name], sr=cfg.sample_rate, model_size="small")
-            asr_summary[name] = {k: v for k, v in asr_res.items() if k != "per_utterance"}
-            per_u = {x["id"]: x for x in asr_res["per_utterance"]}
+            print(f"Running ASR on native {name} ({len(asr_batches[name])} WAVs)...", flush=True)
+            by_spk_pairs: dict[str, list[tuple[str, str]]] = defaultdict(list)
+            per_u = {}
+            for uid, spk, ref_text, wav in asr_batches[name]:
+                wav16 = librosa.resample(wav.astype(np.float32), orig_sr=cfg.sample_rate, target_sr=16000)
+                segs, _ = whisper.transcribe(wav16, language="fr", beam_size=5, vad_filter=False)
+                hyp = " ".join(s.text.strip() for s in segs).strip()
+                r_norm = normalize_for_wer(ref_text, language="fr")
+                h_norm = normalize_for_wer(hyp, language="fr")
+                u_wer = float(jiwer.wer([r_norm], [h_norm])) if r_norm else 0.0
+                u_cer = float(jiwer.cer([r_norm], [h_norm])) if r_norm else 0.0
+                per_u[uid] = {"wer": round(u_wer, 5), "cer": round(u_cer, 5), "hyp": hyp}
+                by_spk_pairs[spk].append((r_norm, h_norm))
+                by_spk_pairs["all"].append((r_norm, h_norm))
+            asr_summary[name] = {
+                grp: {
+                    "samples": len(pairs),
+                    "corpus_wer": round(float(jiwer.wer([p[0] for p in pairs], [p[1] for p in pairs])), 4),
+                    "corpus_cer": round(float(jiwer.cer([p[0] for p in pairs], [p[1] for p in pairs])), 4),
+                }
+                for grp, pairs in by_spk_pairs.items()
+            }
             for r in native_rows[name]:
                 if r["id"] in per_u:
                     r["wer"] = per_u[r["id"]]["wer"]

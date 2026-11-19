@@ -96,7 +96,7 @@ def plot_questions_and_minimal_pairs(report: dict, out_path: Path):
     gen_end = [qs[q][s]["gen_end_mean_st"] for q, s in groups]
     dir_acc = [qs[q][s]["dir_match_acc"] for q, s in groups]
     x = np.arange(len(groups))
-    ax.bar(x - 0.18, ref_end, width=0.34, color="#111827", label="Référence humaine")
+    ax.bar(x - 0.18, ref_end, width=0.34, color="#111827", label="Référence Qwen3-TTS")
     ax.bar(x + 0.18, gen_end, width=0.34, color="#e11d48", label="fr_ref_35k")
     ax.axhline(0.0, color="#64748b", linewidth=0.9)
     for i, acc in enumerate(dir_acc):
