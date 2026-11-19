@@ -261,6 +261,69 @@
         "t ʁ ɑ̃ t e œ̃ <sp> d e s ɑ̃ b ʁ <sp> d ø <sp> m i l <sp> v ɛ̃ t s i s"
       ],
       "forbid_ipa": ["t ʁ ɑ̃ t e œ̃ <sp> s y ʁ"]
+    },
+    {
+      "id": "batch2_s02_abbreviated_days_and_months",
+      "category": "dates",
+      "text": "Réunion lun. 5 janv., mar. 14 févr., mer. 3 avr., ven. 12 sept. et dim. 1er déc.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "l œ̃ d i <sp> s ɛ̃ k <sp> ʒ ɑ̃ v j e",
+        "m a ʁ d i <sp> k a t ɔ ʁ z <sp> f e v ʁ i e",
+        "m ɛ ʁ k ʁ ə d i <sp> t ʁ w a z <sp> a v ʁ i l",
+        "v ɑ̃ d ʁ ə d i <sp> d u z <sp> s ɛ p t ɑ̃ b ʁ",
+        "d i m ɑ̃ ʃ <sp> p ʁ ə m j e <sp> d e s ɑ̃ b ʁ"
+      ],
+      "forbid_ipa": ["l œ n", "ʒ ɑ̃ v ."]
+    },
+    {
+      "id": "batch2_s03_github_loanword",
+      "category": "loanwords",
+      "text": "Le projet open source sur GitHub utilise Python, JavaScript, le cloud et le Bluetooth.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": ["s y ʁ <sp> ɡ i t ø b <sp> y t i l i z"],
+      "forbid_ipa": ["ʒ i <sp> œ b"]
+    },
+    {
+      "id": "batch2_s04_s05_french_cities_pronunciation",
+      "category": "proper_nouns",
+      "text": "De Metz à Chamonix, puis Auxerre, Bruxelles, Troyes et Avoriaz.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "d ə <sp> m ɛ s <sp> a <sp> ʃ a m o n i",
+        "p y i z <sp> o s ɛ ʁ",
+        "b ʁ y s ɛ l",
+        "t ʁ w a",
+        "a v o ʁ j a"
+      ],
+      "forbid_ipa": ["m ɛ t s", "ʃ a m o n i k s", "o k s ɛ ʁ", "b ʁ y k s ɛ l", "t ʁ w a j", "a v o ʁ j a z"]
+    },
+    {
+      "id": "batch2_s07_dialogue_dashes_and_guillemet_split",
+      "category": "dialogue",
+      "text": "— Tu viens demain ? — Non, j'ai rendez-vous ! « Dommage… une prochaine fois ? »",
+      "expect_sentences": 3,
+      "expect_ipa_contains": [
+        "t y <sp> v j ɛ̃ <sp> d ə m ɛ̃ ?",
+        "n ɔ̃ , ʒ e <sp> ʁ ɑ̃ d e v u !",
+        "\" d ɔ m a ʒ , y n <sp> p ʁ o ʃ ɛ n <sp> f w a ? \""
+      ],
+      "forbid_ipa": ["—", "…"]
+    },
+    {
+      "id": "batch2_s08_final_s_jadis_ananas_cassis",
+      "category": "lexicon",
+      "text": "Jadis, un ours mangeait du maïs, un ananas et du cassis dans le bus.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "ʒ a d i s",
+        "u ʁ s",
+        "m a i s",
+        "a n a n a s",
+        "k a s i s",
+        "b y s"
+      ],
+      "forbid_ipa": ["ʒ a d i ,", "k a s i <sp>"]
     }
   ]
 }

@@ -148,7 +148,7 @@ class TestP7FrenchProsodyRefiner(unittest.TestCase):
             prepare_french_tts_text("Ingrédients :\n- 3 œufs\n- 100 g"),
             "Ingrédients, 3 œufs.\n100 g.",
         )
-        self.assertEqual(prepare_french_tts_text("« On verra ! »"), "« On verra !»")
+        self.assertEqual(prepare_french_tts_text("« On verra ! »"), "«On verra !»")
         # Smart acronym / initialism rules (RAM pronounced as word, fluent final stress on overrides)
         self.assertIn("16 gigaoctets de rame", prepare_french_tts_text("16 Go de RAM"))
         self.assertIn("l'ONU", prepare_french_tts_text("l'ONU"))

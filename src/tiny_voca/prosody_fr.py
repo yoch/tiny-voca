@@ -550,6 +550,38 @@ _EMAIL_LOCAL_INITIALISMS = {
 }
 _ALL_CAPS_WORD_RE = re.compile(r"\b[A-Z]{2,6}\b")
 
+_FR_DAYS_ABBR = (
+    (re.compile(r"\b([Ll])un\.\s*(?=\d)"), "lundi "),
+    (re.compile(r"\b([Mm])ar\.\s*(?=\d)"), "mardi "),
+    (re.compile(r"\b([Mm])er\.\s*(?=\d)"), "mercredi "),
+    (re.compile(r"\b([Jj])eu\.\s*(?=\d)"), "jeudi "),
+    (re.compile(r"\b([Vv])en\.\s*(?=\d)"), "vendredi "),
+    (re.compile(r"\b([Ss])am\.\s*(?=\d)"), "samedi "),
+    (re.compile(r"\b([Dd])im\.\s*(?=\d)"), "dimanche "),
+)
+_FR_MONTHS_ABBR = (
+    (re.compile(r"\b(\d{1,2}|1er|premier)\s+janv\.", re.IGNORECASE), r"\1 janvier"),
+    (re.compile(r"\b(\d{1,2}|1er|premier)\s+févr\.", re.IGNORECASE), r"\1 février"),
+    (re.compile(r"\b(\d{1,2}|1er|premier)\s+avr\.", re.IGNORECASE), r"\1 avril"),
+    (re.compile(r"\b(\d{1,2}|1er|premier)\s+juill?\.", re.IGNORECASE), r"\1 juillet"),
+    (re.compile(r"\b(\d{1,2}|1er|premier)\s+sept\.", re.IGNORECASE), r"\1 septembre"),
+    (re.compile(r"\b(\d{1,2}|1er|premier)\s+oct\.", re.IGNORECASE), r"\1 octobre"),
+    (re.compile(r"\b(\d{1,2}|1er|premier)\s+nov\.", re.IGNORECASE), r"\1 novembre"),
+    (re.compile(r"\b(\d{1,2}|1er|premier)\s+déc\.", re.IGNORECASE), r"\1 décembre"),
+)
+_FR_LEXICON_OVERRIDES = (
+    (re.compile(r"\bGitHub\b", re.IGNORECASE), "guite-heube"),
+    (re.compile(r"\bMetz\b"), "Mèsse"),
+    (re.compile(r"\bChamonix\b"), "Chamoni"),
+    (re.compile(r"\bAuxerre\b"), "Aussère"),
+    (re.compile(r"\bBruxelles\b"), "Brusselle"),
+    (re.compile(r"\bTroyes\b"), "Trois"),
+    (re.compile(r"\bAvoriaz\b"), "Avoria"),
+    (re.compile(r"\b([Jj])adis\b"), r"\1adisse"),
+    (re.compile(r"\b([Cc])assis\b"), r"\1assisse"),
+    (re.compile(r"\b([Aa])nanas\b"), r"\1nanasse"),
+)
+
 
 def _expand_french_acronym(m: re.Match) -> str:
     word = m.group(0)
@@ -591,6 +623,16 @@ def prepare_french_structure(text: str) -> str:
                 rebuilt.append(ln)
         text = "\n".join(rebuilt)
     text = re.sub(r"([.!?…])\s+»", r"\1»", text)
+    text = re.sub(r"«\s+", "«", text)
+    # Strip dialogue-turn dashes at utterance start or right after sentence-ending
+    # punctuation so "— Tu viens ? — Non !" splits cleanly into two sentences.
+    text = re.sub(r"^\s*—\s*", "", text)
+    text = re.sub(r"(?<=[.!?…])\s+—\s+(?=[A-ZÀ-ÖØ-ÞŒ«\"])", " ", text)
+    # Expand abbreviated days & months before sentence splitting so their dots never split.
+    for pat, repl in _FR_DAYS_ABBR:
+        text = pat.sub(lambda m, r=repl: (r.capitalize() if m.group(1).isupper() else r), text)
+    for pat, repl in _FR_MONTHS_ABBR:
+        text = pat.sub(repl, text)
     # Expand period-bearing abbreviations before sentence splitting (preserving case)
     # so forms like "l'art. 3", "bât. B", "esc. 2", "N.B.", "c.-à-d.", "suiv." never
     # falsely split a sentence at their abbreviation dot.
@@ -654,8 +696,10 @@ def prepare_french_tts_text(text: str) -> str:
     text = _FR_INTL_PHONE_RE.sub(r"plusse \1, \2, \3, \4, \5, \6", text)
     text = _FR_PHONE_SPLIT_RE.sub(r"\1, \2, \3, \4, \5", text)
 
-    # 4. Smart acronym/initialism overrides (period abbreviations handled in prepare_french_structure).
+    # 4. Smart acronym/initialism & proper-noun/lexicon overrides.
     text = _ALL_CAPS_WORD_RE.sub(_expand_french_acronym, text)
+    for pat, repl in _FR_LEXICON_OVERRIDES:
+        text = pat.sub(repl, text)
 
     # 5. Computing, physics, currency-magnitude & metric units.
     for pat, sing, plur in _UNITS_FR_EXT:
@@ -679,11 +723,12 @@ def prepare_french_tts_text(text: str) -> str:
     text = re.sub(r"\s*±\s*", " plus ou moins ", text)
 
     # 8. Prosodic punctuation mapped to commas where fr_ref_35k predicts 0 frames:
-    #    - colons (preserving 14:30), semicolons, mid-sentence em-dashes, and
-    #      parenthetical insertions " (...) " -> natural ~280 ms pauses.
+    #    - colons (preserving 14:30), semicolons, mid-sentence em-dashes (never after
+    #      .!?…), mid-sentence ellipsis before lowercase, and parenthetical insertions.
     text = re.sub(r"(?<!\d)\s*:\s+(?=\S)", ", ", text)
     text = re.sub(r"\s*;\s+", ", ", text)
-    text = re.sub(r"(?<=\S)\s+—\s+(?=\S)", ", ", text)
+    text = re.sub(r"(?<=[\w)\"»])\s+—\s+(?=\S)", ", ", text)
+    text = re.sub(r"(?:…|\.{3})\s+(?=[a-zà-öø-ÿœ])", ", ", text)
     text = re.sub(r"(?<=\S)\s+\(([^()]+)\)", r", \1", text)
 
     return text
