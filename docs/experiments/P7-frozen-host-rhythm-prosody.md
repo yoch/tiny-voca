@@ -79,4 +79,21 @@ Source complète : [`docs/experiments/p7_eval_dev_summary.json`](p7_eval_dev_sum
 3. **Résultat de l'écoute aveugle humaine (12 paires, `p7_sp_cal_prosody` vs `fr_ref_35k`, mélangées 6/6)** :
    - **Score** : **`p7_sp_cal_prosody` : 1 · `fr_ref_35k` : 0 · Égalité : 11**.
    - **Observation clé** : sur **`P02`** (*« Peux-tu me rappeler si Karim Martin préfère venir vendredi ou lundi ? »*, `Δdur = -213 ms`), l'auditeur a immédiatement identifié et sanctionné la fausse pause `<sp>` de `fr_ref_35k` (*« B a une pause pas naturelle »*) en préférant `p7_sp_cal_prosody`. Sur les 10 autres paires sans pause `<sp>` modifiée (`Δdur = 0 ms`), les corrections F0 résiduelles du Stage B (réelles en métriques automatiques et WER `-1,82 pp`, mais d'amplitude modérée) restent sous le seuil perceptif sur phrases isolées — et `P01` (*« jeunes et premières »*) avait une probabilité `<sp>` de `0,98 > 0,95`, donc non filtrée à `0,95`.
-   - **Conclusion honnête** : P7 est **sans régression et auditivement gagnant dès qu'une fausse pause `<sp>` est supprimée**, mais `fr_ref_35k` est désormais très proche du plafond perceptif de cette architecture `4,5 M` sur phrases courtes. La réserve vierge de `121` paires `test.jsonl` reste intacte.
+   - **Conclusion honnête** : P7 est **sans régression et auditivement gagnant dès qu'une fausse pause `<sp>` est supprimée** (et **7 – 1** en écoute aveugle ciblée sur 8 paires avec le nettoyage texte français : `4–0` sur vrais textes, `3–1` sur fausses pauses `<sp>`, avec `P05` confirmant exactement le seuil calibré `sp_thr = 0,95`).
+
+## 5. Confirmation finale unique sur les 121 paires vierges de `test.jsonl` (242 enregistrements)
+
+Exécutée **une seule fois** sur le candidat figé **`p7_sp_cal_prosody` (`sp_thr = 0,95`)** via [`scripts/eval_p7_reserve121.py`](../../scripts/eval_p7_reserve121.py) ([`docs/experiments/p7_final_reserve121_summary.json`](p7_final_reserve121_summary.json), `0,00 u.` GPU).
+
+| Métrique (`n = 242` / `121` textes vierges) | `fr_ref_35k` | **`p7_sp_cal_prosody`** | Contraste `P7 − base` (IC 95 % par texte) |
+|---|---:|---:|---|
+| **Fausses pauses `<sp>`** ↓ | 12 | **6 (`-50 %`)** | Ponctuation intacte (`91,5 % / 95,6 %`) |
+| **Pente F0 MAE (st/s)** ↓ | 35,14 | **32,27** | **`-2,86` `[-3,34, -2,40]` \*** (F1 `-3,12*`, M1 `-2,61*`) |
+| **CER ASR (`faster-whisper small`)** ↓ | 4,76 % corpus (`3,98 %` moy.) | **4,44 % corpus (`3,66 %` moy.)** | **`-0,32 pp` `[-0,64, -0,07]` \*** (F1 `-0,36 pp*`) |
+| **WER ASR (`faster-whisper small`)** ↓ | 8,48 % corpus (`8,53 %` moy.) | **8,16 % corpus (`8,11 %` moy.)** | `-0,42 pp` `[-0,96, +0,03]` |
+| **F0 corrélation** ↑ | 0,7634 | **0,7688** | `+0,0053` `[-0,0007, +0,0109]` (**F1 `+0,0109*`**) |
+| **F0 MAE (st)** ↓ | 1,754 | **1,735** | `-0,019` `[-0,043, +0,005]` (**F1 `-0,029*`**) |
+| **STFT (durées oracle)** ↓ | 1,6069 | **1,6063** | `-0,0006` `[-0,0055, +0,0046]` (neutre) |
+| **Mel-DTW** ↓ | 0,5652 | 0,5664 | `+0,0012` `[-0,0016, +0,0042]` (neutre) |
+
+**Verdict final** : confirmé sur les 121 paires vierges de `test.jsonl` sans aucune régression statistique, avec des gains significatifs sur la dynamique F0 (tous, F1, M1), le CER ASR (tous, F1), et la corrélation / MAE F0 sur F1 — le tout pour **`0,00 u.` GPU** (`68,19 u.` Colab préservées).

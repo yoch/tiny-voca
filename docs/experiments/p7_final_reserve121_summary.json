@@ -1,0 +1,319 @@
+{
+  "partition": "reserve121_untouched_test",
+  "n_texts": 121,
+  "n_recordings": 242,
+  "host_sha256": "c2bb29b93689ce6f413e373c8ffedc22c0607c4d562280e9f914be58b39c9876",
+  "refiner_sha256": "10acd30d1b7b49ecd5d1f1303ddb02e01a853f9e7d0e3ef9fdddb6f8155138cd",
+  "sp_pause_threshold": 0.95,
+  "pause_summary": {
+    "base_35k": {
+      "sp_tp": 13,
+      "sp_fp": 12,
+      "sp_fn": 32,
+      "pu_tp": 86,
+      "pu_fp": 8,
+      "pu_fn": 4,
+      "sp_prec": 0.52,
+      "sp_rec": 0.2889,
+      "pu_prec": 0.9149,
+      "pu_rec": 0.9556
+    },
+    "p7_sp_cal_prosody": {
+      "sp_tp": 6,
+      "sp_fp": 6,
+      "sp_fn": 39,
+      "pu_tp": 86,
+      "pu_fp": 8,
+      "pu_fn": 4,
+      "sp_prec": 0.5,
+      "sp_rec": 0.1333,
+      "pu_prec": 0.9149,
+      "pu_rec": 0.9556
+    }
+  },
+  "summary": {
+    "base_35k": {
+      "all": {
+        "n": 242,
+        "mel_dtw": 0.56522,
+        "oracle_dur_stft": 1.60691,
+        "f0_corr": 0.76344,
+        "f0_mae_st": 1.75403,
+        "f0_slope_mae_st_s": 35.13681,
+        "f0_std_ratio": 1.05919,
+        "wer": 0.08531,
+        "cer": 0.03983
+      },
+      "F1": {
+        "n": 121,
+        "mel_dtw": 0.60501,
+        "oracle_dur_stft": 1.67368,
+        "f0_corr": 0.79743,
+        "f0_mae_st": 1.42257,
+        "f0_slope_mae_st_s": 29.90433,
+        "f0_std_ratio": 1.01063,
+        "wer": 0.08753,
+        "cer": 0.04103
+      },
+      "M1": {
+        "n": 121,
+        "mel_dtw": 0.52543,
+        "oracle_dur_stft": 1.54013,
+        "f0_corr": 0.72946,
+        "f0_mae_st": 2.08549,
+        "f0_slope_mae_st_s": 40.36929,
+        "f0_std_ratio": 1.10774,
+        "wer": 0.08309,
+        "cer": 0.03863
+      }
+    },
+    "p7_sp_cal_prosody": {
+      "all": {
+        "n": 242,
+        "mel_dtw": 0.56644,
+        "oracle_dur_stft": 1.60634,
+        "f0_corr": 0.76875,
+        "f0_mae_st": 1.73466,
+        "f0_slope_mae_st_s": 32.27341,
+        "f0_std_ratio": 1.01833,
+        "wer": 0.08109,
+        "cer": 0.03659
+      },
+      "F1": {
+        "n": 121,
+        "mel_dtw": 0.60571,
+        "oracle_dur_stft": 1.67256,
+        "f0_corr": 0.80836,
+        "f0_mae_st": 1.39363,
+        "f0_slope_mae_st_s": 26.78817,
+        "f0_std_ratio": 0.9799,
+        "wer": 0.08118,
+        "cer": 0.03739
+      },
+      "M1": {
+        "n": 121,
+        "mel_dtw": 0.52716,
+        "oracle_dur_stft": 1.54011,
+        "f0_corr": 0.72914,
+        "f0_mae_st": 2.0757,
+        "f0_slope_mae_st_s": 37.75864,
+        "f0_std_ratio": 1.05677,
+        "wer": 0.081,
+        "cer": 0.03579
+      }
+    }
+  },
+  "asr_corpus": {
+    "base_35k": {
+      "F1": {
+        "samples": 121,
+        "corpus_wer": 0.088,
+        "corpus_cer": 0.0492
+      },
+      "all": {
+        "samples": 242,
+        "corpus_wer": 0.0848,
+        "corpus_cer": 0.0476
+      },
+      "M1": {
+        "samples": 121,
+        "corpus_wer": 0.0816,
+        "corpus_cer": 0.0461
+      }
+    },
+    "p7_sp_cal_prosody": {
+      "F1": {
+        "samples": 121,
+        "corpus_wer": 0.0816,
+        "corpus_cer": 0.0448
+      },
+      "all": {
+        "samples": 242,
+        "corpus_wer": 0.0816,
+        "corpus_cer": 0.0444
+      },
+      "M1": {
+        "samples": 121,
+        "corpus_wer": 0.0816,
+        "corpus_cer": 0.0439
+      }
+    }
+  },
+  "paired_bootstrap_95ci_p7_minus_base": {
+    "all": {
+      "mel_dtw": {
+        "n_texts": 121,
+        "n_recordings": 242,
+        "mean_delta": 0.00122,
+        "ci95_low": -0.0016,
+        "ci95_high": 0.00417,
+        "significant": false
+      },
+      "oracle_dur_stft": {
+        "n_texts": 121,
+        "n_recordings": 242,
+        "mean_delta": -0.00057,
+        "ci95_low": -0.00549,
+        "ci95_high": 0.00456,
+        "significant": false
+      },
+      "f0_corr": {
+        "n_texts": 121,
+        "n_recordings": 242,
+        "mean_delta": 0.00531,
+        "ci95_low": -0.00073,
+        "ci95_high": 0.01092,
+        "significant": false
+      },
+      "f0_mae_st": {
+        "n_texts": 121,
+        "n_recordings": 242,
+        "mean_delta": -0.01937,
+        "ci95_low": -0.04349,
+        "ci95_high": 0.00491,
+        "significant": false
+      },
+      "f0_slope_mae_st_s": {
+        "n_texts": 121,
+        "n_recordings": 242,
+        "mean_delta": -2.8634,
+        "ci95_low": -3.34386,
+        "ci95_high": -2.40151,
+        "significant": true
+      },
+      "wer": {
+        "n_texts": 121,
+        "n_recordings": 242,
+        "mean_delta": -0.00422,
+        "ci95_low": -0.00955,
+        "ci95_high": 0.00026,
+        "significant": false
+      },
+      "cer": {
+        "n_texts": 121,
+        "n_recordings": 242,
+        "mean_delta": -0.00324,
+        "ci95_low": -0.00636,
+        "ci95_high": -0.00068,
+        "significant": true
+      }
+    },
+    "F1": {
+      "mel_dtw": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": 0.0007,
+        "ci95_low": -0.00191,
+        "ci95_high": 0.00333,
+        "significant": false
+      },
+      "oracle_dur_stft": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": -0.00112,
+        "ci95_low": -0.0105,
+        "ci95_high": 0.0081,
+        "significant": false
+      },
+      "f0_corr": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": 0.01094,
+        "ci95_low": 0.00416,
+        "ci95_high": 0.01717,
+        "significant": true
+      },
+      "f0_mae_st": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": -0.02895,
+        "ci95_low": -0.05191,
+        "ci95_high": -0.00643,
+        "significant": true
+      },
+      "f0_slope_mae_st_s": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": -3.11616,
+        "ci95_low": -3.5301,
+        "ci95_high": -2.71728,
+        "significant": true
+      },
+      "wer": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": -0.00635,
+        "ci95_low": -0.0145,
+        "ci95_high": 0.00084,
+        "significant": false
+      },
+      "cer": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": -0.00364,
+        "ci95_low": -0.00848,
+        "ci95_high": -0.00031,
+        "significant": true
+      }
+    },
+    "M1": {
+      "mel_dtw": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": 0.00173,
+        "ci95_low": -0.00331,
+        "ci95_high": 0.00702,
+        "significant": false
+      },
+      "oracle_dur_stft": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": -2e-05,
+        "ci95_low": -0.00501,
+        "ci95_high": 0.00536,
+        "significant": false
+      },
+      "f0_corr": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": -0.00032,
+        "ci95_low": -0.01083,
+        "ci95_high": 0.00887,
+        "significant": false
+      },
+      "f0_mae_st": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": -0.00979,
+        "ci95_low": -0.05275,
+        "ci95_high": 0.03243,
+        "significant": false
+      },
+      "f0_slope_mae_st_s": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": -2.61065,
+        "ci95_low": -3.51165,
+        "ci95_high": -1.73448,
+        "significant": true
+      },
+      "wer": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": -0.00209,
+        "ci95_low": -0.01163,
+        "ci95_high": 0.00539,
+        "significant": false
+      },
+      "cer": {
+        "n_texts": 121,
+        "n_recordings": 121,
+        "mean_delta": -0.00284,
+        "ci95_low": -0.00734,
+        "ci95_high": 0.00065,
+        "significant": false
+      }
+    }
+  },
+  "elapsed_seconds": 4433.3
+}
