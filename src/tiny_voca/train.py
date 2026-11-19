@@ -145,9 +145,35 @@ def teacher_probability(step, hold, ramp, final):
     return 1.0 if step < hold else max(final, 1.0 - (1.0 - final) * (step - hold) / max(ramp, 1))
 
 
+ACOUSTIC_PREFIXES = ("mel_head.", "model.acoustic_stack.", "model.prosody_projection.", "model.vocoder.")
+
+
+def split_prosody_acoustic_parameters(system):
+    """Partition system parameters into (prosody/encoder/duration, acoustic/vocoder/mel_head)."""
+    prosody, acoustic = [], []
+    for name, param in system.named_parameters():
+        if name.startswith(ACOUSTIC_PREFIXES):
+            acoustic.append(param)
+        else:
+            prosody.append(param)
+    return prosody, acoustic
+
+
+def clip_system_gradients(system, max_norm, separate_prosody=False):
+    """Global gradient clipping (default) or separate prosody vs acoustic/vocoder clipping."""
+    if not separate_prosody:
+        grad = nn.utils.clip_grad_norm_(system.parameters(), max_norm, error_if_nonfinite=True)
+        return float(grad), {}
+    prosody, acoustic = split_prosody_acoustic_parameters(system)
+    g_pros = float(nn.utils.clip_grad_norm_(prosody, max_norm, error_if_nonfinite=True))
+    g_acou = float(nn.utils.clip_grad_norm_(acoustic, max_norm, error_if_nonfinite=True))
+    return math.hypot(g_pros, g_acou), {"grad_norm_prosody": g_pros, "grad_norm_acoustic": g_acou}
+
+
 def optimize_step(system, critics, optimizer, critic_optimizer, batch, step, recipe):
     weights = recipe["weights"]
-    start = (recipe.get("branched_from") or {}).get("step", 0)
+    branch = recipe.get("branched_from") or {}
+    start = 0 if branch.get("keep_schedule") else branch.get("step", 0)
     for group in optimizer.param_groups:
         group["lr"] = learning_rate(step, recipe["learning_rate"], recipe["warmup"], recipe["lr_half_life"], start)
     for group in critic_optimizer.param_groups:
@@ -185,10 +211,15 @@ def optimize_step(system, critics, optimizer, critic_optimizer, batch, step, rec
         finally:
             critics.requires_grad_(True)
     else:
+        if recipe.get("align_gan_rng"):
+            # Consume the exact same RNG draw as crops() so delayed-GAN replays stay RNG-aligned.
+            torch.rand(len(batch["frame_lengths"]), recipe["crops"], device=batch["wave"].device)
         loss.backward()
-    grad = nn.utils.clip_grad_norm_(system.parameters(), recipe["grad_clip"], error_if_nonfinite=True)
+    grad, clip_metrics = clip_system_gradients(
+        system, recipe["grad_clip"], separate_prosody=bool(recipe.get("separate_prosody_clip", False))
+    )
     optimizer.step()
-    return {**{k: float(v.detach()) for k, v in metrics.items()}, "loss": float(loss.detach()), "grad_norm": float(grad),
+    return {**{k: float(v.detach()) for k, v in metrics.items()}, **clip_metrics, "loss": float(loss.detach()), "grad_norm": float(grad),
             "frames": int(batch["frame_lengths"].sum()), "utterances": len(batch["frame_lengths"])}
 
 
@@ -305,6 +336,10 @@ def main():
     parser.add_argument("--weights", type=json.loads, default={}, help="JSON overrides for the loss weights, e.g. '{\"mel\": 5}'")
     parser.add_argument("--prosody-grad-scale", type=float, default=1.0,
                         help="Gradient gate alpha in [0, 1] from decode back into prosody_hidden (1.0 = reference)")
+    parser.add_argument("--separate-prosody-clip", action="store_true",
+                        help="Clip (encoder/duration/prosody) separately from (acoustic/vocoder/mel_head) at --grad-clip")
+    parser.add_argument("--align-gan-rng", action="store_true",
+                        help="When step < gan_start, consume the same RNG draw as GAN crops() to stay RNG-aligned with GAN arms")
     parser.add_argument("--gan-start", type=int, default=8000)
     parser.add_argument("--gan-ratio", type=float, default=0.7, help="Adversarial gradient as a fraction of the reconstruction gradient at the waveform")
     parser.add_argument("--gan-ramp", type=int, default=3000, help="Steps over which the adversarial term fades in while the critics warm up")
@@ -328,6 +363,9 @@ def main():
     parser.add_argument("--resume", type=Path, help="Continue the same run exactly (same recipe, data and configuration)")
     parser.add_argument("--init-from", type=Path, help="Start a NEW run from another run's checkpoint with a changed recipe: "
                         "weights, step counter and already-trained critics are taken over; the data order starts fresh")
+    parser.add_argument("--restore-state-from-init", action="store_true",
+                        help="With --init-from: restore generator, critics, both optimizers, sampler, CPU/CUDA RNG and LR schedule "
+                             "identically to --resume while allowing recipe overrides for paired causal replays")
     parser.add_argument("--new-data", action="store_true", help="With --init-from: the checkpoint comes from a different annotation "
                         "run or front end (same symbol inventory)")
     parser.add_argument("--stop-file", type=Path, help="Save and exit after a step when this file appears")
@@ -348,6 +386,8 @@ def main():
         parser.error("--weights values must be non-negative")
     if args.resume and args.init_from:
         parser.error("--init-from starts a new run; --resume continues one")
+    if args.restore_state_from_init and (not args.init_from or args.new_data):
+        parser.error("--restore-state-from-init requires --init-from without --new-data")
 
     # The budget file is re-read while training so a deliberate extension (or cut) takes effect.
     budget = {"deadline": math.inf, "checked": time.time()}
@@ -396,6 +436,10 @@ def main():
     recipe["weights"] = {**WEIGHTS, **{key: float(value) for key, value in args.weights.items() if key in WEIGHTS or float(value) > 0}}
     if args.prosody_grad_scale != 1.0:
         recipe["prosody_grad_scale"] = float(args.prosody_grad_scale)
+    if args.separate_prosody_clip:
+        recipe["separate_prosody_clip"] = True
+    if args.align_gan_rng:
+        recipe["align_gan_rng"] = True
     recipe["branched_from"] = None
     step = 0
 
@@ -431,20 +475,41 @@ def main():
         compatible(state, "branched", same_data=not args.new_data)
         step = state["step"]
         loaded = load_compatible(system, state["system"])
-        # Critics that have already been trained are taken over, otherwise a branch
-        # in the adversarial phase would hand full-strength gradients from untrained
-        # critics to the generator. Optimizer moments are kept when no tensor changed.
-        loaded["critics"] = step > state["recipe"]["gan_start"]
-        if loaded["critics"]:
+        if args.restore_state_from_init:
+            if state["datasets"] != fingerprints:
+                raise ValueError("--restore-state-from-init requires identical datasets")
+            if loaded["grown"] or loaded["new"] or loaded["dropped"]:
+                raise ValueError("--restore-state-from-init requires identical model parameter shapes")
             critics.load_state_dict(state["critics"])
-            critic_optimizer.load_state_dict(state["critic_optimizer"])
-        loaded["optimizer"] = not loaded["grown"] and not loaded["new"] and not loaded["dropped"]
-        if loaded["optimizer"]:
             optimizer.load_state_dict(state["optimizer"])
-        recipe["branched_from"] = {"step": step, "recipe": state["recipe"], "datasets": state["datasets"], "loaded": loaded}
-        if args.new_data:
-            recipe["branched_from"].update(frontend=state["frontend"], frontend_rules=state.get("frontend_rules"),
-                                           annotation=state["annotation"])
+            critic_optimizer.load_state_dict(state["critic_optimizer"])
+            sampler.load_state(state["sampler"])
+            torch.set_rng_state(state["torch_rng"].cpu())
+            if str(args.device).startswith("cuda") and state["cuda_rng"] is not None:
+                torch.cuda.set_rng_state_all([x.cpu() for x in state["cuda_rng"]])
+            loaded.update(critics=True, optimizer=True, sampler=True, rng=True)
+            recipe["branched_from"] = {
+                "step": step,
+                "keep_schedule": True,
+                "recipe": state["recipe"],
+                "datasets": state["datasets"],
+                "loaded": loaded,
+            }
+        else:
+            # Critics that have already been trained are taken over, otherwise a branch
+            # in the adversarial phase would hand full-strength gradients from untrained
+            # critics to the generator. Optimizer moments are kept when no tensor changed.
+            loaded["critics"] = step > state["recipe"]["gan_start"]
+            if loaded["critics"]:
+                critics.load_state_dict(state["critics"])
+                critic_optimizer.load_state_dict(state["critic_optimizer"])
+            loaded["optimizer"] = not loaded["grown"] and not loaded["new"] and not loaded["dropped"]
+            if loaded["optimizer"]:
+                optimizer.load_state_dict(state["optimizer"])
+            recipe["branched_from"] = {"step": step, "recipe": state["recipe"], "datasets": state["datasets"], "loaded": loaded}
+            if args.new_data:
+                recipe["branched_from"].update(frontend=state["frontend"], frontend_rules=state.get("frontend_rules"),
+                                               annotation=state["annotation"])
     if step >= args.steps:
         raise ValueError("checkpoint already reached requested total steps")
     args.output.mkdir(parents=True, exist_ok=True)

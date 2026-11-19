@@ -726,8 +726,12 @@ def main():
     sheet_lines = [
         "# Protocole d'écoute francophone aveugle — P5 (A vs B, égalité autorisée)",
         "",
-        "Consigne : pour chaque paire, écoutez `REF.wav` (référence humaine, si souhaité comme ancre) puis `A.wav` et `B.wav` dans l'ordre présenté.",
-        "Notez votre préférence sur l'**expressivité / naturel prosodique** : `A`, `B`, ou `Égalité` (+ commentaire libre sur intonation / rythme / timbre).",
+        "- **Provenance de `REF.wav`** : enregistrement issu du système enseignant **Qwen3-TTS** (voir `scripts/generate_audio.py`), et non d'un locuteur humain naturel.",
+        "- **Jugements humains recueillis à ce stade** : **`0`**.",
+        "- **Consigne** : pour chaque paire, écoutez `REF.wav` (ancre Qwen3-TTS si souhaité) puis `A.wav` et `B.wav` dans l'ordre présenté. Notez `A`, `B`, ou `Égalité` sur l'**expressivité / naturel prosodique** (+ commentaire libre sur intonation / rythme / timbre).",
+        "- **Dépouillement séparé** : dépouiller séparément le **Bloc 1** (`12` comparaisons donneur F0 `8k` vs `35k` sur durées prédites `35k`) et le **Bloc 2** (`4` comparaisons oscillateur vs décodeur `M01` vs `M10`).",
+        "",
+        "## Bloc 1 — Comparaisons donneur F0 `8k` vs `35k` (`12` paires, durées prédites `35k` identiques)",
         "",
         "| Paire | Voix | Catégorie | Texte | Choix (`A` / `B` / `Égalité`) | Commentaire |",
         "|---|---|---|---|---|---|",
@@ -744,13 +748,20 @@ def main():
         _write_wav(blind_dir / f"{pid}_A.wav", ab[0][1], cfg.sample_rate)
         _write_wav(blind_dir / f"{pid}_B.wav", ab[1][1], cfg.sample_rate)
         blind_pairs.append({
-            "pair_id": pid, "experiment": "pred_dur_35k_vs_8kF0",
+            "pair_id": pid, "block": "block1_donor_8k_vs_35k", "experiment": "pred_dur_35k_vs_8kF0",
             "id": uid, "speaker": row["speaker"], "category": row["category"], "text": row["text"],
             "A": ab[0][0], "B": ab[1][0],
         })
         sheet_lines.append(f"| `{pid}` | {row['speaker']} | {row['category']} | {row['text']} | | |")
         pair_idx += 1
 
+    sheet_lines.extend([
+        "",
+        "## Bloc 2 — Comparaisons oscillateur vs décodeur (`4` paires, durées oracle)",
+        "",
+        "| Paire | Voix | Catégorie | Texte | Choix (`A` / `B` / `Égalité`) | Commentaire |",
+        "|---|---|---|---|---|---|",
+    ])
     # Also add 4 cross-F0 pairs (M01_oscRef vs M10_decRef) to hear oscillator vs decoder path
     for uid in blind_ids[:4]:
         row = next(r for r in dev_selected if r["id"] == uid)
@@ -761,7 +772,7 @@ def main():
         _write_wav(blind_dir / f"{pid}_A.wav", ab[0][1], cfg.sample_rate)
         _write_wav(blind_dir / f"{pid}_B.wav", ab[1][1], cfg.sample_rate)
         blind_pairs.append({
-            "pair_id": pid, "experiment": "oracle_dur_oscRef_vs_decRef",
+            "pair_id": pid, "block": "block2_osc_vs_dec", "experiment": "oracle_dur_oscRef_vs_decRef",
             "id": uid, "speaker": row["speaker"], "category": row["category"], "text": row["text"],
             "A": ab[0][0], "B": ab[1][0],
         })
@@ -770,7 +781,12 @@ def main():
 
     (blind_dir / "blind_sheet_fr.md").write_text("\n".join(sheet_lines) + "\n", encoding="utf-8")
     (blind_dir / "blind_key.json").write_text(json.dumps({
+        "ref_provenance": "Qwen3-TTS teacher audio (scripts/generate_audio.py)",
         "judgments_collected": 0,
+        "blocks": {
+            "block1_donor_8k_vs_35k": 12,
+            "block2_osc_vs_dec": 4,
+        },
         "pairs": blind_pairs,
     }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 

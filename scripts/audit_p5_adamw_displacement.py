@@ -107,10 +107,16 @@ def _param_norm(params: list[tuple[str, nn.Parameter]]) -> float:
 
 
 @torch.no_grad()
-def _eval_batch(system: TrainingSystem, batch: dict, weights: dict) -> dict[str, float]:
+def _eval_batch(system: TrainingSystem, batch: dict, weights: dict, val_seed: int = 999001) -> dict[str, float]:
+    """Evaluate on validation batch with FIXED vocoder noise seed across before/after and all variants."""
+    rng_state = torch.get_rng_state()
+    torch.manual_seed(val_seed)
     system.eval()
-    _, terms, _ = system.objective(batch, teacher_probability=0.0, weights=weights, random_phase=False)
-    system.train()
+    try:
+        _, terms, _ = system.objective(batch, teacher_probability=0.0, weights=weights, random_phase=False)
+    finally:
+        system.train()
+        torch.set_rng_state(rng_state)
     keys = (
         "pitch", "pitch_spread", "voicing", "energy", "duration", "pause",
         "mel", "stft", "pitch_error_semitones", "pitch_spread_ratio", "voicing_accuracy",
