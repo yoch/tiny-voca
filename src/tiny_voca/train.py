@@ -18,12 +18,21 @@ from torch import nn
 from torch.nn import functional as F
 from .config import CHECKPOINT_FORMAT, Config
 from .data import AnnotatedDataset, BucketSampler, collate
-from .losses import Discriminators, SpectralLoss, discriminator_loss, generator_gan_loss, masked_mean
+from .losses import (
+    Discriminators,
+    SpectralLoss,
+    discriminator_loss,
+    generator_gan_loss,
+    masked_mean,
+    pitch_shape_loss,
+    scale_gradient,
+)
 from .model import TinyVoca
 from .text import FRONTEND_RULES_VERSION, frontend_fingerprint, frontend_identity, frontend_rules_fingerprint
 
 WEIGHTS = {"duration": 1.0, "pause": 1.0, "pitch": 2.0, "pitch_spread": 2.0, "voicing": 1.0, "energy": 1.0, "mel_head": 2.0,
            "stft": 2.0, "mel": 10.0}
+OPTIONAL_WEIGHTS = {"pitch_shape": 0.0}
 SEMITONES = 12 / math.log(2)
 
 
@@ -41,12 +50,14 @@ class TrainingSystem(nn.Module):
         self.mel_head = nn.Linear(config.channels, config.n_mels)   # auxiliary, not exported
         self.spectral = SpectralLoss(config.sample_rate)
 
-    def objective(self, batch, teacher_probability, weights=WEIGHTS, random_phase=True):
+    def objective(self, batch, teacher_probability, weights=WEIGHTS, random_phase=True, prosody_grad_scale=1.0):
         """Loss on full utterances. Returns ``(loss, terms, auxiliary)``.
 
         ``teacher_probability`` is the per-utterance chance that the acoustic
         decoder is conditioned on recorded pitch/voicing/energy; otherwise it
         gets the model's own (detached) predictions, exactly as at inference.
+        ``prosody_grad_scale`` attenuates gradients flowing from ``decode`` back
+        into ``prosody_hidden`` without changing the forward pass.
         The oscillator always follows the recorded pitch here, because the
         waveform target does.
         """
@@ -74,11 +85,18 @@ class TrainingSystem(nn.Module):
         enough = (sung.sum(1) >= 10).float()
         predicted_spread, recorded_spread = masked_std(prediction[..., 0], sung), masked_std(target[..., 0], sung)
         pitch_spread = masked_mean((predicted_spread - recorded_spread).abs(), enough)
+        pitch_shape_weight = float(weights.get("pitch_shape", 0.0))
+        if pitch_shape_weight > 0.0:
+            pitch_shape = pitch_shape_loss(prediction[..., 0], target[..., 0], sung, energy=target[..., 2])
+        else:
+            with torch.no_grad():
+                pitch_shape = pitch_shape_loss(prediction[..., 0], target[..., 0], sung, energy=target[..., 2])
         voicing = masked_mean(F.binary_cross_entropy_with_logits(prediction[..., 1], target[..., 1], reduction="none"), frame_mask)
         energy = masked_mean((prediction[..., 2] - target[..., 2]).abs(), frame_mask)
         teacher = torch.rand(len(lengths), device=lengths.device) < teacher_probability
         condition = torch.where(teacher[:, None, None], target, m.hard_prosody(prediction.detach()))
-        acoustic = m.decode(prosody_hidden, condition.to(prosody_hidden.dtype), frame_mask)
+        decode_hidden = scale_gradient(prosody_hidden, prosody_grad_scale)
+        acoustic = m.decode(decode_hidden, condition.to(prosody_hidden.dtype), frame_mask)
         mel_target = (batch["mel"] - c.mel_mean) / c.mel_scale
         mel_head = masked_mean((self.mel_head(acoustic).float() - mel_target).abs().mean(-1), frame_mask)
         phase = 2 * math.pi * torch.rand(len(lengths), device=lengths.device) if random_phase else None
@@ -87,6 +105,9 @@ class TrainingSystem(nn.Module):
         terms = dict(duration=duration, pause=pause, pitch=pitch, pitch_spread=pitch_spread, voicing=voicing, energy=energy,
                      mel_head=mel_head, stft=stft, mel=mel)
         loss = sum(weights[name] * value for name, value in terms.items())
+        if pitch_shape_weight > 0.0:
+            loss = loss + pitch_shape_weight * pitch_shape
+        terms["pitch_shape"] = pitch_shape
         with torch.no_grad():
             voiced = sung
             predicted = m.predict_durations(hidden, token_mask, batch["tokens"])
@@ -133,7 +154,8 @@ def optimize_step(system, critics, optimizer, critic_optimizer, batch, step, rec
         group["lr"] = learning_rate(step, recipe["learning_rate"], 1, recipe["lr_half_life"], start)
     optimizer.zero_grad(set_to_none=True)
     probability = teacher_probability(step, recipe["teacher_hold"], recipe["teacher_ramp"], recipe["teacher_final"])
-    loss, metrics, auxiliary = system.objective(batch, probability, weights)
+    prosody_grad_scale = float(recipe.get("prosody_grad_scale", 1.0))
+    loss, metrics, auxiliary = system.objective(batch, probability, weights, prosody_grad_scale=prosody_grad_scale)
     if step >= recipe["gan_start"]:
         wave = auxiliary["wave"]
         fake, real, index = crops(wave, batch["wave"], batch["frame_lengths"] * system.model.config.hop, recipe["crop_samples"], recipe["crops"])
@@ -258,8 +280,8 @@ def validate(system, dataset, indices, device, weights=WEIGHTS, batch_size=8):
             _, metrics, _ = system.objective(batch, probability, weights, random_phase=False)
             totals[f"validation_{name}_mel"] += float(metrics["mel"]) * size
             totals[f"validation_{name}_stft"] += float(metrics["stft"]) * size
-        for key in ("duration", "pause_accuracy", "pause_length_ratio", "pitch_error_semitones", "pitch_spread_ratio", "voicing_accuracy",
-                    "duration_length_ratio", "duration_length_error"):
+        for key in ("duration", "pause_accuracy", "pause_length_ratio", "pitch_error_semitones", "pitch_spread_ratio",
+                    "pitch_shape", "voicing_accuracy", "duration_length_ratio", "duration_length_error"):
             totals["validation_" + key] += float(metrics[key]) * size
         weight += size
     system.train()
@@ -281,6 +303,8 @@ def main():
     parser.add_argument("--lr-half-life", type=float, default=100000)
     parser.add_argument("--grad-clip", type=float, default=10.0)
     parser.add_argument("--weights", type=json.loads, default={}, help="JSON overrides for the loss weights, e.g. '{\"mel\": 5}'")
+    parser.add_argument("--prosody-grad-scale", type=float, default=1.0,
+                        help="Gradient gate alpha in [0, 1] from decode back into prosody_hidden (1.0 = reference)")
     parser.add_argument("--gan-start", type=int, default=8000)
     parser.add_argument("--gan-ratio", type=float, default=0.7, help="Adversarial gradient as a fraction of the reconstruction gradient at the waveform")
     parser.add_argument("--gan-ramp", type=int, default=3000, help="Steps over which the adversarial term fades in while the critics warm up")
@@ -315,8 +339,13 @@ def main():
         parser.error("steps, batch limits and intervals must be positive")
     if args.max_seconds <= 0 or args.learning_rate <= 0 or args.lr_half_life <= 0 or not 0 <= args.teacher_final <= 1:
         parser.error("time cap, learning rate and half life must be positive; teacher_final in [0, 1]")
-    if set(args.weights) - set(WEIGHTS) or min(args.gan_ratio, args.feature_matching, args.gan_scale_max) < 0:
-        parser.error(f"--weights may only override {sorted(WEIGHTS)}; GAN settings must be non-negative")
+    if not 0.0 <= args.prosody_grad_scale <= 1.0:
+        parser.error("--prosody-grad-scale must be in [0, 1]")
+    allowed_weights = set(WEIGHTS) | set(OPTIONAL_WEIGHTS)
+    if set(args.weights) - allowed_weights or min(args.gan_ratio, args.feature_matching, args.gan_scale_max) < 0:
+        parser.error(f"--weights may only override {sorted(allowed_weights)}; GAN settings must be non-negative")
+    if any(float(v) < 0 for v in args.weights.values()):
+        parser.error("--weights values must be non-negative")
     if args.resume and args.init_from:
         parser.error("--init-from starts a new run; --resume continues one")
 
@@ -364,7 +393,9 @@ def main():
                                                    "crop_samples", "crops", "teacher_hold", "teacher_ramp", "teacher_final",
                                                    "subset", "validation_size", "seed")}
     recipe["voiced_vowel_targets"] = not args.recorded_voicing
-    recipe["weights"] = {**WEIGHTS, **{key: float(value) for key, value in args.weights.items()}}
+    recipe["weights"] = {**WEIGHTS, **{key: float(value) for key, value in args.weights.items() if key in WEIGHTS or float(value) > 0}}
+    if args.prosody_grad_scale != 1.0:
+        recipe["prosody_grad_scale"] = float(args.prosody_grad_scale)
     recipe["branched_from"] = None
     step = 0
 

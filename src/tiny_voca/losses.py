@@ -9,6 +9,116 @@ def masked_mean(value, mask):
     return (value * mask).sum() / mask.sum().clamp_min(1)
 
 
+class _ScaleGradient(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, value, scale):
+        ctx.scale = float(scale)
+        return value.view_as(value)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        if ctx.scale == 0.0:
+            return torch.zeros_like(grad_output), None
+        return grad_output * ctx.scale, None
+
+
+def scale_gradient(value, scale):
+    """Differentiable gradient gate: bit-for-bit identity in forward, scales backward gradient by ``scale``."""
+    if scale == 1.0:
+        return value
+    return _ScaleGradient.apply(value, float(scale))
+
+
+def pitch_shape_loss(
+    predicted,
+    target,
+    reliable_mask,
+    energy=None,
+    energy_floor=-0.5,
+    contrast_window=19,
+):
+    """Robust local F0 contour shape loss on reliably voiced interior frames.
+
+    Supervises:
+    - 1st difference (1-frame melodic slope, ~10.7 ms) with jump guard,
+    - 3-frame syllable-scale slope (~32 ms) inside continuous reliable segments,
+    - 2nd difference (local curvature / turning points),
+    - local accent contrast relative to a ~200 ms reliable voiced neighborhood.
+
+    Voiced/unvoiced edges, untrusted/interpolated frames (e.g. M1 pyin dropouts),
+    low-energy tails and pitch-tracker jumps are masked out. All terms use Huber
+    (Smooth L1) against the target contour so artificial oscillations are penalized.
+    """
+    valid = reliable_mask > 0.5
+    if energy is not None:
+        valid = valid & (energy > energy_floor)
+    t_len = predicted.shape[1]
+    zero = predicted.new_zeros((), dtype=torch.float32)
+    if t_len < 3:
+        return zero
+
+    # Erode 1 frame from every voiced island boundary to exclude onset/offset transients.
+    interior = torch.zeros_like(valid)
+    interior[:, 1:-1] = valid[:, :-2] & valid[:, 1:-1] & valid[:, 2:]
+
+    # 1st derivative: local melodic slope (1 frame).
+    d1_mask = interior[:, :-1] & interior[:, 1:] & ((target[:, 1:] - target[:, :-1]).abs() <= 0.18)
+    d1_loss = masked_mean(
+        F.smooth_l1_loss(predicted[:, 1:] - predicted[:, :-1], target[:, 1:] - target[:, :-1], beta=0.04, reduction="none"),
+        d1_mask.float(),
+    )
+
+    # Multi-frame syllable-scale slope (3 frames ~ 32 ms) strictly inside continuous voiced islands.
+    if t_len >= 5:
+        d3_mask = (
+            interior[:, :-3]
+            & valid[:, 1:-2]
+            & valid[:, 2:-1]
+            & interior[:, 3:]
+            & ((target[:, 3:] - target[:, :-3]).abs() <= 0.40)
+        )
+        d3_loss = masked_mean(
+            F.smooth_l1_loss(predicted[:, 3:] - predicted[:, :-3], target[:, 3:] - target[:, :-3], beta=0.06, reduction="none"),
+            d3_mask.float(),
+        )
+    else:
+        d3_loss = zero
+
+    # 2nd derivative: inflection / turning points on interior triplets.
+    d2_mask = (
+        interior[:, :-2]
+        & interior[:, 1:-1]
+        & interior[:, 2:]
+        & ((target[:, 2:] - 2 * target[:, 1:-1] + target[:, :-2]).abs() <= 0.20)
+    )
+    d2_loss = masked_mean(
+        F.smooth_l1_loss(
+            predicted[:, 2:] - 2 * predicted[:, 1:-1] + predicted[:, :-2],
+            target[:, 2:] - 2 * target[:, 1:-1] + target[:, :-2],
+            beta=0.03,
+            reduction="none",
+        ),
+        d2_mask.float(),
+    )
+
+    # Local accent prominence relative to reliable interior voiced frames in a phonetic window (~200 ms).
+    vf = interior.float()
+    k = int(contrast_window)
+    if k % 2 == 0:
+        k += 1
+    kernel = predicted.new_ones((1, 1, k))
+    w_count = F.conv1d(vf[:, None], kernel, padding=k // 2)[:, 0]
+    p_mean = F.conv1d((predicted * vf)[:, None], kernel, padding=k // 2)[:, 0] / w_count.clamp_min(1.0)
+    t_mean = F.conv1d((target * vf)[:, None], kernel, padding=k // 2)[:, 0] / w_count.clamp_min(1.0)
+    contrast_mask = interior & (w_count >= 5.0)
+    contrast_loss = masked_mean(
+        F.smooth_l1_loss(predicted - p_mean, target - t_mean, beta=0.06, reduction="none"),
+        contrast_mask.float(),
+    )
+
+    return d1_loss + d3_loss + 0.5 * d2_loss + contrast_loss
+
+
 def magnitude(wave, fft, hop, window):
     spectrum = torch.stft(wave.float(), fft, hop, window=window, center=True, pad_mode="constant", return_complex=True)
     # sqrt(re^2 + im^2 + eps): finite gradient at exact zeros (padding, silence).
