@@ -16,6 +16,16 @@ import unittest
 
 import torch
 
+from http.server import ThreadingHTTPServer
+import threading
+from urllib.request import urlopen
+from urllib.error import HTTPError
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(ROOT / "scripts"))
+
+from blind_ab_ui import discover_blind_pairs, make_handler
 from tiny_voca.config import ANNOTATION_VERSION, Config
 from tiny_voca.losses import Discriminators
 from tiny_voca.text import SYMBOL_TO_ID, frontend_fingerprint, frontend_rules_fingerprint
@@ -260,6 +270,37 @@ class P6ReplayTests(unittest.TestCase):
                     self.assertTrue(torch.equal(va, vb), f"sampler.{k} mismatch")
                 else:
                     self.assertEqual(va, vb, f"sampler.{k} mismatch")
+
+    def test_blind_ab_ui_discovers_pairs_and_blocks_key_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp)
+            (d / "P01_demo_A.wav").write_bytes(b"RIFFdemoA")
+            (d / "P01_demo_B.wav").write_bytes(b"RIFFdemoB")
+            (d / "P01_demo_REF.wav").write_bytes(b"RIFFdemoR")
+            (d / "blind_key.json").write_text('{"secret": true}', encoding="utf-8")
+            (d / "sheet.md").write_text("| `P01_demo` | F1 | question | Vous venez ? | | |\n", encoding="utf-8")
+
+            pairs = discover_blind_pairs(d)
+            self.assertEqual(len(pairs), 1)
+            self.assertEqual(pairs[0]["text"], "Vous venez ?")
+            self.assertEqual(pairs[0]["ref_file"], "P01_demo_REF.wav")
+
+            srv = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(d, d / "saved.json"))
+            port = srv.server_address[1]
+            th = threading.Thread(target=srv.serve_forever, daemon=True)
+            th.start()
+            try:
+                with urlopen(f"http://127.0.0.1:{port}/api/pairs") as resp:
+                    payload = json.loads(resp.read().decode("utf-8"))
+                self.assertEqual(len(payload["pairs"]), 1)
+                with urlopen(f"http://127.0.0.1:{port}/audio/P01_demo_A.wav") as resp:
+                    self.assertEqual(resp.read(), b"RIFFdemoA")
+                with self.assertRaises(HTTPError) as ctx:
+                    urlopen(f"http://127.0.0.1:{port}/audio/blind_key.json")
+                self.assertEqual(ctx.exception.code, 404)
+            finally:
+                srv.shutdown()
+                srv.server_close()
 
 
 if __name__ == "__main__":
