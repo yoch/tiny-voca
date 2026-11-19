@@ -471,49 +471,54 @@ _UNITS_FR_EXT = (
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*MWh\b"), "mégawattheure", "mégawattheures"),
 )
 
-_FR_EXTRA_INITIALISMS = frozenset({
-    "OMS", "CHU", "AVC", "ADN", "FBI", "CIA", "NSA", "IBM", "NBA", "NFL", "NHL",
-    "UFC", "OVH", "CIO", "TVA", "PIB", "API", "URL", "CPU", "GPU", "USB", "IA",
-    "UE", "JO", "TGV", "RATP", "RER", "TER", "EDF", "GDF", "RSA", "PME", "PMI",
-    "VTC", "KGB", "CDG", "QCM", "CDI", "CDD", "IVG", "IRM", "SPA", "VIP", "FAQ",
-    "CV", "TV", "CD", "PC", "QG", "RH", "BD",
-})
-_FR_PRONOUNCEABLE_ACRONYM_HINTS = {
+# Only override acronyms/initialisms that eSpeak NG mispronounces or that text.py
+# previously split with spaces; leave native eSpeak-fluent initialisms (SNCF, TGV,
+# RATP, RGPD, CNRS, HLM, CGT, TVA, ADN, PDF, LLM, SMS, GPS, DVD, TV) untouched so
+# eSpeak preserves authentic French (secondary..., primary-final) stress.
+_FR_ACRONYM_OVERRIDES = {
     "RAM": "rame",
     "EHPAD": "épade",
     "MEDEF": "médèfe",
     "IA": "i a",
+    "OMS": "ohèmèsse",
+    "CHU": "céachu",
+    "AVC": "avécé",
+    "FBI": "èfbéi",
+    "CIA": "séia",
+    "NSA": "ènèssa",
+    "IBM": "ibéème",
+    "OVH": "ovéache",
+    "CPU": "cépéu",
+    "GPU": "gépéu",
+    "USB": "uèssbé",
+    "API": "apéi",
+    "PIB": "péibé",
+    "UE": "ueuh",
+    "EDF": "édéèfe",
+    "GDF": "gédéèfe",
+    "RSA": "èrèssa",
+    "PME": "péèmeuh",
+    "PMI": "péèmi",
+    "RER": "èreuhèr",
+    "TER": "téeuhèr",
+    "VTC": "vétécé",
+    "KGB": "kagébé",
+    "CDG": "sédégé",
+    "QCM": "kuséème",
+    "CDI": "sédéi",
+    "CDD": "sédédé",
+    "IVG": "ivégé",
+    "IRM": "ièrème",
+    "SPA": "èspéa",
+    "VIP": "véipé",
+    "FAQ": "èfaku",
 }
-_LETTER_FR = {
-    "A": "a", "B": "bé", "C": "cé", "D": "dé", "E": "euh", "F": "èf", "G": "gé",
-    "H": "ache", "I": "i", "J": "ji", "K": "ka", "L": "èl", "M": "èm", "N": "èn",
-    "O": "o", "P": "pé", "Q": "ku", "R": "èr", "S": "ès", "T": "té", "U": "u",
-    "V": "vé", "W": "doublevé", "X": "ikse", "Y": "igrèk", "Z": "zède",
-}
-_ROMAN_NUMERAL_RE = re.compile(r"^M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})$")
 _ALL_CAPS_WORD_RE = re.compile(r"\b[A-Z]{2,6}\b")
-_FR_VOWELS_ASCII = frozenset("AEIOUY")
-
-
-def _spell_french_initialism(word: str) -> str:
-    """Spell an initialism as one hyphenated French word so eSpeak inserts zero <sp> pauses between letters."""
-    return "-".join(_LETTER_FR[ch] for ch in word)
 
 
 def _expand_french_acronym(m: re.Match) -> str:
     word = m.group(0)
-    if word in _FR_PRONOUNCEABLE_ACRONYM_HINTS:
-        return _FR_PRONOUNCEABLE_ACRONYM_HINTS[word]
-    if word in _FR_EXTRA_INITIALISMS:
-        return _spell_french_initialism(word)
-    # Keep titles ("MM"), emoticons ("XD"), and valid Roman numerals ("XIV", "XXI") untouched.
-    if len(word) < 3 or _ROMAN_NUMERAL_RE.match(word):
-        return word
-    # Generic rule: any 3-6 letter ALL-CAPS token without vowels (RGPD, CNRS, HLM, CGT,
-    # PDF, LLM, SMS, GPS, BTP, SQL, SSH, PDG, SNCF, DVD...) is spelled out smoothly in French.
-    if not any(ch in _FR_VOWELS_ASCII for ch in word):
-        return _spell_french_initialism(word)
-    return word
+    return _FR_ACRONYM_OVERRIDES.get(word, word)
 
 
 def _unit_plural(num_str: str, singular: str, plural: str) -> str:
@@ -604,5 +609,9 @@ def prepare_french_tts_text(text: str) -> str:
     text = re.sub(r"\b1/4\b", "un quart", text)
     text = re.sub(r"\b3/4\b", "trois quarts", text)
     text = re.sub(r"\b(\d+(?:[.,]\d+)?)\s*[xX]\b", r"\1 fois", text)
+
+    # 7. Prosodic colons ("Téléphone : 06...", "Ingrédients : ...") -> comma so the
+    # frozen host inserts a real ~280 ms pause instead of 0 frames (preserving 14:30).
+    text = re.sub(r"(?<!\d)\s*:\s+(?=\S)", ", ", text)
 
     return text
