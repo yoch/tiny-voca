@@ -420,9 +420,11 @@ def build_blind_ab_kit(
     manifest_lines = [
         "# Écoute aveugle P7 — 12 paires (A vs B)",
         "",
-        "Chaque paire compare deux versions de la même phrase (A et B mélangés aléatoirement).",
+        "Chaque paire compare deux versions de la même phrase (A et B mélangés aléatoirement, 6/6).",
         "Écoutez dans l'interface web locale (`scripts/blind_ab_ui.py`) et notez votre préférence.",
         "",
+        "| Paire | Voix | Catégorie | Texte |",
+        "|---|---|---|---|",
     ]
 
     for idx_p, ((uid, tag), cand_on_a) in enumerate(zip(chosen_ids, a_is_cand), start=1):
@@ -432,21 +434,19 @@ def build_blind_ab_kit(
         wav_base, meta_base = _synth_variant(host, refiner, row, item, "base_35k", host_sp_thr, seed=9000 + idx_p)
         wav_cand, meta_cand = _synth_variant(host, refiner, row, item, candidate_variant, host_sp_thr, seed=9000 + idx_p)
 
-        pdir = served_dir / f"{idx_p:02d}_{uid}"
-        pdir.mkdir(parents=True, exist_ok=True)
+        pid = f"P{idx_p:02d}"
         wav_a, wav_b = (wav_cand, wav_base) if cand_on_a else (wav_base, wav_cand)
-        _write_wav(pdir / "A.wav", wav_a, host.config.sample_rate)
-        _write_wav(pdir / "B.wav", wav_b, host.config.sample_rate)
-        (pdir / "prompt.txt").write_text(
-            f"Paire #{idx_p:02d} ({row['speaker']})\nTexte : {row['text']}\n",
-            encoding="utf-8",
-        )
-        manifest_lines.append(f"- **{idx_p:02d}** (`{row['speaker']}`) : {row['text']}")
+        _write_wav(served_dir / f"{pid}_A.wav", wav_a, host.config.sample_rate)
+        _write_wav(served_dir / f"{pid}_B.wav", wav_b, host.config.sample_rate)
+        cat_label = _sentence_category(row["text"])
+        safe_txt = row["text"].replace("|", "/")
+        manifest_lines.append(f"| `{pid}` | {row['speaker']} | {cat_label} | {safe_txt} |")
         key_rows.append({
             "pair": idx_p,
-            "folder": pdir.name,
+            "pair_id": pid,
             "id": uid,
             "speaker": row["speaker"],
+            "category": cat_label,
             "text": row["text"],
             "tag": tag,
             "A": candidate_variant if cand_on_a else "base_35k",
@@ -455,7 +455,7 @@ def build_blind_ab_kit(
             "cand_dur_s": round(len(wav_cand) / host.config.sample_rate, 3),
         })
 
-    (served_dir / "README.md").write_text("\n".join(manifest_lines) + "\n", encoding="utf-8")
+    (served_dir / "FICHE.md").write_text("\n".join(manifest_lines) + "\n", encoding="utf-8")
     # Save secret key ONE LEVEL UP (never inside served_dir!)
     secret_path = blind_root / "p7_blind_secret_key.json"
     secret_path.write_text(json.dumps({
