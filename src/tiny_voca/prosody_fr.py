@@ -451,24 +451,45 @@ def load_prosody_refiner(path, device="cpu") -> FrenchProsodyRefiner:
 
 _FR_PHONE_RE = re.compile(r"(?<!\d)(0[1-9])(?:[\s.\-](\d{2})){4}(?!\d)")
 _FR_PHONE_SPLIT_RE = re.compile(r"(?<!\d)(0[1-9])[\s.\-](\d{2})[\s.\-](\d{2})[\s.\-](\d{2})[\s.\-](\d{2})(?!\d)")
+_FR_INTL_PHONE_RE = re.compile(r"(?<!\w)\+(33|32|41|352|1)[\s.\-]?(\d)[\s.\-](\d{2})[\s.\-](\d{2})[\s.\-](\d{2})[\s.\-](\d{2})(?!\d)")
 _EMAIL_RE = re.compile(r"\b([A-Za-z0-9._%+\-]+)@([A-Za-z0-9.\-]+\.[A-Za-z]{2,})\b")
 _URL_RE = re.compile(r"\bhttps?://([A-Za-z0-9.\-]+(?:/[^\s,;)]*[^\s,;).!?])?)")
 
 _UNITS_FR_EXT = (
+    # Compound data-rate units FIRST (before bare Ko/Mo/Go/To)
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[Kk]o/s\b"), "kilooctet par seconde", "kilooctets par seconde"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Mo/s\b"), "mégaoctet par seconde", "mégaoctets par seconde"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Go/s\b"), "gigaoctet par seconde", "gigaoctets par seconde"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*To/s\b"), "téraoctet par seconde", "téraoctets par seconde"),
+    # Currency magnitudes (M€, M$, Md€)
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Md€"), "milliard d'euros", "milliards d'euros"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*M€"), "million d'euros", "millions d'euros"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*M\$"), "million de dollars", "millions de dollars"),
+    # Computing storage & timing
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[Kk]o\b"), "kilooctet", "kilooctets"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Mo\b"), "mégaoctet", "mégaoctets"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Go\b"), "gigaoctet", "gigaoctets"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*To\b"), "téraoctet", "téraoctets"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*ms\b"), "milliseconde", "millisecondes"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[µμu]s\b"), "microseconde", "microsecondes"),
+    # Metric volume, mass, area, physics
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*ml\b"), "millilitre", "millilitres"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*cl\b"), "centilitre", "centilitres"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*dl\b"), "décilitre", "décilitres"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*mg\b"), "milligramme", "milligrammes"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[µμ]g\b"), "microgramme", "microgrammes"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[µμ]m\b"), "micromètre", "micromètres"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*ha\b"), "hectare", "hectares"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*kHz\b"), "kilohertz", "kilohertz"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*MHz\b"), "mégahertz", "mégahertz"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*kWh\b"), "kilowattheure", "kilowattheures"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*MWh\b"), "mégawattheure", "mégawattheures"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*kW\b"), "kilowatt", "kilowatts"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*MW\b"), "mégawatt", "mégawatts"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*dB\b"), "décibel", "décibels"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*V\b"), "volt", "volts"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*A\b"), "ampère", "ampères"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*W\b"), "watt", "watts"),
 )
 
 # Only override acronyms/initialisms that eSpeak NG mispronounces or that text.py
@@ -479,6 +500,9 @@ _FR_ACRONYM_OVERRIDES = {
     "RAM": "rame",
     "EHPAD": "épade",
     "MEDEF": "médèfe",
+    "CROUS": "krousse",
+    "CPAM": "sépéaème",
+    "JSON": "djézone",
     "IA": "i a",
     "OMS": "ohèmèsse",
     "CHU": "céachu",
@@ -512,6 +536,17 @@ _FR_ACRONYM_OVERRIDES = {
     "SPA": "èspéa",
     "VIP": "véipé",
     "FAQ": "èfaku",
+}
+_EMAIL_LOCAL_INITIALISMS = {
+    "dpo": "dépéo",
+    "rh": "èrache",
+    "drh": "déèrache",
+    "sav": "èsavé",
+    "ceo": "sééo",
+    "cto": "sétéo",
+    "pdg": "pédégé",
+    "hr": "acheèr",
+    "it": "ité",
 }
 _ALL_CAPS_WORD_RE = re.compile(r"\b[A-Z]{2,6}\b")
 
@@ -557,7 +592,24 @@ def prepare_french_structure(text: str) -> str:
         text = "\n".join(rebuilt)
     text = re.sub(r"([.!?…])\s+»", r"\1»", text)
     # Expand period-bearing abbreviations before sentence splitting (preserving case)
-    # so elided forms like "l'art. 3" never falsely split a sentence at the period.
+    # so forms like "l'art. 3", "bât. B", "esc. 2", "N.B.", "c.-à-d.", "suiv." never
+    # falsely split a sentence at their abbreviation dot.
+    text = re.sub(r"\bN\.B\.", "Nota béné", text)
+    text = re.sub(r"\bc\.-à-d\.", "c'est-à-dire", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bet\s+suiv\.", "et suivantes", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bhab\./km²", "habitants par kilomètre carré", text, flags=re.IGNORECASE)
+    text = re.sub(r"\b1\s*c\.\s*à\s*s\.", "une cuillère à soupe", text, flags=re.IGNORECASE)
+    text = re.sub(r"\b(\d+)\s*c\.\s*à\s*s\.", r"\1 cuillères à soupe", text, flags=re.IGNORECASE)
+    text = re.sub(r"\b1\s*c\.\s*à\s*c\.", "une cuillère à café", text, flags=re.IGNORECASE)
+    text = re.sub(r"\b(\d+)\s*c\.\s*à\s*c\.", r"\1 cuillères à café", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bPr\.?\s+(?=[A-ZÀ-ÖØ-ÞŒ])", "Professeur ", text)
+    text = re.sub(r"\bMe\.?\s+(?=[A-ZÀ-ÖØ-ÞŒ])", "Maître ", text)
+    text = re.sub(r"\bAv\.\s+(?=[A-ZÀ-ÖØ-ÞŒ])(?!J\.-?C)", "Avenue ", text)
+    text = re.sub(r"\bav\.\s+(?=[A-ZÀ-ÖØ-ÞŒ])(?!J\.-?C)", "avenue ", text)
+    text = re.sub(r"\bBât\.\s*", "Bâtiment ", text)
+    text = re.sub(r"\bbât\.\s*", "bâtiment ", text)
+    text = re.sub(r"\bEsc\.\s*", "Escalier ", text)
+    text = re.sub(r"\besc\.\s*", "escalier ", text)
     text = re.sub(r"\bArt\.\s*(?=\d)", "Article ", text)
     text = re.sub(r"\bart\.\s*(?=\d)", "article ", text)
     text = re.sub(r"\bTél\.\s*", "Téléphone ", text)
@@ -568,7 +620,7 @@ def prepare_french_structure(text: str) -> str:
 def prepare_french_tts_text(text: str) -> str:
     """Clean everyday French text at inference time without touching the frozen
     training frontend fingerprint (computing/metric units, fractions, French phone
-    numbers, emails/URLs, bullet lists, abbreviations, acronyms, and guillemet spacing).
+    numbers, emails/URLs, bullet lists, abbreviations, acronyms, symbols, and pauses).
     """
     if not text or not text.strip():
         return text
@@ -577,7 +629,12 @@ def prepare_french_tts_text(text: str) -> str:
 
     # 2. Emails & URLs -> speakable French ("arobase", "point", "slash").
     def _email_sub(m: re.Match) -> str:
-        user = m.group(1).replace(".", " point ").replace("_", " ").replace("-", " tiret ")
+        raw_user = m.group(1)
+        user_low = raw_user.lower()
+        if user_low in _EMAIL_LOCAL_INITIALISMS:
+            user = _EMAIL_LOCAL_INITIALISMS[user_low]
+        else:
+            user = raw_user.replace(".", " point ").replace("_", " ").replace("-", " tiret ")
         dom = m.group(2).replace(".", " point ").replace("-", " tiret ")
         return f"{user} arobase {dom}"
 
@@ -593,27 +650,40 @@ def prepare_french_tts_text(text: str) -> str:
     text = _EMAIL_RE.sub(_email_sub, text)
     text = _URL_RE.sub(_url_sub, text)
 
-    # 3. French 10-digit phone numbers ("06 12 34 56 78") -> paused digit pairs.
+    # 3. French national & international phone numbers -> paused digit pairs.
+    text = _FR_INTL_PHONE_RE.sub(r"plusse \1, \2, \3, \4, \5, \6", text)
     text = _FR_PHONE_SPLIT_RE.sub(r"\1, \2, \3, \4, \5", text)
 
-    # 4. Smart acronym/initialism detection (period abbreviations handled in prepare_french_structure).
+    # 4. Smart acronym/initialism overrides (period abbreviations handled in prepare_french_structure).
     text = _ALL_CAPS_WORD_RE.sub(_expand_french_acronym, text)
 
-    # 5. Computing & metric units ("725 Ko", "16 Go", "250 ms", "250 ml", "50 cl", "500 mg", "44 kHz").
+    # 5. Computing, physics, currency-magnitude & metric units.
     for pat, sing, plur in _UNITS_FR_EXT:
         text = pat.sub(lambda m, s=sing, p=plur: _unit_plural(m.group(1), s, p), text)
 
-    # 6. Common fractions & multipliers ("1/2 litre", "3/4 d'heure", "2x plus vite").
+    # 6. Common fractions, ratings/scores ("14/20") & multipliers ("2x").
+    # Protect dates DD/MM/YYYY from being caught by the generic X/Y score regex.
     text = re.sub(r"\b1/2\s+heure\b", "une demi-heure", text, flags=re.IGNORECASE)
     text = re.sub(r"\b1/2\b", "un demi", text)
     text = re.sub(r"\b1/3\b", "un tiers", text)
     text = re.sub(r"\b2/3\b", "deux tiers", text)
     text = re.sub(r"\b1/4\b", "un quart", text)
     text = re.sub(r"\b3/4\b", "trois quarts", text)
+    text = re.sub(r"(?<!/)\b(\d+(?:[.,]\d+)?)/(\d+(?:[.,]\d+)?)\b(?!/\d)", r"\1 sur \2", text)
     text = re.sub(r"\b(\d+(?:[.,]\d+)?)\s*[xX]\b", r"\1 fois", text)
 
-    # 7. Prosodic colons ("Téléphone : 06...", "Ingrédients : ...") -> comma so the
-    # frozen host inserts a real ~280 ms pause instead of 0 frames (preserving 14:30).
+    # 7. Everyday symbols (~, #, &, ±).
+    text = re.sub(r"~\s*(?=\d)", "environ ", text)
+    text = re.sub(r"#\s*(?=\d)", "numéro ", text)
+    text = re.sub(r"\s*&\s*", " et ", text)
+    text = re.sub(r"\s*±\s*", " plus ou moins ", text)
+
+    # 8. Prosodic punctuation mapped to commas where fr_ref_35k predicts 0 frames:
+    #    - colons (preserving 14:30), semicolons, mid-sentence em-dashes, and
+    #      parenthetical insertions " (...) " -> natural ~280 ms pauses.
     text = re.sub(r"(?<!\d)\s*:\s+(?=\S)", ", ", text)
+    text = re.sub(r"\s*;\s+", ", ", text)
+    text = re.sub(r"(?<=\S)\s+—\s+(?=\S)", ", ", text)
+    text = re.sub(r"(?<=\S)\s+\(([^()]+)\)", r", \1", text)
 
     return text

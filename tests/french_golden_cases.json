@@ -143,6 +143,124 @@
         "expect_max_sp_pauses": 0,
         "expect_punct_pause_min_frames": 10
       }
+    },
+    {
+      "id": "triage_s01_titles_and_address_abbr",
+      "category": "abbreviations",
+      "text": "Le Pr Moreau, Me Lefèvre et le Dr Petit se retrouvent av. Victor-Hugo, bât. B, esc. 2.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "p ʁ o f ɛ s œ ʁ",
+        "m ɛ t ʁ",
+        "d o k t ø ʁ",
+        "a v n y",
+        "b a t i m ɑ̃ <sp> b e",
+        "ɛ s k a l j e <sp> d ø"
+      ],
+      "forbid_ipa": ["p e ɛ ʁ", "m ə <sp> l ə f ɛ v ʁ"]
+    },
+    {
+      "id": "triage_s02_everyday_symbols_and_parens",
+      "category": "symbols",
+      "text": "Note : A & B coûtent 10€ ± 2€, soit ~12€ par personne (#42, 100% garanti).",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "a <sp> e <sp> b e",
+        "p l y <sp> u <sp> m w ɛ̃",
+        "ɑ̃ v i ʁ ɔ̃ <sp> d u z",
+        "p ɛ ʁ s ɔ n , n y m e ʁ o <sp> k a ʁ ɑ̃ t d ø"
+      ],
+      "forbid_ipa": ["t i l d"],
+      "onnx_check": {
+        "voice": 0,
+        "expect_punct_pause_min_frames": 15
+      }
+    },
+    {
+      "id": "triage_s03_s04_cpam_crous_json",
+      "category": "acronyms",
+      "text": "La CPAM, le CROUS et le JSON sont prêts.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "s e p e a ɛ m",
+        "k ʁ u s",
+        "d ʒ e z o n"
+      ],
+      "forbid_ipa": ["k ʁ u ,"]
+    },
+    {
+      "id": "triage_s05_intl_phone_and_semicolon",
+      "category": "numbers",
+      "text": "Habite 75011 Paris ; appelez le +33 6 12 34 56 78.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "p a ʁ i , a p l e",
+        "p l y s <sp> t ʁ ɑ̃ t t ʁ w a , s i s , d u z"
+      ],
+      "forbid_ipa": ["p a ʁ i ;"],
+      "onnx_check": {
+        "voice": 0,
+        "expect_punct_pause_min_frames": 15
+      }
+    },
+    {
+      "id": "triage_s06_scores_over_20",
+      "category": "numbers",
+      "text": "Les élèves ont obtenu 14/20 ou 18/20 à l'examen.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": ["k a t ɔ ʁ z <sp> s y ʁ <sp> v ɛ̃", "s y ʁ <sp> v ɛ̃"],
+      "forbid_ipa": ["k a t ɔ ʁ z <sp> v ɛ̃"]
+    },
+    {
+      "id": "triage_s07_semicolon_and_emdash_pauses",
+      "category": "punctuation",
+      "text": "Première idée ; deuxième idée — beaucoup plus importante — et enfin la conclusion.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": ["i d e , d ø z j ɛ m <sp> i d e , b o k u"],
+      "forbid_ipa": [";", "—"],
+      "onnx_check": {
+        "voice": 0,
+        "expect_punct_pause_min_frames": 20
+      }
+    },
+    {
+      "id": "triage_s09_s11_physics_datarate_medical_units",
+      "category": "units",
+      "text": "12 V, 2,5 A, 30 W, 42 dB, 500 Mo/s et 5 µg de vitamine D.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "d u z <sp> v ɔ l t",
+        "ɑ̃ p ɛ ʁ",
+        "t ʁ ɑ̃ t <sp> w a t",
+        "d e s i b ɛ l",
+        "m e ɡ a ɔ k t ɛ <sp> p a ʁ <sp> s ə ɡ ɔ̃ d",
+        "m i k ʁ ɔ ɡ ʁ a m"
+      ],
+      "forbid_ipa": ["v e ,", "d u b l ə v e", "d e b e"]
+    },
+    {
+      "id": "triage_s10_academic_abbreviations_and_density",
+      "category": "abbreviations",
+      "text": "N.B. : voir chap. 4, fig. 2, p. 18 et suiv., c.-à-d. environ 300 hab./km².",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "n o t a <sp> b e n e",
+        "s y i v ɑ̃ t",
+        "s ɛ t a d i ʁ",
+        "a b i t ɑ̃ <sp> p a ʁ <sp> k i l o m ɛ t ʁ <sp> k a ʁ e"
+      ],
+      "forbid_ipa": ["ɛ n b e", "n o t a <sp> b ə n"]
+    },
+    {
+      "id": "triage_s12_email_initialism_and_date_preserved",
+      "category": "symbols",
+      "text": "Conformément à l'art. 12 du RGPD, contactez dpo@entreprise.fr avant le 31/12/2026.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "d e p e o <sp> a ʁ o b a z <sp> ɑ̃ t ʁ ə p ʁ i z <sp> p w ɛ̃ <sp> ɛ f ɛ ʁ",
+        "t ʁ ɑ̃ t e œ̃ <sp> d e s ɑ̃ b ʁ <sp> d ø <sp> m i l <sp> v ɛ̃ t s i s"
+      ],
+      "forbid_ipa": ["t ʁ ɑ̃ t e œ̃ <sp> s y ʁ"]
     }
   ]
 }
