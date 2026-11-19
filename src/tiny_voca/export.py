@@ -33,7 +33,9 @@ from torch import nn
 import torch.nn.functional as F
 
 from .infer import load_model, match_frontend
-from .text import SYMBOLS, frontend_fingerprint, frontend_identity, frontend_rules_fingerprint
+from .text import SYMBOL_TO_ID, SYMBOLS, frontend_fingerprint, frontend_identity, frontend_rules_fingerprint
+
+_SP_ID = SYMBOL_TO_ID["<sp>"]
 
 INPUTS = ("tokens", "stress", "voice", "speed", "pitch_shift", "pitch_range")
 OUTPUTS = ("audio", "durations")
@@ -68,11 +70,18 @@ def _synthesis_kernel(window):
 class Exportable(nn.Module):
     """Single-utterance synthesis in ONNX-friendly operations."""
 
-    def __init__(self, model, external_noise=False, omit_mask=True):
+    def __init__(self, model, external_noise=False, omit_mask=True, sp_pause_threshold=0.5):
         super().__init__()
         self.model = model
         self.external_noise = external_noise
         self.omit_mask = omit_mask
+        self.sp_pause_threshold = float(sp_pause_threshold)
+        if self.sp_pause_threshold >= 1.0:
+            self._sp_logit_threshold = 1e9
+        elif self.sp_pause_threshold <= 0.0:
+            self._sp_logit_threshold = -1e9
+        else:
+            self._sp_logit_threshold = math.log(self.sp_pause_threshold / (1.0 - self.sp_pause_threshold))
         c = model.config
         v = model.vocoder
         causal = list(range(c.cep_causal))
@@ -174,7 +183,15 @@ class Exportable(nn.Module):
         # Durations.
         output = m.duration(hidden, token_mask)
         frames = torch.round((torch.exp(output[..., 0].clamp(0, math.log1p(400))) - 1) / speed).long().clamp_min(1)
-        present = m.phone_tokens[tokens] | (output[..., 1] > 0)
+        if self.sp_pause_threshold != 0.5:
+            thresh = torch.where(
+                tokens == _SP_ID,
+                output.new_full(tokens.shape, self._sp_logit_threshold),
+                output.new_zeros(tokens.shape),
+            )
+            present = m.phone_tokens[tokens] | (output[..., 1] > thresh)
+        else:
+            present = m.phone_tokens[tokens] | (output[..., 1] > 0)
         durations = torch.where(present, frames, torch.zeros_like(frames))
         # Repeat token states by duration.
         ends = durations.cumsum(1)
@@ -208,8 +225,8 @@ def example_inputs(length=24):
     return tokens, torch.zeros_like(tokens), torch.tensor([0]), one(1.0), one(0.0), one(1.0)
 
 
-def export(model, path, external_noise=False, opset=17, omit_mask=True):
-    wrapper = Exportable(model, external_noise, omit_mask=omit_mask).eval()
+def export(model, path, external_noise=False, opset=17, omit_mask=True, sp_pause_threshold=0.5):
+    wrapper = Exportable(model, external_noise, omit_mask=omit_mask, sp_pause_threshold=sp_pause_threshold).eval()
     inputs = example_inputs()
     names = list(INPUTS)
     axes = {"tokens": {1: "tokens"}, "stress": {1: "tokens"}, "audio": {1: "samples"}, "durations": {1: "tokens"}}
@@ -239,13 +256,18 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--external-noise", action="store_true", help="Take the noise signal as an input (for exact comparisons)")
     parser.add_argument("--keep-mask", action="store_true", help="Keep redundant all-true attention masks in single-utterance ONNX")
+    parser.add_argument("--sp-pause-threshold", type=float, default=0.5, help="Word-space <sp> pause threshold baked into ONNX (default: 0.5)")
     parser.add_argument("--opset", type=int, default=17)
     args = parser.parse_args()
     match_frontend(args.checkpoint)
     model = load_model(args.checkpoint, "cpu")
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    export(model, args.output, args.external_noise, args.opset, omit_mask=not args.keep_mask)
-    args.output.with_suffix(".json").write_text(json.dumps(metadata(model, args.checkpoint), ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    export(model, args.output, args.external_noise, args.opset, omit_mask=not args.keep_mask,
+           sp_pause_threshold=args.sp_pause_threshold)
+    meta = metadata(model, args.checkpoint)
+    if args.sp_pause_threshold != 0.5:
+        meta["sp_pause_threshold"] = args.sp_pause_threshold
+    args.output.with_suffix(".json").write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"wrote {args.output} ({args.output.stat().st_size / 1e6:.1f} MB) and {args.output.with_suffix('.json').name}")
 
 

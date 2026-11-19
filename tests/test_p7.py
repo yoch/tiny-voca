@@ -148,6 +148,16 @@ class TestP7FrenchProsodyRefiner(unittest.TestCase):
             "Ingrédients :\n3 œufs.\n100 g.",
         )
         self.assertEqual(prepare_french_tts_text("« On verra ! »"), "« On verra !»")
+        # Smart acronym / initialism rules (RAM pronounced as word, vowel-less & exception initialisms spelled)
+        self.assertIn("16 gigaoctets de rame", prepare_french_tts_text("16 Go de RAM"))
+        self.assertIn("l'ONU", prepare_french_tts_text("l'ONU"))
+        self.assertIn("l'O M S", prepare_french_tts_text("l'OMS"))
+        self.assertIn("R G P D", prepare_french_tts_text("le RGPD"))
+        self.assertIn("C N R S", prepare_french_tts_text("le CNRS"))
+        self.assertIn("C H U", prepare_french_tts_text("le CHU"))
+        self.assertIn("A V C", prepare_french_tts_text("un AVC"))
+        self.assertIn("Louis XIV", prepare_french_tts_text("Louis XIV"))
+        self.assertIn("MM. Dupont", prepare_french_tts_text("MM. Dupont"))
 
 
 if __name__ == "__main__":

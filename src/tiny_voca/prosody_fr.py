@@ -471,7 +471,36 @@ _UNITS_FR_EXT = (
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*MWh\b"), "mégawattheure", "mégawattheures"),
 )
 
-_FR_EXTRA_INITIALISMS = re.compile(r"\b(OMS)\b")
+_FR_EXTRA_INITIALISMS = frozenset({
+    "OMS", "CHU", "AVC", "ADN", "FBI", "CIA", "NSA", "IBM", "NBA", "NFL", "NHL",
+    "UFC", "OVH", "CIO", "TVA", "PIB", "API", "URL", "CPU", "GPU", "USB", "IA",
+    "UE", "JO", "TGV", "RATP", "RER", "TER", "EDF", "GDF", "RSA", "PME", "PMI",
+    "VTC", "KGB", "CDG", "QCM", "CDI", "CDD", "IVG", "IRM", "SPA", "VIP", "FAQ",
+})
+_FR_PRONOUNCEABLE_ACRONYM_HINTS = {
+    "RAM": "rame",
+    "EHPAD": "épade",
+    "MEDEF": "médèfe",
+}
+_ROMAN_NUMERAL_RE = re.compile(r"^M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})$")
+_ALL_CAPS_WORD_RE = re.compile(r"\b[A-Z]{2,6}\b")
+_FR_VOWELS_ASCII = frozenset("AEIOUY")
+
+
+def _expand_french_acronym(m: re.Match) -> str:
+    word = m.group(0)
+    if word in _FR_PRONOUNCEABLE_ACRONYM_HINTS:
+        return _FR_PRONOUNCEABLE_ACRONYM_HINTS[word]
+    if word in _FR_EXTRA_INITIALISMS:
+        return " ".join(word)
+    # Keep titles ("MM") and valid Roman numerals ("XIV", "XXI") untouched for text.py.
+    if word == "MM" or _ROMAN_NUMERAL_RE.match(word):
+        return word
+    # Generic rule: any 2-6 letter ALL-CAPS token without vowels (RGPD, CNRS, HLM, CGT,
+    # PDF, LLM, SMS, GPS, BTP, SQL, SSH, PDG, SNCF, DVD, TV...) is spelled out in French.
+    if not any(ch in _FR_VOWELS_ASCII for ch in word):
+        return " ".join(word)
+    return word
 
 
 def _unit_plural(num_str: str, singular: str, plural: str) -> str:
@@ -529,10 +558,10 @@ def prepare_french_tts_text(text: str) -> str:
     # 3. French 10-digit phone numbers ("06 12 34 56 78") -> paused digit pairs.
     text = _FR_PHONE_SPLIT_RE.sub(r"\1, \2, \3, \4, \5", text)
 
-    # 4. Everyday French abbreviations & acronyms missed by eSpeak NG.
+    # 4. Everyday French abbreviations & smart acronym/initialism detection.
     text = re.sub(r"\b[Aa]rt\.\s*(?=\d)", "article ", text)
     text = re.sub(r"\b[Tt]él\.\s*", "téléphone ", text)
-    text = _FR_EXTRA_INITIALISMS.sub(lambda m: " ".join(m.group(1)), text)
+    text = _ALL_CAPS_WORD_RE.sub(_expand_french_acronym, text)
 
     # 5. Computing & metric units ("725 Ko", "16 Go", "250 ms", "250 ml", "50 cl", "500 mg", "44 kHz").
     for pat, sing, plur in _UNITS_FR_EXT:
