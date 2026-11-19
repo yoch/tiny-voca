@@ -81,6 +81,29 @@ REAL_WORLD_STRESS_BANK = [
     ("dialogue_natural", "dialogue", 1, "— Tu viens demain ? — Non, j'ai rendez-vous à 10h30 chez le dentiste !"),
 ]
 
+# Batch 2: focused on proper nouns, homographs, silent letters, liaisons,
+# abbreviated dates/ranges, everyday tech/English loanwords, numbered lists & dialogues.
+BATCH2_STRESS_BANK = [
+    ("b2_cities_fr_1", "proper_nouns", 0, "De Metz à Chamonix, puis Auxerre, Bruxelles, Caen et Reims."),
+    ("b2_cities_fr_2", "proper_nouns", 1, "Bourg-en-Bresse, Aix-en-Provence, Laon, Mulhouse, Troyes, Vannes et Avoriaz."),
+    ("b2_cities_world", "proper_nouns", 0, "Voyage entre New York, Londres, Tokyo, Pékin, Munich et Barcelone."),
+    ("b2_homograph_couvent", "homographs", 1, "Les poules du couvent couvent sous le vent d'est."),
+    ("b2_homograph_plus_tous", "homographs", 0, "J'en veux plus, mais il n'y en a plus ! Ils sont tous venus, tous les deux."),
+    ("b2_homograph_president", "homographs", 1, "Les présidents président la séance ; nos portions de gâteau que nous portions sont prêtes."),
+    ("b2_homograph_fils_os", "homographs", 0, "Son fils a cassé des fils électriques et trouvé un os, puis plusieurs os."),
+    ("b2_silent_nouns", "lexicon", 1, "L'automne, un fusil, un outil, un tabac, un estomac, un porc, un cerf et des œufs."),
+    ("b2_final_s_tricky", "lexicon", 0, "Jadis, un ours mangeait du maïs, un ananas et du cassis dans le bus."),
+    ("b2_gnent_verbs", "lexicon", 1, "Les clients gagnent du temps, les médecins soignent bien et les enfants craignent le noir."),
+    ("b2_liaisons_h", "liaisons", 0, "Les haricots, les héros, les hiboux, en haut, des hêtres et les hôtels."),
+    ("b2_liaisons_num", "liaisons", 1, "Un grand homme, neuf ans, neuf heures, vingt-et-un ans, quatre-vingt-un livres."),
+    ("b2_dates_abbr", "dates", 0, "Réunion lun. 5 janv., mar. 14 févr., mer. 3 avr., ven. 12 sept. et dim. 1er déc."),
+    ("b2_ranges_hours", "dates", 1, "Ouvert du lundi au vendredi de 9h à 17h30, période 2020-2026, dossier n° 42."),
+    ("b2_loanwords_web", "loanwords", 0, "Un week-end en streaming, un podcast sur smartphone, un e-mail, du feedback et une newsletter."),
+    ("b2_loanwords_dev", "loanwords", 1, "Le projet open source sur GitHub utilise Python, JavaScript, le cloud et le Bluetooth."),
+    ("b2_numbered_list", "formatting", 0, "Étapes :\n1. Ouvrir l'application\n2. Cliquer sur démarrer\n3. Valider le résultat"),
+    ("b2_dialogue_quotes", "dialogue", 1, "— Tu viens demain ? — Non, j'ai rendez-vous ! « Dommage… une prochaine fois ? »"),
+]
+
 
 def _write_wav(path: Path, audio: np.ndarray, sr: int) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -201,11 +224,13 @@ def _synthesize_onnx(sess: ort.InferenceSession, utterances: list[dict], voice: 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--bank", choices=("batch1", "batch2"), default="batch1")
     ap.add_argument("--onnx", type=Path, default=Path(".local-runs/p7_refiner/onnx/tiny-voca-fr.onnx"))
     ap.add_argument("--val-manifest", type=Path, default=Path(".local-runs/colab/fr4k/annotations_e01/validation.jsonl"))
     ap.add_argument("--out-dir", type=Path, default=Path(".local-runs/fr_hunter/batch_01"))
     ap.add_argument("--top-k", type=int, default=12)
     ap.add_argument("--skip-asr", action="store_true")
+    ap.add_argument("--skip-val-scan", action="store_true")
     args = ap.parse_args()
 
     t0 = time.time()
@@ -214,15 +239,15 @@ def main():
     max_tokens = int(meta.get("max_tokens", 240))
     sess = ort.InferenceSession(str(args.onnx), providers=["CPUExecutionProvider"])
 
-    # 1. Scan real-world stress bank (40 rich sentences)
+    bank = REAL_WORLD_STRESS_BANK if args.bank == "batch1" else BATCH2_STRESS_BANK
     candidates = []
-    for cid, cat, voice, text in REAL_WORLD_STRESS_BANK:
+    for cid, cat, voice, text in bank:
         utts = _run_frontend(text, max_tokens=max_tokens)
         sflags = _static_flags(text, utts)
         wav, dflags = _synthesize_onnx(sess, utts, voice, sr)
         candidates.append({
             "id": cid,
-            "source": "stress_bank",
+            "source": args.bank,
             "category": cat,
             "voice": meta["voices"][voice] if voice < len(meta.get("voices", [])) else str(voice),
             "voice_idx": voice,
@@ -237,7 +262,7 @@ def main():
 
     # 2. Quick static scan of validation.jsonl (373 real sentences) for any extra corpus bugs
     val_hits = []
-    if args.val_manifest.exists():
+    if not args.skip_val_scan and args.val_manifest.exists():
         seen_hash = set()
         for line in args.val_manifest.read_text(encoding="utf-8").splitlines():
             if not line.strip():
