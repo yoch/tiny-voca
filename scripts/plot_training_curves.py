@@ -30,9 +30,11 @@ def _ema(values: np.ndarray, alpha: float = 0.25) -> np.ndarray:
     return out
 
 
-def _add_milestones(ax, add_labels: bool = False):
+def _add_milestones(ax, add_labels: bool = False, step_max: int | None = None):
     ylim = ax.get_ylim()
     for idx, (step, label, color, ls) in enumerate(MILESTONES):
+        if step_max is not None and step >= step_max:
+            continue
         ax.axvline(step, color=color, linestyle=ls, linewidth=1.0, alpha=0.75)
         if add_labels:
             y = ylim[1] - (0.04 + 0.08 * (idx % 2)) * (ylim[1] - ylim[0])
@@ -49,13 +51,20 @@ def _series(rows: list[dict], key: str) -> tuple[np.ndarray, np.ndarray]:
     return np.asarray(xs, dtype=np.float64), np.asarray(ys, dtype=np.float64)
 
 
-def plot_training_curves(metrics_path: Path, out_dir: Path, title_prefix: str = "fr_ref (192/640, 0-35k)") -> dict:
+def plot_training_curves(
+    metrics_path: Path,
+    out_dir: Path,
+    title_prefix: str = "fr_ref (192/640, 0-35k)",
+    file_prefix: str = "fr_ref_0_35k",
+) -> dict:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     rows = _load_metrics(metrics_path)
     out_dir.mkdir(parents=True, exist_ok=True)
+    step_max = int(rows[-1]["step"])
+    k_label = f"{step_max // 1000}k" if step_max % 1000 == 0 else str(step_max)
 
     # 1. Spectral losses & GAN / optimization dynamics
     fig, axes = plt.subplots(3, 1, figsize=(12, 11), sharex=True)
@@ -78,7 +87,7 @@ def plot_training_curves(metrics_path: Path, out_dir: Path, title_prefix: str = 
     ax.set_title(f"{title_prefix} — Trajectoire spectrale, GAN et optimisation", fontsize=12)
     ax.grid(True, alpha=0.25)
     ax.legend(loc="upper right", ncol=2, fontsize=8.5)
-    _add_milestones(ax, add_labels=True)
+    _add_milestones(ax, add_labels=True, step_max=step_max)
 
     ax = axes[1]
     sx, sy = _series(rows, "stft")
@@ -93,7 +102,7 @@ def plot_training_curves(metrics_path: Path, out_dir: Path, title_prefix: str = 
     ax.set_ylabel("Multi-Res STFT")
     ax.grid(True, alpha=0.25)
     ax.legend(loc="upper right", ncol=3, fontsize=8.5)
-    _add_milestones(ax)
+    _add_milestones(ax, step_max=step_max)
 
     ax = axes[2]
     for key, label, color in (
@@ -116,10 +125,10 @@ def plot_training_curves(metrics_path: Path, out_dir: Path, title_prefix: str = 
     h1, l1 = ax.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1 + h2, l1 + l2, loc="upper right", ncol=2, fontsize=8.5)
-    _add_milestones(ax)
+    _add_milestones(ax, step_max=step_max)
 
     fig.tight_layout()
-    spectral_path = out_dir / "fr_ref_0_35k_spectral_gan.png"
+    spectral_path = out_dir / f"{file_prefix}_spectral_gan.png"
     fig.savefig(spectral_path, dpi=140)
     plt.close(fig)
 
@@ -142,12 +151,12 @@ def plot_training_curves(metrics_path: Path, out_dir: Path, title_prefix: str = 
     ax2.set_ylim(0.84, 1.08)
     ax.set_ylabel("Pitch MAE (semitones)")
     ax2.set_ylabel("Pitch spread ratio (1.0=ref)")
-    ax.set_title(f"{title_prefix} — Zoom prosodie & rythme (post-warmup, steps 500–35k)", fontsize=12)
+    ax.set_title(f"{title_prefix} — Zoom prosodie & rythme (post-warmup, steps 500–{k_label})", fontsize=12)
     ax.grid(True, alpha=0.25)
     h1, l1 = ax.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1 + h2, l1 + l2, loc="upper right", ncol=2, fontsize=8.5)
-    _add_milestones(ax, add_labels=True)
+    _add_milestones(ax, add_labels=True, step_max=step_max)
 
     ax = axes[1]
     for key, label, color in (
@@ -170,7 +179,7 @@ def plot_training_curves(metrics_path: Path, out_dir: Path, title_prefix: str = 
     h1, l1 = ax.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1 + h2, l1 + l2, loc="center right", ncol=2, fontsize=8.5)
-    _add_milestones(ax)
+    _add_milestones(ax, step_max=step_max)
 
     ax = axes[2]
     for key, label, color, marker in (
@@ -191,15 +200,15 @@ def plot_training_curves(metrics_path: Path, out_dir: Path, title_prefix: str = 
     ax.set_ylabel("Ratios / pause accuracy")
     ax2.set_ylabel("Duration errors (MAE/MSE)")
     ax.set_xlabel("Step")
-    ax.set_xlim(400, 35400)
+    ax.set_xlim(400, step_max + 400)
     ax.grid(True, alpha=0.25)
     h1, l1 = ax.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1 + h2, l1 + l2, loc="lower left", ncol=3, fontsize=8.5)
-    _add_milestones(ax)
+    _add_milestones(ax, step_max=step_max)
 
     fig.tight_layout()
-    prosody_path = out_dir / "fr_ref_0_35k_prosody_rhythm.png"
+    prosody_path = out_dir / f"{file_prefix}_prosody_rhythm.png"
     fig.savefig(prosody_path, dpi=140)
     plt.close(fig)
 
@@ -218,7 +227,7 @@ def plot_training_curves(metrics_path: Path, out_dir: Path, title_prefix: str = 
     ax.set_title(f"{title_prefix} — Coût d'optimisation, cadence et schéma teacher/GAN", fontsize=12)
     ax.grid(True, alpha=0.25)
     ax.legend(loc="upper right", fontsize=8.5)
-    _add_milestones(ax, add_labels=True)
+    _add_milestones(ax, add_labels=True, step_max=step_max)
 
     ax = axes[1]
     sx, sy = _series(rows, "steps_per_second")
@@ -235,10 +244,10 @@ def plot_training_curves(metrics_path: Path, out_dir: Path, title_prefix: str = 
     h1, l1 = ax.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1 + h2, l1 + l2, loc="upper right", fontsize=8.5)
-    _add_milestones(ax)
+    _add_milestones(ax, step_max=step_max)
 
     fig.tight_layout()
-    system_path = out_dir / "fr_ref_0_35k_system_schedule.png"
+    system_path = out_dir / f"{file_prefix}_system_schedule.png"
     fig.savefig(system_path, dpi=140)
     plt.close(fig)
 
@@ -258,8 +267,9 @@ def main():
     parser.add_argument("--metrics", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--title", default="fr_ref (192/640, 0-35k)")
+    parser.add_argument("--prefix", default="fr_ref_0_35k")
     args = parser.parse_args()
-    summary = plot_training_curves(args.metrics, args.out_dir, args.title)
+    summary = plot_training_curves(args.metrics, args.out_dir, args.title, args.prefix)
     print(json.dumps(summary, indent=2))
 
 
