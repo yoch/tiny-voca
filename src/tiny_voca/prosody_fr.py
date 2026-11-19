@@ -558,9 +558,11 @@ def prepare_french_tts_text(text: str) -> str:
     # 3. French 10-digit phone numbers ("06 12 34 56 78") -> paused digit pairs.
     text = _FR_PHONE_SPLIT_RE.sub(r"\1, \2, \3, \4, \5", text)
 
-    # 4. Everyday French abbreviations & smart acronym/initialism detection.
-    text = re.sub(r"\b[Aa]rt\.\s*(?=\d)", "article ", text)
-    text = re.sub(r"\b[Tt]él\.\s*", "téléphone ", text)
+    # 4. Everyday French abbreviations & smart acronym/initialism detection (preserving case for sentence splitting).
+    text = re.sub(r"\bArt\.\s*(?=\d)", "Article ", text)
+    text = re.sub(r"\bart\.\s*(?=\d)", "article ", text)
+    text = re.sub(r"\bTél\.\s*", "Téléphone ", text)
+    text = re.sub(r"\btél\.\s*", "téléphone ", text)
     text = _ALL_CAPS_WORD_RE.sub(_expand_french_acronym, text)
 
     # 5. Computing & metric units ("725 Ko", "16 Go", "250 ms", "250 ml", "50 cl", "500 mg", "44 kHz").

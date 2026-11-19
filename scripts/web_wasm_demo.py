@@ -398,12 +398,17 @@ async function speak() {
     }
     const tWasm = performance.now() - tWasm0;
 
-    const full = new Float32Array(totalLen);
+    const sr = meta.sample_rate || 24000;
+    const gapSamples = Math.round(sr * 0.22);
+    const totalWithGaps = totalLen + Math.max(0, chunks.length - 1) * gapSamples;
+    const full = new Float32Array(totalWithGaps);
     let offset = 0;
     let peak = 0;
-    for (const c of chunks) {
+    for (let ci = 0; ci < chunks.length; ci++) {
+      const c = chunks[ci];
       full.set(c, offset);
       offset += c.length;
+      if (ci + 1 < chunks.length) offset += gapSamples;
       for (let i = 0; i < c.length; i++) {
         const a = Math.abs(c[i]);
         if (a > peak) peak = a;
@@ -414,7 +419,6 @@ async function speak() {
       for (let i = 0; i < full.length; i++) full[i] *= scale;
     }
 
-    const sr = meta.sample_rate || 24000;
     const audioSec = full.length / sr;
     const rtf = (tWasm / 1000) / Math.max(audioSec, 0.01);
     $("metrics").textContent =
