@@ -442,3 +442,112 @@ def load_prosody_refiner(path, device="cpu") -> FrenchProsodyRefiner:
     refiner = FrenchProsodyRefiner(**payload["refiner_config"])
     refiner.load_state_dict(payload["refiner_state"], strict=True)
     return refiner.to(device).eval()
+
+
+# ---------------------------------------------------------------------------
+# Inference-time real-world French text cleaner (0 retraining, preserves
+# frontend_fingerprint() and frontend_rules_fingerprint() 100%).
+# ---------------------------------------------------------------------------
+
+_FR_PHONE_RE = re.compile(r"(?<!\d)(0[1-9])(?:[\s.\-](\d{2})){4}(?!\d)")
+_FR_PHONE_SPLIT_RE = re.compile(r"(?<!\d)(0[1-9])[\s.\-](\d{2})[\s.\-](\d{2})[\s.\-](\d{2})[\s.\-](\d{2})(?!\d)")
+_EMAIL_RE = re.compile(r"\b([A-Za-z0-9._%+\-]+)@([A-Za-z0-9.\-]+\.[A-Za-z]{2,})\b")
+_URL_RE = re.compile(r"\bhttps?://([A-Za-z0-9.\-]+(?:/[^\s,;)]*[^\s,;).!?])?)")
+
+_UNITS_FR_EXT = (
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[Kk]o\b"), "kilooctet", "kilooctets"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Mo\b"), "mégaoctet", "mégaoctets"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Go\b"), "gigaoctet", "gigaoctets"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*To\b"), "téraoctet", "téraoctets"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*ms\b"), "milliseconde", "millisecondes"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[µμu]s\b"), "microseconde", "microsecondes"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*ml\b"), "millilitre", "millilitres"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*cl\b"), "centilitre", "centilitres"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*dl\b"), "décilitre", "décilitres"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*mg\b"), "milligramme", "milligrammes"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*kHz\b"), "kilohertz", "kilohertz"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*MHz\b"), "mégahertz", "mégahertz"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*kWh\b"), "kilowattheure", "kilowattheures"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*MWh\b"), "mégawattheure", "mégawattheures"),
+)
+
+_FR_EXTRA_INITIALISMS = re.compile(r"\b(OMS)\b")
+
+
+def _unit_plural(num_str: str, singular: str, plural: str) -> str:
+    try:
+        val = float(num_str.replace(",", "."))
+    except ValueError:
+        val = 2.0
+    unit = singular if abs(val) <= 1.0 else plural
+    if num_str == "1" and singular in ("milliseconde", "microseconde"):
+        return f"une {unit}"
+    return f"{num_str} {unit}"
+
+
+def prepare_french_tts_text(text: str) -> str:
+    """Clean everyday French text at inference time without touching the frozen
+    training frontend fingerprint (computing/metric units, fractions, French phone
+    numbers, emails/URLs, bullet lists, abbreviations, and guillemet spacing).
+    """
+    if not text or not text.strip():
+        return text
+
+    # 1. Bullet lists ("\n- 3 œufs\n- 100 g") -> clean punctuated items instead of "—".
+    lines = text.splitlines()
+    if any(re.match(r"^\s*[-•*]\s+\S", ln) for ln in lines):
+        rebuilt: list[str] = []
+        for ln in lines:
+            m = re.match(r"^\s*[-•*]\s+(.+?)\s*$", ln)
+            if m:
+                item = m.group(1)
+                if item[-1:] not in ".!?…,:;":
+                    item = item + "."
+                rebuilt.append(item)
+            else:
+                rebuilt.append(ln)
+        text = "\n".join(rebuilt)
+
+    # 2. Emails & URLs -> speakable French ("arobase", "point", "slash").
+    def _email_sub(m: re.Match) -> str:
+        user = m.group(1).replace(".", " point ").replace("_", " ").replace("-", " tiret ")
+        dom = m.group(2).replace(".", " point ").replace("-", " tiret ")
+        return f"{user} arobase {dom}"
+
+    def _url_sub(m: re.Match) -> str:
+        raw = m.group(1).rstrip("/")
+        if "/" in raw:
+            host, path = raw.split("/", 1)
+            host_s = host.replace(".", " point ").replace("-", " tiret ")
+            path_s = path.replace("/", " slash ").replace(".", " point ").replace("-", " ").replace("_", " ")
+            return f"{host_s} slash {path_s}"
+        return raw.replace(".", " point ").replace("-", " tiret ")
+
+    text = _EMAIL_RE.sub(_email_sub, text)
+    text = _URL_RE.sub(_url_sub, text)
+
+    # 3. French 10-digit phone numbers ("06 12 34 56 78") -> paused digit pairs.
+    text = _FR_PHONE_SPLIT_RE.sub(r"\1, \2, \3, \4, \5", text)
+
+    # 4. Everyday French abbreviations & acronyms missed by eSpeak NG.
+    text = re.sub(r"\b[Aa]rt\.\s*(?=\d)", "article ", text)
+    text = re.sub(r"\b[Tt]él\.\s*", "téléphone ", text)
+    text = _FR_EXTRA_INITIALISMS.sub(lambda m: " ".join(m.group(1)), text)
+
+    # 5. Computing & metric units ("725 Ko", "16 Go", "250 ms", "250 ml", "50 cl", "500 mg", "44 kHz").
+    for pat, sing, plur in _UNITS_FR_EXT:
+        text = pat.sub(lambda m, s=sing, p=plur: _unit_plural(m.group(1), s, p), text)
+
+    # 6. Common fractions & multipliers ("1/2 litre", "3/4 d'heure", "2x plus vite").
+    text = re.sub(r"\b1/2\s+heure\b", "une demi-heure", text, flags=re.IGNORECASE)
+    text = re.sub(r"\b1/2\b", "un demi", text)
+    text = re.sub(r"\b1/3\b", "un tiers", text)
+    text = re.sub(r"\b2/3\b", "deux tiers", text)
+    text = re.sub(r"\b1/4\b", "un quart", text)
+    text = re.sub(r"\b3/4\b", "trois quarts", text)
+    text = re.sub(r"\b(\d+(?:[.,]\d+)?)\s*[xX]\b", r"\1 fois", text)
+
+    # 7. Avoid stray period after French closing guillemets ("« On verra ! »").
+    text = re.sub(r"([.!?…])\s+»", r"\1»", text)
+
+    return text

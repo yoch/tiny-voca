@@ -11,6 +11,7 @@ from tiny_voca.prosody_fr import (
     classify_sentence_type,
     extract_french_phrasal_features,
     load_prosody_refiner,
+    prepare_french_tts_text,
     synthesize_with_refiner,
 )
 from tiny_voca.text import SYMBOL_TO_ID
@@ -120,6 +121,33 @@ class TestP7FrenchProsodyRefiner(unittest.TestCase):
             w_a, _, _ = synthesize_with_refiner(host, refiner, toks, stress, lengths, speakers, texts=["Bonjour monde."], seed=5)
             w_b, _, _ = synthesize_with_refiner(host, loaded, toks, stress, lengths, speakers, texts=["Bonjour monde."], seed=5)
             self.assertEqual(float((w_a - w_b).abs().max().item()), 0.0)
+
+    def test_prepare_french_tts_text_real_world_cases(self):
+        self.assertIn("725 kilooctets", prepare_french_tts_text("Le fichier pèse 725 Ko."))
+        self.assertIn("16 gigaoctets", prepare_french_tts_text("Avec 16 Go de RAM."))
+        self.assertIn("250 millisecondes", prepare_french_tts_text("Latence de 250 ms."))
+        self.assertIn("250 millilitres", prepare_french_tts_text("Ajoutez 250 ml de lait."))
+        self.assertIn("50 centilitres", prepare_french_tts_text("Ajoutez 50 cl d'eau."))
+        self.assertIn("500 milligrammes", prepare_french_tts_text("Dose de 500 mg."))
+        self.assertIn("44 kilohertz", prepare_french_tts_text("Audio 44 kHz."))
+        self.assertIn("120 kilowattheures", prepare_french_tts_text("Conso 120 kWh."))
+        self.assertIn("l'O M S", prepare_french_tts_text("Rapport de l'OMS."))
+        self.assertIn("article 3", prepare_french_tts_text("Cf. art. 3."))
+        self.assertIn("téléphone", prepare_french_tts_text("Tél. : 06 12 34 56 78."))
+        self.assertIn("06, 12, 34, 56, 78", prepare_french_tts_text("Tél. : 06 12 34 56 78."))
+        self.assertIn("un demi litre", prepare_french_tts_text("1/2 litre d'huile"))
+        self.assertIn("une demi-heure", prepare_french_tts_text("1/2 heure"))
+        self.assertIn("trois quarts d'heure", prepare_french_tts_text("3/4 d'heure"))
+        self.assertIn("2 fois plus vite", prepare_french_tts_text("2x plus vite"))
+        self.assertEqual(
+            prepare_french_tts_text("Contactez bonjour@exemple.fr ou https://example.org/docs."),
+            "Contactez bonjour arobase exemple point fr ou example point org slash docs.",
+        )
+        self.assertEqual(
+            prepare_french_tts_text("Ingrédients :\n- 3 œufs\n- 100 g"),
+            "Ingrédients :\n3 œufs.\n100 g.",
+        )
+        self.assertEqual(prepare_french_tts_text("« On verra ! »"), "« On verra !»")
 
 
 if __name__ == "__main__":

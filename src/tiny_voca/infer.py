@@ -5,7 +5,7 @@ import re
 import torch
 from .config import CHECKPOINT_FORMAT, Config
 from .model import TinyVoca, UtteranceTooLong
-from .prosody_fr import load_prosody_refiner, synthesize_with_refiner
+from .prosody_fr import load_prosody_refiner, prepare_french_tts_text, synthesize_with_refiner
 from .text import FRONTEND_VARIABLE, FRONTENDS, NothingToPronounce, frontend_fingerprint, phonemize, set_frontend
 
 # The loudest sample of the audio that ``speak_text`` and the command return.
@@ -105,17 +105,18 @@ def limit_peak(wave, peak=PEAK):
     return wave * (peak / loudest) if loudest > peak else wave
 
 
-def _voice(model, phones, voice, speed, pitch_shift, seed, pitch_range, prosody_refiner=None, text=""):
+def _voice(model, phones, voice, speed, pitch_shift, seed, pitch_range, prosody_refiner=None, text="", sp_pause_threshold=None):
     """Phonemes -> (float waveform tensor, details): one call of the model."""
     device = next(model.parameters()).device
     tokens = torch.tensor([phones.ids], device=device)
     stress = torch.tensor([phones.stress], device=device)
     speaker = torch.tensor([model.config.speakers.index(voice)], device=device)
     lengths_in = torch.tensor([len(phones)], device=device)
-    if prosody_refiner is not None:
+    if prosody_refiner is not None or sp_pause_threshold is not None:
         audio, lengths, details = synthesize_with_refiner(
             model, prosody_refiner, tokens, stress, lengths_in, speaker,
             texts=[text], speed=speed, pitch_shift=pitch_shift, seed=seed, pitch_range=pitch_range,
+            sp_pause_threshold=sp_pause_threshold,
         )
     else:
         audio, lengths, details = model.synthesize(tokens, stress, lengths_in, speaker, speed, pitch_shift, seed, pitch_range)
@@ -124,22 +125,28 @@ def _voice(model, phones, voice, speed, pitch_shift, seed, pitch_range, prosody_
     return audio[0, :int(lengths[0])].cpu(), details
 
 
-def speak(model, text, voice, speed=1.0, pitch_shift=0.0, seed=0, pitch_range=1.0, prosody_refiner=None):
+def speak(model, text, voice, speed=1.0, pitch_shift=0.0, seed=0, pitch_range=1.0, prosody_refiner=None,
+          sp_pause_threshold=None, prepare_text=True):
     """One utterance: text -> (float waveform tensor, phonemized text, details).
     Same front end as training. The audio is the model's output as it is and
     can peak above 1.0 (see ``limit_peak``). ``speak_text`` reads text of any
     length."""
-    phones = phonemize(text)
+    clean = prepare_french_tts_text(text) if prepare_text else text
+    phones = phonemize(clean)
     if len(phones) > model.config.max_tokens:
         raise ValueError("text is too long for one utterance; speak_text splits it into sentences")
-    if prosody_refiner is None:
+    if prosody_refiner is None and sp_pause_threshold is None:
         wave, details = _voice(model, phones, voice, speed, pitch_shift, seed, pitch_range)
     else:
-        wave, details = _voice(model, phones, voice, speed, pitch_shift, seed, pitch_range, prosody_refiner=prosody_refiner, text=text)
+        wave, details = _voice(
+            model, phones, voice, speed, pitch_shift, seed, pitch_range,
+            prosody_refiner=prosody_refiner, text=clean, sp_pause_threshold=sp_pause_threshold,
+        )
     return wave, phones, details
 
 
-def speak_text(model, text, voice, speed=1.0, pitch_shift=0.0, seed=0, pitch_range=1.0, peak=PEAK, prosody_refiner=None):
+def speak_text(model, text, voice, speed=1.0, pitch_shift=0.0, seed=0, pitch_range=1.0, peak=PEAK, prosody_refiner=None,
+               sp_pause_threshold=None, prepare_text=True):
     """Text of any length -> (float waveform tensor, phonemized utterances).
 
     The text is read sentence by sentence and the audio is joined. A text that
@@ -151,6 +158,8 @@ def speak_text(model, text, voice, speed=1.0, pitch_shift=0.0, seed=0, pitch_ran
     is scaled down as a whole when it peaks above ``peak``, so that it can be
     saved as 16-bit samples without clipping; ``peak=None`` returns the
     model's output as it is."""
+    if prepare_text:
+        text = prepare_french_tts_text(text)
     limit = model.config.max_tokens - 12
     waves, spoken = [], []
 
@@ -161,12 +170,12 @@ def speak_text(model, text, voice, speed=1.0, pitch_shift=0.0, seed=0, pitch_ran
             return
         if len(phones) <= limit:
             try:
-                if prosody_refiner is None:
+                if prosody_refiner is None and sp_pause_threshold is None:
                     wave, _ = _voice(model, phones, voice, speed, pitch_shift, seed + len(waves), pitch_range)
                 else:
                     wave, _ = _voice(
                         model, phones, voice, speed, pitch_shift, seed + len(waves), pitch_range,
-                        prosody_refiner=prosody_refiner, text=piece,
+                        prosody_refiner=prosody_refiner, text=piece, sp_pause_threshold=sp_pause_threshold,
                     )
             except UtteranceTooLong:
                 pass
@@ -193,6 +202,10 @@ def main():
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--prosody-refiner", type=Path, default=None,
                         help="Optional P7 FrenchProsodyRefiner checkpoint (default: none)")
+    parser.add_argument("--sp-pause-threshold", type=float, default=None,
+                        help="Optional word-space <sp> pause threshold (e.g. 0.95 or 1.0 to suppress mid-phrase pauses)")
+    parser.add_argument("--no-prepare-text", action="store_true",
+                        help="Disable inference-time French text cleanup (units, fractions, phone numbers, bullets)")
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--text", help="Text of any length; it is read sentence by sentence")
     source.add_argument("--text-file", type=Path, help="Read the text from a file (UTF-8)")
@@ -221,6 +234,7 @@ def main():
         raw, spoken = speak_text(
             model, text, voice, args.speed, args.pitch_shift,
             pitch_range=args.pitch_range, peak=None, prosody_refiner=refiner,
+            sp_pause_threshold=args.sp_pause_threshold, prepare_text=not args.no_prepare_text,
         )
     except NothingToPronounce:
         parser.exit(1, f"{ENGLISH_ONLY}. Nothing in the text could be read, so no file was written.\n")
