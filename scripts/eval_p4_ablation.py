@@ -88,16 +88,45 @@ def _write_wav(path: Path, audio: np.ndarray, sr: int = 24000):
         wf.writeframes(pcm.tobytes())
 
 
+def load_exclusion_sets(paths: list[Path]) -> tuple[set[str], set[str]]:
+    """Load recording IDs and text_hashes from required exclusion manifests.
+
+    Raises FileNotFoundError if any manifest is missing, or ValueError if empty/malformed.
+    """
+    ex_ids: set[str] = set()
+    ex_hashes: set[str] = set()
+    for path in paths:
+        if not path.exists():
+            raise FileNotFoundError(f"required exclusion manifest missing: {path}")
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        found = False
+        for key in ("selected_ids", "ids", "consulted_ids"):
+            vals = payload.get(key)
+            if isinstance(vals, list) and vals:
+                ex_ids.update(str(v) for v in vals)
+                found = True
+        for key in ("selected_text_hashes", "text_hashes", "consulted_text_hashes"):
+            vals = payload.get(key)
+            if isinstance(vals, list) and vals:
+                ex_hashes.update(str(v) for v in vals)
+                found = True
+        if not found:
+            raise ValueError(f"exclusion manifest contains no IDs or text_hashes: {path}")
+    return ex_ids, ex_hashes
+
+
 def _select_disjoint_pairs(
     manifest_path: Path,
     exclude_ids: set[str],
     per_category_pairs: int,
     seed: int,
+    exclude_text_hashes: set[str] | None = None,
 ) -> list[dict]:
+    ex_hashes = exclude_text_hashes or set()
     rows = [json.loads(line) for line in manifest_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     by_text: dict[str, dict[str, dict]] = defaultdict(dict)
     for r in rows:
-        if r["id"] in exclude_ids:
+        if r["id"] in exclude_ids or r["text_hash"] in ex_hashes:
             continue
         by_text[r["text_hash"]][r["speaker"]] = r
 
@@ -125,6 +154,82 @@ def _select_disjoint_pairs(
 def _mean_opt(vals: list[float | None]) -> float | None:
     xs = [float(v) for v in vals if v is not None and math.isfinite(float(v))]
     return round(float(np.mean(xs)), 5) if xs else None
+
+
+def stratified_text_bootstrap_ci(
+    per_variant_rows: dict[str, list[dict]],
+    contrast: dict[str, float],
+    metric_key: str,
+    speaker_filter: str | None = None,
+    category_filter: str | None = None,
+    n_boot: int = 5000,
+    seed: int = 20261119,
+) -> dict | None:
+    """Text-level paired bootstrap stratified by sentence category, keeping F1/M1 together.
+
+    ``contrast`` maps variant name -> linear coefficient, e.g.:
+      - pairwise: {"G_35900": 1.0, "C_35900": -1.0}
+      - 2x2 interaction: {"GF": 1.0, "G": -1.0, "F": -1.0, "C": 1.0}
+      - factorial main effect G: {"G": 0.5, "C": -0.5, "GF": 0.5, "F": -0.5}
+    """
+    needed = list(contrast.keys())
+    if any(v not in per_variant_rows for v in needed):
+        return None
+    maps = {v: {r["id"]: r for r in per_variant_rows[v]} for v in needed}
+    ref_rows = per_variant_rows[needed[0]]
+
+    # Group paired recording contrasts by (category, text_hash) so F1/M1 stay clustered per text.
+    by_cat_text: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
+    n_recordings = 0
+    for r in ref_rows:
+        uid = r["id"]
+        if speaker_filter and r["speaker"] != speaker_filter:
+            continue
+        if category_filter and r["category"] != category_filter:
+            continue
+        vals = [maps[v].get(uid, {}).get(metric_key) for v in needed]
+        if any(val is None or not math.isfinite(float(val)) for val in vals):
+            continue
+        delta = sum(float(contrast[v]) * float(val) for v, val in zip(needed, vals))
+        th = r.get("text_hash") or uid.rsplit("_", 1)[0]
+        by_cat_text[r["category"]][th].append(delta)
+        n_recordings += 1
+
+    # Each text cluster stores (sum_of_deltas, count_of_recordings_in_cluster)
+    strata: list[tuple[np.ndarray, np.ndarray]] = []
+    total_sum = 0.0
+    total_cnt = 0
+    n_texts = 0
+    for cat in sorted(by_cat_text):
+        clusters = [by_cat_text[cat][th] for th in sorted(by_cat_text[cat])]
+        sums = np.asarray([sum(c) for c in clusters], dtype=np.float64)
+        cnts = np.asarray([len(c) for c in clusters], dtype=np.float64)
+        strata.append((sums, cnts))
+        total_sum += float(sums.sum())
+        total_cnt += int(cnts.sum())
+        n_texts += len(clusters)
+
+    if n_texts == 0 or total_cnt == 0:
+        return None
+
+    rng = np.random.default_rng(seed)
+    boot_sums = np.zeros(n_boot, dtype=np.float64)
+    boot_cnts = np.zeros(n_boot, dtype=np.float64)
+    for sums, cnts in strata:
+        k = len(sums)
+        idx = rng.integers(0, k, size=(n_boot, k))
+        boot_sums += sums[idx].sum(axis=1)
+        boot_cnts += cnts[idx].sum(axis=1)
+    boot_means = boot_sums / np.maximum(boot_cnts, 1.0)
+    lo, hi = np.percentile(boot_means, [2.5, 97.5])
+    return {
+        "n_texts": int(n_texts),
+        "n_recordings": int(n_recordings),
+        "mean_delta": round(float(total_sum / total_cnt), 5),
+        "ci95_low": round(float(lo), 5),
+        "ci95_high": round(float(hi), 5),
+        "significant": bool(lo > 0.0 or hi < 0.0),
+    }
 
 
 def _paired_bootstrap_ci(
@@ -249,7 +354,20 @@ def main():
         "--p0-report",
         type=Path,
         default=Path(".local-runs/p0_expressivity/p0_report.json"),
-        help="P0 report whose 40 test IDs are strictly excluded from final partition",
+        help="Required P0 report whose 40 test IDs are strictly excluded from final partition",
+    )
+    parser.add_argument(
+        "--exclude-manifest",
+        type=Path,
+        action="append",
+        default=[],
+        help="Additional required exclusion manifest(s) JSON containing selected_ids/text_hashes (fails if missing)",
+    )
+    parser.add_argument(
+        "--compare",
+        action="append",
+        default=[],
+        help="Explicit paired contrast A:B to evaluate via stratified text-level bootstrap (e.g. G_35900:C_35900)",
     )
     parser.add_argument("--per-category-pairs", type=int, default=0,
                         help="Override pairs per category (defaults: 5 for dev=40 utt, 10 for final=80 utt)")
@@ -268,18 +386,26 @@ def main():
         variants.append((name.strip(), Path(path_s.strip())))
 
     cfg = Config()
+    exclude_hashes: set[str] = set()
     if args.partition == "dev":
         manifest = args.annotations / "validation.jsonl"
         ds = AnnotatedDataset(manifest, cfg, cache=False)
         exclude_ids = {ds.rows[i]["id"] for i in balanced_indices(ds, 32)}
+        if args.exclude_manifest:
+            extra_ids, extra_hashes = load_exclusion_sets(list(args.exclude_manifest))
+            exclude_ids |= extra_ids
+            exclude_hashes |= extra_hashes
         per_cat = args.per_category_pairs or 5
     else:
         manifest = args.annotations / "test.jsonl"
         ds = AnnotatedDataset(manifest, cfg, cache=False)
-        exclude_ids = set(json.loads(args.p0_report.read_text(encoding="utf-8"))["selected_ids"]) if args.p0_report.exists() else set()
+        required_manifests = [args.p0_report, *list(args.exclude_manifest)]
+        exclude_ids, exclude_hashes = load_exclusion_sets(required_manifests)
         per_cat = args.per_category_pairs or 10
 
-    selected = _select_disjoint_pairs(manifest, exclude_ids, per_category_pairs=per_cat, seed=args.seed)
+    selected = _select_disjoint_pairs(
+        manifest, exclude_ids, per_category_pairs=per_cat, seed=args.seed, exclude_text_hashes=exclude_hashes
+    )
     id_to_idx = {r["id"]: i for i, r in enumerate(ds.rows)}
     items = {r["id"]: ds[id_to_idx[r["id"]]] for r in selected}
 
@@ -340,6 +466,7 @@ def main():
 
             rec = {
                 "id": uid,
+                "text_hash": row["text_hash"],
                 "speaker": row["speaker"],
                 "category": row["category"],
                 "text": row["text"],
@@ -430,6 +557,24 @@ def main():
                         comp[grp][mkey] = ci
             paired_deltas[f"vs_{ref_name}"][vname] = comp
 
+    # Explicit --compare A:B stratified text-level contrasts
+    explicit_contrasts: dict[str, dict] = {}
+    for spec in args.compare:
+        if ":" not in spec:
+            parser.error(f"invalid --compare {spec!r}, expected A:B")
+        va, vb = (s.strip() for s in spec.split(":", 1))
+        cname = f"{va}_minus_{vb}"
+        explicit_contrasts[cname] = {}
+        for grp, spk_f, cat_f in (("all", None, None), ("F1", "F1", None), ("M1", "M1", None), ("question", None, "question")):
+            explicit_contrasts[cname][grp] = {
+                mkey: ci
+                for mkey, _ in KEY_METRICS
+                if (ci := stratified_text_bootstrap_ci(
+                    per_variant_rows, {va: 1.0, vb: -1.0}, mkey,
+                    speaker_filter=spk_f, category_filter=cat_f, seed=args.seed,
+                )) is not None
+            }
+
     # Export randomized blind A/B listening files if requested
     blind_manifest = {}
     if args.export_blind_wavs:
@@ -456,9 +601,11 @@ def main():
         "utterances": len(selected),
         "excluded_count": len(exclude_ids),
         "selected_ids": [r["id"] for r in selected],
+        "selected_text_hashes": sorted({r["text_hash"] for r in selected}),
         "variants": {k: str(v) for k, v in variants},
         "summary": per_variant_summary,
         "paired_bootstrap_95ci": paired_deltas,
+        "stratified_text_contrasts_95ci": explicit_contrasts,
         "asr": asr_summary,
         "blind_listening_ids": blind_ids if args.export_blind_wavs else [],
     }

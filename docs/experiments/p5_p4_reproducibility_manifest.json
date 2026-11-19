@@ -1,0 +1,5038 @@
+{
+  "checkpoint_sha256": {
+    "base_35k_inference": {
+      "path": ".local-runs/colab/fr_ref_35k/fr_ref_35k_final/inference.pt",
+      "bytes": 18193413,
+      "sha256": "c2bb29b93689ce6f413e373c8ffedc22c0607c4d562280e9f914be58b39c9876"
+    },
+    "base_35k_last": {
+      "path": ".local-runs/colab/fr_ref_35k/fr_ref_35k_final/last.pt",
+      "bytes": 87092264,
+      "sha256": "b1fbb3a41c98461eab6635598dab004a49c494a3e209809e09a8c06246e99ad4"
+    },
+    "C_35400": {
+      "path": ".local-runs/p4_ablation/p4_final/C/inference_35400.pt",
+      "bytes": 18193413,
+      "sha256": "d98d296be44bbe0b3102500f6527d857cae0debe9ce1115a069acfbc2408e4ec"
+    },
+    "G_35400": {
+      "path": ".local-runs/p4_ablation/p4_final/G/inference_35400.pt",
+      "bytes": 18193413,
+      "sha256": "76e9c3f1ca3cae55f479373965fcdc15c46bb4883326e182bcd295a28663799f"
+    },
+    "F_35400": {
+      "path": ".local-runs/p4_ablation/p4_final/F/inference_35400.pt",
+      "bytes": 18193413,
+      "sha256": "54e2dc1163cb69d9bd785687e8ffe773f6800af148ad0ff0cd02af22feeea6d0"
+    },
+    "GF_35400": {
+      "path": ".local-runs/p4_ablation/p4_final/GF/inference_35400.pt",
+      "bytes": 18193413,
+      "sha256": "671ea99194b91a257c67d4e0c71a3b56a3a2af4028bcc50443049cf9163eac15"
+    },
+    "C_35900": {
+      "path": ".local-runs/p4_ablation/p4_final/C/inference_35900.pt",
+      "bytes": 18193413,
+      "sha256": "bf84ebc4f7b1e551d9fca4a39d67f401189802fe39af9a289e7c1292003df643"
+    },
+    "G_35900": {
+      "path": ".local-runs/p4_ablation/p4_final/G/inference_35900.pt",
+      "bytes": 18193413,
+      "sha256": "db47880785a1541e32af0938e805202bf731dfa6eef0b71aeb039be71a524229"
+    },
+    "e06_8k": {
+      "path": ".local-runs/colab/e06_20k/e06_20k_final/step-00008000.pt",
+      "bytes": 43051177,
+      "sha256": "8308f2d90c657bfe5b458805f2fdd08f531375a37c3490160d1578405b1eefc1"
+    },
+    "e06_20k_inference": {
+      "path": ".local-runs/colab/e06_20k/e06_20k_final/inference.pt",
+      "bytes": 10692677,
+      "sha256": "5dd8b9c88fc2e3dfe2244245392dbedb26f2b7a74311bff10b7d4268f630851c"
+    },
+    "fr_ref_10k": {
+      "path": ".local-runs/colab/fr_ref_20k_snap10k/snap10k/step-00010000.pt",
+      "bytes": 87099973,
+      "sha256": "55691de72e754cb49212bc9be2838bda25c4b6365a6a65a2666cd4b53b21a6ac"
+    }
+  },
+  "split_counts": {
+    "train": {
+      "ids": 6672,
+      "text_hashes": 3421
+    },
+    "monitor_32": {
+      "ids": 32,
+      "text_hashes": 18
+    },
+    "p4_dev": {
+      "ids": 40,
+      "text_hashes": 20
+    },
+    "p0_40": {
+      "ids": 40,
+      "text_hashes": 20
+    },
+    "p4_final_consulted": {
+      "ids": 80,
+      "text_hashes": 40
+    },
+    "e06_eval": {
+      "ids": 24,
+      "text_hashes": 24
+    },
+    "fr35k_eval": {
+      "ids": 24,
+      "text_hashes": 24
+    }
+  },
+  "intersections": {
+    "train__x__monitor_32": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "train__x__p4_dev": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "train__x__p0_40": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "train__x__p4_final_consulted": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "train__x__e06_eval": {
+      "shared_ids": 8,
+      "shared_text_hashes": 8,
+      "example_ids": [
+        "065baccbea0e2ded_F1",
+        "11dd60af152c54d6_F1",
+        "3a7816f898dd7946_F1",
+        "5afa8e69dda65985_M1",
+        "c905eb8fdf8396a3_M1",
+        "d9b1082f7cfe8cb4_M1"
+      ]
+    },
+    "train__x__fr35k_eval": {
+      "shared_ids": 8,
+      "shared_text_hashes": 8,
+      "example_ids": [
+        "065baccbea0e2ded_F1",
+        "11dd60af152c54d6_F1",
+        "3a7816f898dd7946_F1",
+        "5afa8e69dda65985_M1",
+        "c905eb8fdf8396a3_M1",
+        "d9b1082f7cfe8cb4_M1"
+      ]
+    },
+    "monitor_32__x__p4_dev": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "monitor_32__x__p0_40": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "monitor_32__x__p4_final_consulted": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "monitor_32__x__e06_eval": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "monitor_32__x__fr35k_eval": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "p4_dev__x__p0_40": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "p4_dev__x__p4_final_consulted": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "p4_dev__x__e06_eval": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "p4_dev__x__fr35k_eval": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "p0_40__x__p4_final_consulted": {
+      "shared_ids": 0,
+      "shared_text_hashes": 0,
+      "example_ids": []
+    },
+    "p0_40__x__e06_eval": {
+      "shared_ids": 1,
+      "shared_text_hashes": 1,
+      "example_ids": [
+        "496dff3d80fefa59_M1"
+      ]
+    },
+    "p0_40__x__fr35k_eval": {
+      "shared_ids": 1,
+      "shared_text_hashes": 1,
+      "example_ids": [
+        "496dff3d80fefa59_M1"
+      ]
+    },
+    "p4_final_consulted__x__e06_eval": {
+      "shared_ids": 4,
+      "shared_text_hashes": 4,
+      "example_ids": [
+        "0232fe12cf33fe58_F1",
+        "13c83936caebe2b5_M1",
+        "2971efc4d35ceb77_M1",
+        "5ac82ac04693b361_F1"
+      ]
+    },
+    "p4_final_consulted__x__fr35k_eval": {
+      "shared_ids": 4,
+      "shared_text_hashes": 4,
+      "example_ids": [
+        "0232fe12cf33fe58_F1",
+        "13c83936caebe2b5_M1",
+        "2971efc4d35ceb77_M1",
+        "5ac82ac04693b361_F1"
+      ]
+    },
+    "e06_eval__x__fr35k_eval": {
+      "shared_ids": 24,
+      "shared_text_hashes": 24,
+      "example_ids": [
+        "0232fe12cf33fe58_F1",
+        "065baccbea0e2ded_F1",
+        "11dd60af152c54d6_F1",
+        "13c83936caebe2b5_M1",
+        "28d95f5406105f4d_F1",
+        "2971efc4d35ceb77_M1"
+      ]
+    }
+  },
+  "selected_text_hashes": {
+    "p4_dev": [
+      "198a413d298e892e00433637f32a8886cd6b47ba2f4be1800700db5d14e9ed9b",
+      "1be6285bcb01e9d0b5b35814ac69905ab1d01dab4f981bd212396b61a4893621",
+      "1ffbcd62965f4ca5ced69611a2b95f3bbea40258f3cc6a97a2f1666cc9394842",
+      "20df0c0ff36d2ecb3c70ab73091871bb00a329cac84f3edc4bb35dc07132f66e",
+      "215066f740f80e5d5d6f2cc53a89ca7d8bead037a2b603a8a12e487c0fc83321",
+      "227ef0cbdacc5c27ede077b726f15805325236d4759e9462ec613610bc0a9ec9",
+      "24647798e815b4b15c91917ce9dc2da9f14eb5ff15e0e3747e8757a6d5146bd0",
+      "24d1be25fa021d4ae6e1908bf5fd09ba951a32f643434f30e94aa5151315277b",
+      "25383f0eea3ea11b45dae70f906071195bd378ba096ec5c51da23da06db3abeb",
+      "26b3334684ce6fc690697a72e7744ef0069b940a4dfce1562a15d10101f544c9",
+      "29c41e63c9dabbb66f334172845140a76abd7bb819e9fadc25d240affe92ac1d",
+      "2f6c540e32cf30b9af199ede31667406c9784941fe766194a93c1b45c41f19ce",
+      "30b2e6d5eccc63841d157cbfcde7367d87d1969ae17f5d2dd720db21172c3813",
+      "32296633d31dd7a1818db1651a390ee432b174e9fb8db9a53bce589f590ad68e",
+      "324b6d512766f9e25e7204ab657c068a3fa7cdfbd941cfa057d3d55136c34c72",
+      "350617123800b93fe8e20edb3787b03249a95466f33230b86a6220737c06530f",
+      "3e83ed1aa6df2fa7e60e689332700d3221483e6f6c40a641139dde848eaaf57a",
+      "424c68b7a5537351bbffca51b6913b5ef2347cebf70a0e984ddf9de075f80f7e",
+      "7230b242cacb4f6612b19e54ae6eec66ce32fc1be99352c6e224e425c6ab5228",
+      "751cbac5251ba27c7bdb5dab5e52705dc72e611b78d2ac877b632578d33c7d61"
+    ],
+    "p4_final_consulted": [
+      "00114c5c4f81df75f91dea85901fa8f609bcf6c63ff5d1903d8bcb119c107b9f",
+      "00a03121cda1555e74b4ce1041aa3bd0a140cc22101b69fb42fe5cfafd55f03d",
+      "00f2e4fd1b8cbe69217641d3bf327c8d7f7d73114461456b494073e7877afc27",
+      "0225400f79e08060ee8d3c0e32295eead607bf7be6a187b3f11dbcc83526810e",
+      "0232fe12cf33fe5834fc8034f4e87ab37e30bdb150fc0cada4097cb84e41ccea",
+      "05e2ec0049a4e7b01f7553ac6e7063f87db7a7a65d2c6f4440daddcf3de7d0b1",
+      "06ef638f3465c6d7bb64a4c838a998f9b10b776d5f62bcfbb80b2688eee0116a",
+      "07cae820529b9d72de9f59188502bcbf722a3844c45d36cc57a566e223972d0f",
+      "07e08ed9ffc4c6ee2d7e6096f901a94fdb9bfe3bf5b4b24bdd789e9ef9b864fe",
+      "08515a8f0caa2c6f9cd06f9f5ec828f9a95b50613c3b3de8cc52bc05eaa16603",
+      "08d56e04078bf02d801a84e4b660369a7b1bf3b7548e7c2b7c5354b51f47dc73",
+      "0923ede3d6b82c7f72722e33416106972fc594e738a670bfd8892593c51923b3",
+      "0cc7c743c5c533e1d0d775864e26ecd170fbea0c233c75d1a94caeb66fd5c396",
+      "0ce811e581d8418c8df7b9198bfb56aaafb0f1fc98e02324bb1170532ab124f4",
+      "0d5caf1c915868db95ba49228729616ee82c3537faf552077e0a013c14981f42",
+      "0d6a2b779cf508f32af1052a92294653a943355bdd850087bbf5f4516cb7c0c3",
+      "0f115dd6eb8df49a6633e4a3c4240d7d2235be9ff7b1470786007a344b7ce83a",
+      "122916f8d97415ba2a67a721ee6757c4070242cd14987e492a7bd2020188bcb0",
+      "13c83936caebe2b5b980cadb65ca004fc2c2e05257fc8964aaafafdc9dceb495",
+      "14d56c5eaf96e6601ca30ed7d8ff8794ad370d0e821524759713aaa8ba5b1379",
+      "1727b59a5a36502db92f1a0e3b14449fc550facb0f43e336a9e6c5ba37d2f7e7",
+      "1b174d3a3f72ef61a4f3ffad3e168b30b64f8e9947ef467ffdb3aa3e46c2b98e",
+      "1bfcdbde6ee8ce742b549aafac6bcbd05e85087c9f10ee5f6d52df11087c7e47",
+      "1e944a596391c985ae97f80d1dba4593b5daf0b39237807d6b1dca819c17aab0",
+      "2025c5b5a4cd112cd756edb1caab96127c1a9a726be6b6d8c3011405f2e8da14",
+      "22319b879608803e5a792ff1072969ca857191ef5bc70f04586543f24df1de2a",
+      "244a2a7c21715679e14cf592ce9df572e8a4857140784f1e240a4ae56895ec8e",
+      "249f9b2a5adf52da6f4510f442340f0f9ef22207782eee03a072ba7f145ec12f",
+      "257ec36f0ad621ab0e53fffb3ac7293b13933ea7b7a97ba089f2ed4e344abb1b",
+      "2971efc4d35ceb777ef7d00126bdef9dda79332fdf6784eb3c71780330834f4a",
+      "33ddaccf1be04ae5d92e2a154b3aaddf3dfd6eaa05b5b22b0618d77adf207a31",
+      "3477626a1b0adc664fb439121db0cfb6fa79decf3869fabb543b9354700ef22c",
+      "357cd6210463ce20e7096952b3f17bace3b1bbb12688bb94fa934ffbbfd660c9",
+      "3dd179d875ebeb4a8d1b1cf73d8a2b027ce00b20b43f2f130b4dc2de4e66015a",
+      "43c4f9fabf79de6e314b53fd716b2e0a70e5f3a6f7341531de61ce3e4268b37c",
+      "468ec6d303d83bb16574fd35651784573ea847b9d956e04f6fcbd15d6a765d47",
+      "55b823aeebcd84f450ddd8fc712e336ae792d9840e78119c5cb08b02982f71b3",
+      "58c8c1612de323af8a1be9c5cd8906150eb45fe51b61cf5fbce9eb2ab8b83be2",
+      "5ac82ac04693b361fb10c2fdbef77fbdf2ccf9de4d8f3e24db5c11a209db54bf",
+      "6335e196bdb80fddf6a5e4ea4d7bb6759ecc0b90a1adfcfb727502644ddb716b"
+    ],
+    "p0_40": [
+      "07ac06d1b655f88d15f838974120923ff653ac34f90ae8d8cb6f50f9a1efa1a8",
+      "35161d57d58f311bc226ac5d634965dfa54d363c74632614c9802359a9551362",
+      "373a56ca28f75c12a7dd37b93644e83ebe094fc116a08fda18b07aababfa7a32",
+      "415d706bb60c3e112411f97d03bed5ca3cb2b5ed0e507b36bdce46b0c89ff54b",
+      "42c17e11c02a96fac9196bb3d09201b99b3fbac2622490334ceff5b6df57b838",
+      "496dff3d80fefa59cb4d2e37c7bc6ff616a9e98d4949dc017e4b32d8e6a1b00e",
+      "4aa9df0d1c4c0d3bdfc4619c84aff7c657fae0c867fe859be660d94afcd5566e",
+      "4f86ebddd42adc4a6e26ca9e8d7fc435752886380791657a78456e09e3e911e0",
+      "70375adda9fa778a6e11557ed3eeed01d76619f9d693b155e41817c3467083ba",
+      "7ca8a71f453f0cbe7409cb13dbb713756d03676d52dac15f94471a05ba39dc14",
+      "80fdffe7f919ebfd8a64190c7e16e1504b1bcc5506a695358aeb2ecaf845b5c0",
+      "961c1a534253c3e3286fd9e6ee68303f9c7ab92edb0b3aa27dd18bb9384a8636",
+      "a09942909b4a96d4ea4d54a20812cf82b9f964d757bbeec4123b5a1867d2c46b",
+      "bb667dfba7d5bef7d7157a5f473e9b6e6fafad653cfe7cf56d1172ce4840b202",
+      "c5d0517670abf1f1efd046d8a102709ca715d3d60e3272fc465eec4ef43b2033",
+      "c9a01448a46eef7e5f9a65f8a616d63865295b29d0d9bcedf85b054a40d25dd5",
+      "cd6b693d1696b64bc06014b9db78ae0ce89dce479c5919f4ce0bd3dbc54514af",
+      "d41c2136355a665ab5ffbd8cb612513a564556896a57d8a35e3681b4b5701acb",
+      "ed9eb859cf9402f00c32020c43470f17085ff89812c3f1968845efd2e0299402",
+      "fef6a83dc3115ebf6f9b63edfb2f412539a0a9ce93671180592892b5ae9a2e9c"
+    ]
+  },
+  "untouched_test_reserve_summary": {
+    "pairs": 121,
+    "recordings": 242,
+    "by_category": {
+      "plain_assert": 64,
+      "question": 27,
+      "comma_pause": 23,
+      "exclamation": 7
+    }
+  },
+  "stratified_text_bootstrap_95ci": {
+    "G_minus_C_35400": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.09388,
+          "ci95_low": -0.14113,
+          "ci95_high": -0.04488,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.01139,
+          "ci95_low": -0.00025,
+          "ci95_high": 0.02286,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -1.17961,
+          "ci95_low": -1.96482,
+          "ci95_high": -0.4474,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.09986,
+          "ci95_low": -0.26317,
+          "ci95_high": 0.04901,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.01417,
+          "ci95_low": -0.03944,
+          "ci95_high": 0.01218,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.14731,
+          "ci95_low": 0.00262,
+          "ci95_high": 0.30748,
+          "significant": true
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00832,
+          "ci95_low": 0.00333,
+          "ci95_high": 0.01365,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00544,
+          "ci95_low": -0.01021,
+          "ci95_high": -0.00128,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.01046,
+          "ci95_low": -0.02087,
+          "ci95_high": 0.00051,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -8e-05,
+          "ci95_low": -0.00245,
+          "ci95_high": 0.00225,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00067,
+          "ci95_low": -0.0025,
+          "ci95_high": 0.00117,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.10751,
+          "ci95_low": -0.144,
+          "ci95_high": -0.06784,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00814,
+          "ci95_low": -0.0008,
+          "ci95_high": 0.017,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -1.11616,
+          "ci95_low": -1.98439,
+          "ci95_high": -0.27009,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.08847,
+          "ci95_low": -0.24836,
+          "ci95_high": 0.05466,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.03991,
+          "ci95_low": -0.05953,
+          "ci95_high": -0.01871,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.04793,
+          "ci95_low": -0.06358,
+          "ci95_high": 0.1722,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00081,
+          "ci95_low": -0.0024,
+          "ci95_high": 0.00393,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00357,
+          "ci95_low": -0.00712,
+          "ci95_high": -0.0,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.0157,
+          "ci95_low": -0.02981,
+          "ci95_high": -0.00066,
+          "significant": true
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0005,
+          "ci95_low": -0.00226,
+          "ci95_high": 0.00348,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00048,
+          "ci95_low": -0.0014,
+          "ci95_high": 0.0026,
+          "significant": false
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.08026,
+          "ci95_low": -0.16847,
+          "ci95_high": 0.00931,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01465,
+          "ci95_low": -0.00682,
+          "ci95_high": 0.03548,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -1.24306,
+          "ci95_low": -2.8439,
+          "ci95_high": 0.31618,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.11125,
+          "ci95_low": -0.39127,
+          "ci95_high": 0.16827,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01157,
+          "ci95_low": -0.03402,
+          "ci95_high": 0.0572,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.24669,
+          "ci95_low": -0.01589,
+          "ci95_high": 0.54552,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01583,
+          "ci95_low": 0.0065,
+          "ci95_high": 0.02596,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00732,
+          "ci95_low": -0.01611,
+          "ci95_high": -0.00049,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00522,
+          "ci95_low": -0.02001,
+          "ci95_high": 0.01053,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00067,
+          "ci95_low": -0.00482,
+          "ci95_high": 0.00328,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00181,
+          "ci95_low": -0.00471,
+          "ci95_high": 0.00091,
+          "significant": false
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.02152,
+          "ci95_low": -0.12556,
+          "ci95_high": 0.07213,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00178,
+          "ci95_low": -0.03283,
+          "ci95_high": 0.03567,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -1.17171,
+          "ci95_low": -3.45193,
+          "ci95_high": 0.75208,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.24444,
+          "ci95_low": -0.7356,
+          "ci95_high": 0.19791,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00466,
+          "ci95_low": -0.0706,
+          "ci95_high": 0.07926,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.02354,
+          "ci95_low": -0.21722,
+          "ci95_high": 0.16503,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00089,
+          "ci95_low": -0.00667,
+          "ci95_high": 0.00543,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00411,
+          "ci95_low": -0.01088,
+          "ci95_high": 0.00279,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00022,
+          "ci95_low": -0.01471,
+          "ci95_high": 0.01359,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.002,
+          "ci95_low": -0.00916,
+          "ci95_high": 0.00471,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00197,
+          "ci95_low": -0.00341,
+          "ci95_high": 0.00766,
+          "significant": false
+        }
+      }
+    },
+    "F_minus_C_35400": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.01908,
+          "ci95_low": -0.08446,
+          "ci95_high": 0.04527,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.0102,
+          "ci95_low": -0.00343,
+          "ci95_high": 0.02388,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -1.803,
+          "ci95_low": -2.60214,
+          "ci95_high": -1.00644,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.23826,
+          "ci95_low": -0.37285,
+          "ci95_high": -0.1104,
+          "significant": true
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.08344,
+          "ci95_low": -0.10854,
+          "ci95_high": -0.05954,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.01387,
+          "ci95_low": -0.15896,
+          "ci95_high": 0.13869,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.01269,
+          "ci95_low": 0.0069,
+          "ci95_high": 0.01888,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00095,
+          "ci95_low": -0.0032,
+          "ci95_high": 0.00515,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.0139,
+          "ci95_low": -0.00348,
+          "ci95_high": 0.0305,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.0004,
+          "ci95_low": -0.00287,
+          "ci95_high": 0.00202,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00098,
+          "ci95_low": -0.00254,
+          "ci95_high": 0.00058,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.0241,
+          "ci95_low": -0.06796,
+          "ci95_high": 0.02028,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00804,
+          "ci95_low": -0.00231,
+          "ci95_high": 0.01873,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -2.5597,
+          "ci95_low": -3.67208,
+          "ci95_high": -1.58335,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.10198,
+          "ci95_low": -0.25681,
+          "ci95_high": 0.0434,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.10221,
+          "ci95_low": -0.12378,
+          "ci95_high": -0.08177,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.10731,
+          "ci95_low": -0.2166,
+          "ci95_high": -0.00299,
+          "significant": true
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00279,
+          "ci95_low": -0.00147,
+          "ci95_high": 0.00829,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00628,
+          "ci95_low": 0.0008,
+          "ci95_high": 0.01268,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01311,
+          "ci95_low": -0.003,
+          "ci95_high": 0.03029,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00073,
+          "ci95_low": -0.00163,
+          "ci95_high": 0.00312,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00078,
+          "ci95_low": -0.00246,
+          "ci95_high": 0.00098,
+          "significant": false
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01406,
+          "ci95_low": -0.12657,
+          "ci95_high": 0.09858,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01235,
+          "ci95_low": -0.01384,
+          "ci95_high": 0.03966,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -1.04631,
+          "ci95_low": -2.4159,
+          "ci95_high": 0.35474,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.37455,
+          "ci95_low": -0.64831,
+          "ci95_high": -0.12445,
+          "significant": true
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.06468,
+          "ci95_low": -0.10314,
+          "ci95_high": -0.02758,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.07957,
+          "ci95_low": -0.16982,
+          "ci95_high": 0.33471,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.02259,
+          "ci95_low": 0.0128,
+          "ci95_high": 0.03229,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00437,
+          "ci95_low": -0.01173,
+          "ci95_high": 0.00178,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01468,
+          "ci95_low": -0.01128,
+          "ci95_high": 0.04003,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00154,
+          "ci95_low": -0.00553,
+          "ci95_high": 0.00216,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00118,
+          "ci95_low": -0.00387,
+          "ci95_high": 0.00135,
+          "significant": false
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00153,
+          "ci95_low": -0.13392,
+          "ci95_high": 0.12521,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.02227,
+          "ci95_low": -0.00978,
+          "ci95_high": 0.05416,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -2.50979,
+          "ci95_low": -4.78578,
+          "ci95_high": -0.48118,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.43956,
+          "ci95_low": -0.78289,
+          "ci95_high": -0.12005,
+          "significant": true
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.14038,
+          "ci95_low": -0.21147,
+          "ci95_high": -0.07749,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.23103,
+          "ci95_low": -0.46613,
+          "ci95_high": 0.0049,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00027,
+          "ci95_low": -0.01463,
+          "ci95_high": 0.01704,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00073,
+          "ci95_low": -0.00552,
+          "ci95_high": 0.00662,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.02277,
+          "ci95_low": -0.00984,
+          "ci95_high": 0.05703,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00218,
+          "ci95_low": -0.00797,
+          "ci95_high": 0.00366,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00163,
+          "ci95_low": -0.00653,
+          "ci95_high": 0.00307,
+          "significant": false
+        }
+      }
+    },
+    "GF_minus_C_35400": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.11082,
+          "ci95_low": -0.19277,
+          "ci95_high": -0.02977,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.01597,
+          "ci95_low": 0.00396,
+          "ci95_high": 0.02849,
+          "significant": true
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -3.04028,
+          "ci95_low": -3.81746,
+          "ci95_high": -2.21631,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.11341,
+          "ci95_low": -0.29697,
+          "ci95_high": 0.03382,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.07904,
+          "ci95_low": -0.10612,
+          "ci95_high": -0.05117,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.01785,
+          "ci95_low": -0.16391,
+          "ci95_high": 0.14844,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.01326,
+          "ci95_low": 0.00729,
+          "ci95_high": 0.01937,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00254,
+          "ci95_low": -0.00421,
+          "ci95_high": 0.01048,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00988,
+          "ci95_low": -0.02687,
+          "ci95_high": 0.00673,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.0001,
+          "ci95_low": -0.00214,
+          "ci95_high": 0.00187,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00082,
+          "ci95_low": -0.00258,
+          "ci95_high": 0.0009,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.1321,
+          "ci95_low": -0.2091,
+          "ci95_high": -0.05593,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01588,
+          "ci95_low": 0.00536,
+          "ci95_high": 0.02707,
+          "significant": true
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -2.67544,
+          "ci95_low": -3.50193,
+          "ci95_high": -1.82815,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.09595,
+          "ci95_low": -0.29438,
+          "ci95_high": 0.09088,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.10226,
+          "ci95_low": -0.12499,
+          "ci95_high": -0.07808,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01999,
+          "ci95_low": -0.1759,
+          "ci95_high": 0.1672,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00606,
+          "ci95_low": 0.00193,
+          "ci95_high": 0.01121,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00108,
+          "ci95_low": -0.00592,
+          "ci95_high": 0.00801,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01885,
+          "ci95_low": -0.04265,
+          "ci95_high": 0.00509,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00138,
+          "ci95_low": -0.00171,
+          "ci95_high": 0.00456,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0018,
+          "ci95_low": -0.00039,
+          "ci95_high": 0.00404,
+          "significant": false
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.08954,
+          "ci95_low": -0.21118,
+          "ci95_high": 0.03451,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01607,
+          "ci95_low": -0.00709,
+          "ci95_high": 0.0403,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -3.40512,
+          "ci95_low": -4.69835,
+          "ci95_high": -2.00483,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.13087,
+          "ci95_low": -0.39754,
+          "ci95_high": 0.11987,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.05582,
+          "ci95_low": -0.09727,
+          "ci95_high": -0.01339,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.0157,
+          "ci95_low": -0.20626,
+          "ci95_high": 0.18491,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.02046,
+          "ci95_low": 0.00904,
+          "ci95_high": 0.03239,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.004,
+          "ci95_low": -0.00622,
+          "ci95_high": 0.01618,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.0009,
+          "ci95_low": -0.01949,
+          "ci95_high": 0.01857,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00157,
+          "ci95_low": -0.00489,
+          "ci95_high": 0.00145,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00344,
+          "ci95_low": -0.00632,
+          "ci95_high": -0.00087,
+          "significant": true
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.04873,
+          "ci95_low": -0.19476,
+          "ci95_high": 0.07948,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.01094,
+          "ci95_low": -0.01013,
+          "ci95_high": 0.03193,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -3.44925,
+          "ci95_low": -5.51566,
+          "ci95_high": -1.3909,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.46972,
+          "ci95_low": -1.11324,
+          "ci95_high": 5e-05,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.07782,
+          "ci95_low": -0.15441,
+          "ci95_high": -0.00332,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.07548,
+          "ci95_low": -0.24602,
+          "ci95_high": 0.50721,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.01617,
+          "ci95_low": 0.00623,
+          "ci95_high": 0.02696,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00052,
+          "ci95_low": -0.01298,
+          "ci95_high": 0.01138,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00454,
+          "ci95_low": -0.03238,
+          "ci95_high": 0.02542,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.0002,
+          "ci95_low": -0.00476,
+          "ci95_high": 0.00387,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00072,
+          "ci95_low": -0.00388,
+          "ci95_high": 0.00516,
+          "significant": false
+        }
+      }
+    },
+    "interaction_GF_minus_G_minus_F_plus_C_35400": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00215,
+          "ci95_low": -0.06215,
+          "ci95_high": 0.06809,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00562,
+          "ci95_low": -0.01818,
+          "ci95_high": 0.00765,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.05767,
+          "ci95_low": -1.15304,
+          "ci95_high": 1.1092,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.22471,
+          "ci95_low": 0.01252,
+          "ci95_high": 0.45324,
+          "significant": true
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.01857,
+          "ci95_low": -0.016,
+          "ci95_high": 0.05286,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.15128,
+          "ci95_low": -0.33227,
+          "ci95_high": 0.02672,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00775,
+          "ci95_low": -0.01465,
+          "ci95_high": -0.00068,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00703,
+          "ci95_low": 0.00146,
+          "ci95_high": 0.01337,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.01331,
+          "ci95_low": -0.02788,
+          "ci95_high": 0.00166,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00039,
+          "ci95_low": -0.00273,
+          "ci95_high": 0.00365,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00083,
+          "ci95_low": -0.0015,
+          "ci95_high": 0.00304,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00049,
+          "ci95_low": -0.07523,
+          "ci95_high": 0.07081,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.0003,
+          "ci95_low": -0.01262,
+          "ci95_high": 0.01256,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 1.00042,
+          "ci95_low": -0.43397,
+          "ci95_high": 2.61967,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0945,
+          "ci95_low": -0.08057,
+          "ci95_high": 0.29482,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.03986,
+          "ci95_low": 0.00185,
+          "ci95_high": 0.07636,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.03939,
+          "ci95_low": -0.13634,
+          "ci95_high": 0.23615,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00246,
+          "ci95_low": -0.00147,
+          "ci95_high": 0.00686,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00163,
+          "ci95_low": -0.00838,
+          "ci95_high": 0.00463,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01626,
+          "ci95_low": -0.03479,
+          "ci95_high": 0.00245,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00014,
+          "ci95_low": -0.00366,
+          "ci95_high": 0.00399,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00211,
+          "ci95_low": -0.00079,
+          "ci95_high": 0.00494,
+          "significant": false
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00478,
+          "ci95_low": -0.09004,
+          "ci95_high": 0.09825,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01093,
+          "ci95_low": -0.03288,
+          "ci95_high": 0.01218,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -1.11575,
+          "ci95_low": -3.21072,
+          "ci95_high": 1.03728,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.35492,
+          "ci95_low": -0.03897,
+          "ci95_high": 0.77977,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00272,
+          "ci95_low": -0.06151,
+          "ci95_high": 0.05387,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.34195,
+          "ci95_low": -0.64475,
+          "ci95_high": -0.03694,
+          "significant": true
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01795,
+          "ci95_low": -0.03131,
+          "ci95_high": -0.00501,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01569,
+          "ci95_low": 0.00506,
+          "ci95_high": 0.02936,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01036,
+          "ci95_low": -0.03233,
+          "ci95_high": 0.01151,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00065,
+          "ci95_low": -0.00409,
+          "ci95_high": 0.0056,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00045,
+          "ci95_low": -0.00341,
+          "ci95_high": 0.00241,
+          "significant": false
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.02874,
+          "ci95_low": -0.17412,
+          "ci95_high": 0.17202,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.0131,
+          "ci95_low": -0.0443,
+          "ci95_high": 0.01982,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.23226,
+          "ci95_low": -2.59184,
+          "ci95_high": 3.60333,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.21428,
+          "ci95_low": -0.33436,
+          "ci95_high": 0.80716,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.0579,
+          "ci95_low": -0.04621,
+          "ci95_high": 0.16567,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.33006,
+          "ci95_low": 0.00831,
+          "ci95_high": 0.68496,
+          "significant": true
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.01679,
+          "ci95_low": 0.00279,
+          "ci95_high": 0.03269,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00287,
+          "ci95_low": -0.00707,
+          "ci95_high": 0.01228,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.02709,
+          "ci95_low": -0.05873,
+          "ci95_high": 0.01213,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00398,
+          "ci95_low": -0.00536,
+          "ci95_high": 0.01383,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00038,
+          "ci95_low": -0.0066,
+          "ci95_high": 0.00743,
+          "significant": false
+        }
+      }
+    },
+    "main_effect_G_35400": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.09281,
+          "ci95_low": -0.13737,
+          "ci95_high": -0.04805,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00858,
+          "ci95_low": -0.00121,
+          "ci95_high": 0.01701,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -1.20844,
+          "ci95_low": -1.71259,
+          "ci95_high": -0.6707,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.0125,
+          "ci95_low": -0.10447,
+          "ci95_high": 0.11322,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00488,
+          "ci95_low": -0.02257,
+          "ci95_high": 0.01373,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.07167,
+          "ci95_low": -0.04221,
+          "ci95_high": 0.19424,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00444,
+          "ci95_low": 0.00027,
+          "ci95_high": 0.00862,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00193,
+          "ci95_low": -0.00549,
+          "ci95_high": 0.00164,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.01712,
+          "ci95_low": -0.02676,
+          "ci95_high": -0.00797,
+          "significant": true
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00011,
+          "ci95_low": -0.00134,
+          "ci95_high": 0.00154,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00025,
+          "ci95_low": -0.00159,
+          "ci95_high": 0.00093,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.10775,
+          "ci95_low": -0.15305,
+          "ci95_high": -0.06365,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00799,
+          "ci95_low": 0.00126,
+          "ci95_high": 0.01521,
+          "significant": true
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.61595,
+          "ci95_low": -1.05734,
+          "ci95_high": -0.15222,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.04122,
+          "ci95_low": -0.18094,
+          "ci95_high": 0.09204,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01998,
+          "ci95_low": -0.03333,
+          "ci95_high": -0.006,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.06763,
+          "ci95_low": -0.03487,
+          "ci95_high": 0.17956,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00204,
+          "ci95_low": 5e-05,
+          "ci95_high": 0.00418,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00438,
+          "ci95_low": -0.0084,
+          "ci95_high": -0.0004,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.02383,
+          "ci95_low": -0.03645,
+          "ci95_high": -0.01098,
+          "significant": true
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00057,
+          "ci95_low": -0.00156,
+          "ci95_high": 0.00283,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00154,
+          "ci95_low": 0.00047,
+          "ci95_high": 0.00268,
+          "significant": true
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.07787,
+          "ci95_low": -0.14668,
+          "ci95_high": -0.00693,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00918,
+          "ci95_low": -0.01166,
+          "ci95_high": 0.02603,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -1.80094,
+          "ci95_low": -2.69132,
+          "ci95_high": -0.86398,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.06621,
+          "ci95_low": -0.09221,
+          "ci95_high": 0.2311,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01021,
+          "ci95_low": -0.01825,
+          "ci95_high": 0.03989,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.07571,
+          "ci95_low": -0.11948,
+          "ci95_high": 0.28496,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00685,
+          "ci95_low": -0.00105,
+          "ci95_high": 0.0146,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00053,
+          "ci95_low": -0.00492,
+          "ci95_high": 0.00664,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.0104,
+          "ci95_low": -0.02323,
+          "ci95_high": 0.00244,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00035,
+          "ci95_low": -0.0028,
+          "ci95_high": 0.002,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00204,
+          "ci95_low": -0.00433,
+          "ci95_high": -8e-05,
+          "significant": true
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.03589,
+          "ci95_low": -0.10822,
+          "ci95_high": 0.02586,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00477,
+          "ci95_low": -0.03771,
+          "ci95_high": 0.01961,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -1.05558,
+          "ci95_low": -2.12989,
+          "ci95_high": 0.00374,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.1373,
+          "ci95_low": -0.55342,
+          "ci95_high": 0.2035,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.03361,
+          "ci95_low": -0.01288,
+          "ci95_high": 0.08208,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.14149,
+          "ci95_low": -0.08193,
+          "ci95_high": 0.39385,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00751,
+          "ci95_low": -0.00208,
+          "ci95_high": 0.01884,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00267,
+          "ci95_low": -0.00971,
+          "ci95_high": 0.00389,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.01376,
+          "ci95_low": -0.02837,
+          "ci95_high": 0.00032,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -1e-05,
+          "ci95_low": -0.0035,
+          "ci95_high": 0.00326,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00216,
+          "ci95_low": -0.00051,
+          "ci95_high": 0.00485,
+          "significant": false
+        }
+      }
+    },
+    "main_effect_F_35400": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.01801,
+          "ci95_low": -0.07368,
+          "ci95_high": 0.03506,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00739,
+          "ci95_low": -0.0019,
+          "ci95_high": 0.01726,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -1.83184,
+          "ci95_low": -2.39778,
+          "ci95_high": -1.24306,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.12591,
+          "ci95_low": -0.21517,
+          "ci95_high": -0.03987,
+          "significant": true
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.07416,
+          "ci95_low": -0.09221,
+          "ci95_high": -0.05733,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.08951,
+          "ci95_low": -0.17789,
+          "ci95_high": 0.00358,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00882,
+          "ci95_low": 0.00443,
+          "ci95_high": 0.01328,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00447,
+          "ci95_low": 0.00025,
+          "ci95_high": 0.00964,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00724,
+          "ci95_low": -0.00484,
+          "ci95_high": 0.01886,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00021,
+          "ci95_low": -0.00179,
+          "ci95_high": 0.00137,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00057,
+          "ci95_low": -0.00168,
+          "ci95_high": 0.00055,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.02434,
+          "ci95_low": -0.06597,
+          "ci95_high": 0.01775,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00789,
+          "ci95_low": 0.00096,
+          "ci95_high": 0.01501,
+          "significant": true
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -2.05949,
+          "ci95_low": -2.69964,
+          "ci95_high": -1.42797,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.05473,
+          "ci95_low": -0.19351,
+          "ci95_high": 0.0742,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.08228,
+          "ci95_low": -0.09909,
+          "ci95_high": -0.06523,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.08762,
+          "ci95_low": -0.18797,
+          "ci95_high": 0.02717,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00402,
+          "ci95_low": 0.00029,
+          "ci95_high": 0.00945,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00547,
+          "ci95_low": 0.00058,
+          "ci95_high": 0.0107,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00498,
+          "ci95_low": -0.00863,
+          "ci95_high": 0.01848,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0008,
+          "ci95_low": -0.00107,
+          "ci95_high": 0.00269,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00027,
+          "ci95_low": -0.00123,
+          "ci95_high": 0.00172,
+          "significant": false
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01167,
+          "ci95_low": -0.09882,
+          "ci95_high": 0.07356,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00688,
+          "ci95_low": -0.0109,
+          "ci95_high": 0.02575,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -1.60418,
+          "ci95_low": -2.49431,
+          "ci95_high": -0.64018,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.19708,
+          "ci95_low": -0.37105,
+          "ci95_high": -0.03576,
+          "significant": true
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.06604,
+          "ci95_low": -0.09369,
+          "ci95_high": -0.03869,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.09141,
+          "ci95_low": -0.23232,
+          "ci95_high": 0.0642,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01361,
+          "ci95_low": 0.00626,
+          "ci95_high": 0.02101,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00347,
+          "ci95_low": -0.00271,
+          "ci95_high": 0.01049,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0095,
+          "ci95_low": -0.00674,
+          "ci95_high": 0.02545,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00122,
+          "ci95_low": -0.00364,
+          "ci95_high": 0.00121,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00141,
+          "ci95_low": -0.00313,
+          "ci95_high": 0.00017,
+          "significant": false
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.01284,
+          "ci95_low": -0.12829,
+          "ci95_high": 0.09463,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.01572,
+          "ci95_low": -0.00194,
+          "ci95_high": 0.03709,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -2.39367,
+          "ci95_low": -3.73509,
+          "ci95_high": -1.04586,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.33242,
+          "ci95_low": -0.6226,
+          "ci95_high": -0.07384,
+          "significant": true
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.11143,
+          "ci95_low": -0.1629,
+          "ci95_high": -0.06888,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.066,
+          "ci95_low": -0.26632,
+          "ci95_high": 0.15753,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00867,
+          "ci95_low": -0.00166,
+          "ci95_high": 0.02089,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00216,
+          "ci95_low": -0.00471,
+          "ci95_high": 0.00903,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00922,
+          "ci95_low": -0.01116,
+          "ci95_high": 0.03426,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00019,
+          "ci95_low": -0.00226,
+          "ci95_high": 0.00228,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00144,
+          "ci95_low": -0.00464,
+          "ci95_high": 0.00169,
+          "significant": false
+        }
+      }
+    },
+    "C_minus_base35k_35400": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.09883,
+          "ci95_low": 0.04248,
+          "ci95_high": 0.1528,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.01746,
+          "ci95_low": -0.03077,
+          "ci95_high": -0.00353,
+          "significant": true
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.46653,
+          "ci95_low": -0.34525,
+          "ci95_high": 1.26441,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.11598,
+          "ci95_low": -0.06152,
+          "ci95_high": 0.29894,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00745,
+          "ci95_low": -0.02911,
+          "ci95_high": 0.01332,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.09736,
+          "ci95_low": -0.21063,
+          "ci95_high": 0.00722,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.01043,
+          "ci95_low": -0.01467,
+          "ci95_high": -0.00623,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00396,
+          "ci95_low": -0.00342,
+          "ci95_high": 0.01097,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.01079,
+          "ci95_low": -0.00138,
+          "ci95_high": 0.02351,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00129,
+          "ci95_low": -0.00399,
+          "ci95_high": 0.00135,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00152,
+          "ci95_low": 0.00016,
+          "ci95_high": 0.00295,
+          "significant": true
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.12051,
+          "ci95_low": 0.04632,
+          "ci95_high": 0.19509,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01088,
+          "ci95_low": -0.02519,
+          "ci95_high": 0.00213,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.81731,
+          "ci95_low": -0.1116,
+          "ci95_high": 1.81174,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.19815,
+          "ci95_low": 0.03464,
+          "ci95_high": 0.36245,
+          "significant": true
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.03706,
+          "ci95_low": 0.01612,
+          "ci95_high": 0.05859,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.03023,
+          "ci95_low": -0.14174,
+          "ci95_high": 0.07678,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00228,
+          "ci95_low": -0.00498,
+          "ci95_high": 0.00043,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.004,
+          "ci95_low": -0.01228,
+          "ci95_high": 0.00412,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00748,
+          "ci95_low": -0.01539,
+          "ci95_high": 0.03083,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00387,
+          "ci95_low": -0.00751,
+          "ci95_high": -8e-05,
+          "significant": true
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0006,
+          "ci95_low": -0.00094,
+          "ci95_high": 0.0021,
+          "significant": false
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.07715,
+          "ci95_low": -0.00613,
+          "ci95_high": 0.16239,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.02404,
+          "ci95_low": -0.04708,
+          "ci95_high": -0.00186,
+          "significant": true
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.11575,
+          "ci95_low": -1.49364,
+          "ci95_high": 1.7274,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0338,
+          "ci95_low": -0.25267,
+          "ci95_high": 0.32514,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.05197,
+          "ci95_low": -0.09001,
+          "ci95_high": -0.01467,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.16448,
+          "ci95_low": -0.37484,
+          "ci95_high": 0.04063,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01859,
+          "ci95_low": -0.02672,
+          "ci95_high": -0.0107,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01191,
+          "ci95_low": -0.00083,
+          "ci95_high": 0.02423,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01409,
+          "ci95_low": 0.00062,
+          "ci95_high": 0.02718,
+          "significant": true
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00129,
+          "ci95_low": -0.00252,
+          "ci95_high": 0.00502,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00245,
+          "ci95_low": 0.00014,
+          "ci95_high": 0.00505,
+          "significant": true
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.04403,
+          "ci95_low": -0.09018,
+          "ci95_high": 0.18922,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00969,
+          "ci95_low": -0.05242,
+          "ci95_high": 0.03293,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.32274,
+          "ci95_low": -1.24718,
+          "ci95_high": 2.05403,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.54225,
+          "ci95_low": -0.05502,
+          "ci95_high": 1.18895,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00243,
+          "ci95_low": -0.05554,
+          "ci95_high": 0.05594,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.03171,
+          "ci95_low": -0.13022,
+          "ci95_high": 0.21659,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00586,
+          "ci95_low": -0.0139,
+          "ci95_high": 0.00328,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00594,
+          "ci95_low": -0.00236,
+          "ci95_high": 0.01686,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.01012,
+          "ci95_low": -0.01437,
+          "ci95_high": 0.03881,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 9e-05,
+          "ci95_low": -0.00532,
+          "ci95_high": 0.00505,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.0018,
+          "ci95_low": -0.00135,
+          "ci95_high": 0.00509,
+          "significant": false
+        }
+      }
+    },
+    "G_minus_base35k_35400": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00494,
+          "ci95_low": -0.04146,
+          "ci95_high": 0.05323,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00607,
+          "ci95_low": -0.01812,
+          "ci95_high": 0.00488,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.71308,
+          "ci95_low": -1.43796,
+          "ci95_high": -0.02719,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.01612,
+          "ci95_low": -0.15385,
+          "ci95_high": 0.17562,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.02162,
+          "ci95_low": -0.04508,
+          "ci95_high": 0.00218,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.04995,
+          "ci95_low": -0.06824,
+          "ci95_high": 0.17996,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00212,
+          "ci95_low": -0.00674,
+          "ci95_high": 0.00266,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00149,
+          "ci95_low": -0.0078,
+          "ci95_high": 0.00418,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00032,
+          "ci95_low": -0.01004,
+          "ci95_high": 0.01041,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00137,
+          "ci95_low": -0.00392,
+          "ci95_high": 0.00102,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00086,
+          "ci95_low": -0.00047,
+          "ci95_high": 0.00232,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.013,
+          "ci95_low": -0.04602,
+          "ci95_high": 0.0724,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00274,
+          "ci95_low": -0.01413,
+          "ci95_high": 0.0075,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.29885,
+          "ci95_low": -1.02868,
+          "ci95_high": 0.40969,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.10968,
+          "ci95_low": -0.07269,
+          "ci95_high": 0.29344,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00284,
+          "ci95_low": -0.02316,
+          "ci95_high": 0.01882,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0177,
+          "ci95_low": -0.11808,
+          "ci95_high": 0.17823,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00147,
+          "ci95_low": -0.00467,
+          "ci95_high": 0.00193,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00757,
+          "ci95_low": -0.01514,
+          "ci95_high": -0.00042,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00822,
+          "ci95_low": -0.02678,
+          "ci95_high": 0.01064,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00337,
+          "ci95_low": -0.00703,
+          "ci95_high": 0.00032,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00108,
+          "ci95_low": -0.00072,
+          "ci95_high": 0.00303,
+          "significant": false
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00311,
+          "ci95_low": -0.0715,
+          "ci95_high": 0.06384,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00939,
+          "ci95_low": -0.02799,
+          "ci95_high": 0.00717,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -1.12731,
+          "ci95_low": -2.53898,
+          "ci95_high": 0.2908,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.07745,
+          "ci95_low": -0.36051,
+          "ci95_high": 0.1955,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.0404,
+          "ci95_low": -0.08388,
+          "ci95_high": 0.00356,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0822,
+          "ci95_low": -0.12305,
+          "ci95_high": 0.30647,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00276,
+          "ci95_low": -0.0114,
+          "ci95_high": 0.00614,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0046,
+          "ci95_low": -0.00653,
+          "ci95_high": 0.01444,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00887,
+          "ci95_low": -0.00193,
+          "ci95_high": 0.01998,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00062,
+          "ci95_low": -0.0032,
+          "ci95_high": 0.00437,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00063,
+          "ci95_low": -0.00098,
+          "ci95_high": 0.00232,
+          "significant": false
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.0225,
+          "ci95_low": -0.12063,
+          "ci95_high": 0.1609,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00792,
+          "ci95_low": -0.04867,
+          "ci95_high": 0.03086,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.84897,
+          "ci95_low": -1.81807,
+          "ci95_high": 0.04398,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.29781,
+          "ci95_low": -0.15827,
+          "ci95_high": 0.69894,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00709,
+          "ci95_low": -0.0676,
+          "ci95_high": 0.0796,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00817,
+          "ci95_low": -0.18601,
+          "ci95_high": 0.26178,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00675,
+          "ci95_low": -0.01515,
+          "ci95_high": 0.00074,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00183,
+          "ci95_low": -0.00588,
+          "ci95_high": 0.00924,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.0099,
+          "ci95_low": -0.01496,
+          "ci95_high": 0.03514,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00192,
+          "ci95_low": -0.00585,
+          "ci95_high": 0.00178,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00377,
+          "ci95_low": -0.00092,
+          "ci95_high": 0.00876,
+          "significant": false
+        }
+      }
+    },
+    "F_minus_base35k_35400": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.07975,
+          "ci95_low": 0.01648,
+          "ci95_high": 0.14105,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00726,
+          "ci95_low": -0.02048,
+          "ci95_high": 0.0057,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -1.33648,
+          "ci95_low": -2.02058,
+          "ci95_high": -0.66552,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.12229,
+          "ci95_low": -0.28797,
+          "ci95_high": 0.04437,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.0909,
+          "ci95_low": -0.11604,
+          "ci95_high": -0.06685,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.11123,
+          "ci95_low": -0.26387,
+          "ci95_high": 0.05212,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00225,
+          "ci95_low": -0.00352,
+          "ci95_high": 0.00814,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00491,
+          "ci95_low": -0.00196,
+          "ci95_high": 0.0112,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.02468,
+          "ci95_low": 0.00782,
+          "ci95_high": 0.04136,
+          "significant": true
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00169,
+          "ci95_low": -0.00424,
+          "ci95_high": 0.00086,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00054,
+          "ci95_low": -0.00106,
+          "ci95_high": 0.00219,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.09641,
+          "ci95_low": 0.0216,
+          "ci95_high": 0.17387,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00283,
+          "ci95_low": -0.01688,
+          "ci95_high": 0.01119,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -1.74239,
+          "ci95_low": -2.48144,
+          "ci95_high": -1.02358,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.09617,
+          "ci95_low": -0.08877,
+          "ci95_high": 0.27748,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.06514,
+          "ci95_low": -0.08416,
+          "ci95_high": -0.04709,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.13754,
+          "ci95_low": -0.27204,
+          "ci95_high": 0.0025,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00051,
+          "ci95_low": -0.00401,
+          "ci95_high": 0.00602,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00228,
+          "ci95_low": -0.00475,
+          "ci95_high": 0.00944,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.02059,
+          "ci95_low": -0.00082,
+          "ci95_high": 0.04157,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00313,
+          "ci95_low": -0.00684,
+          "ci95_high": 0.00051,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00018,
+          "ci95_low": -0.00176,
+          "ci95_high": 0.0015,
+          "significant": false
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.06309,
+          "ci95_low": -0.03751,
+          "ci95_high": 0.16524,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01169,
+          "ci95_low": -0.03483,
+          "ci95_high": 0.01316,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.93056,
+          "ci95_low": -2.01761,
+          "ci95_high": 0.13772,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.34074,
+          "ci95_low": -0.61993,
+          "ci95_high": -0.08291,
+          "significant": true
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.11665,
+          "ci95_low": -0.15819,
+          "ci95_high": -0.07552,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.08492,
+          "ci95_low": -0.33305,
+          "ci95_high": 0.1694,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.004,
+          "ci95_low": -0.00572,
+          "ci95_high": 0.01359,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00754,
+          "ci95_low": -0.00518,
+          "ci95_high": 0.01892,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.02877,
+          "ci95_low": 0.00293,
+          "ci95_high": 0.05342,
+          "significant": true
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00025,
+          "ci95_low": -0.0033,
+          "ci95_high": 0.0028,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00127,
+          "ci95_low": -0.00137,
+          "ci95_high": 0.00426,
+          "significant": false
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.04556,
+          "ci95_low": -0.0811,
+          "ci95_high": 0.1662,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.01257,
+          "ci95_low": -0.02614,
+          "ci95_high": 0.04684,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -2.18705,
+          "ci95_low": -3.42962,
+          "ci95_high": -1.04607,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.10269,
+          "ci95_low": -0.38106,
+          "ci95_high": 0.5842,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.13796,
+          "ci95_low": -0.20606,
+          "ci95_high": -0.07245,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.19933,
+          "ci95_low": -0.43564,
+          "ci95_high": 0.06371,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.0056,
+          "ci95_low": -0.02236,
+          "ci95_high": 0.01168,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00667,
+          "ci95_low": -0.00315,
+          "ci95_high": 0.01647,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.03289,
+          "ci95_low": -0.00593,
+          "ci95_high": 0.06713,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00209,
+          "ci95_low": -0.00657,
+          "ci95_high": 0.00322,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00016,
+          "ci95_low": -0.00331,
+          "ci95_high": 0.00384,
+          "significant": false
+        }
+      }
+    },
+    "GF_minus_base35k_35400": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.01199,
+          "ci95_low": -0.06887,
+          "ci95_high": 0.0428,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00149,
+          "ci95_low": -0.01319,
+          "ci95_high": 0.00999,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -2.57375,
+          "ci95_low": -3.42751,
+          "ci95_high": -1.69727,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00257,
+          "ci95_low": -0.14329,
+          "ci95_high": 0.17201,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.08649,
+          "ci95_low": -0.11264,
+          "ci95_high": -0.05942,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.1152,
+          "ci95_low": -0.2602,
+          "ci95_high": 0.06024,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00283,
+          "ci95_low": -0.00198,
+          "ci95_high": 0.00786,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.0065,
+          "ci95_low": -0.00052,
+          "ci95_high": 0.0135,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00091,
+          "ci95_low": -0.00977,
+          "ci95_high": 0.01065,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00138,
+          "ci95_low": -0.00387,
+          "ci95_high": 0.00095,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.0007,
+          "ci95_low": -0.00063,
+          "ci95_high": 0.00202,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01159,
+          "ci95_low": -0.04463,
+          "ci95_high": 0.02203,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.005,
+          "ci95_low": -0.00505,
+          "ci95_high": 0.01474,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -1.85813,
+          "ci95_low": -2.61303,
+          "ci95_high": -1.06149,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.1022,
+          "ci95_low": -0.06392,
+          "ci95_high": 0.28489,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.06519,
+          "ci95_low": -0.09264,
+          "ci95_high": -0.03525,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.05022,
+          "ci95_low": -0.24475,
+          "ci95_high": 0.18401,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00378,
+          "ci95_low": -0.00036,
+          "ci95_high": 0.00896,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00292,
+          "ci95_low": -0.00966,
+          "ci95_high": 0.00347,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01137,
+          "ci95_low": -0.02581,
+          "ci95_high": 0.00299,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00249,
+          "ci95_low": -0.00606,
+          "ci95_high": 0.0009,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00241,
+          "ci95_low": 0.00021,
+          "ci95_high": 0.0046,
+          "significant": true
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01239,
+          "ci95_low": -0.11618,
+          "ci95_high": 0.08905,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00797,
+          "ci95_low": -0.02777,
+          "ci95_high": 0.01202,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -3.28937,
+          "ci95_low": -4.73413,
+          "ci95_high": -1.83297,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.09707,
+          "ci95_low": -0.33485,
+          "ci95_high": 0.15225,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.1078,
+          "ci95_low": -0.14642,
+          "ci95_high": -0.06719,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.18018,
+          "ci95_low": -0.35409,
+          "ci95_high": 0.0035,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00187,
+          "ci95_low": -0.00715,
+          "ci95_high": 0.01124,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01592,
+          "ci95_low": 0.00196,
+          "ci95_high": 0.03058,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01319,
+          "ci95_low": -0.00255,
+          "ci95_high": 0.02823,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00027,
+          "ci95_low": -0.00316,
+          "ci95_high": 0.00263,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.001,
+          "ci95_low": -0.0027,
+          "ci95_high": 0.00048,
+          "significant": false
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.0047,
+          "ci95_low": -0.1113,
+          "ci95_high": 0.1043,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00125,
+          "ci95_low": -0.03199,
+          "ci95_high": 0.03259,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -3.12651,
+          "ci95_low": -4.64524,
+          "ci95_high": -1.66275,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.07253,
+          "ci95_low": -0.28532,
+          "ci95_high": 0.57043,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.07539,
+          "ci95_low": -0.15253,
+          "ci95_high": 0.00643,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.10719,
+          "ci95_low": -0.27018,
+          "ci95_high": 0.67208,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.01031,
+          "ci95_low": 0.00106,
+          "ci95_high": 0.01838,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00542,
+          "ci95_low": -0.00221,
+          "ci95_high": 0.0128,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00558,
+          "ci95_low": -0.01685,
+          "ci95_high": 0.02583,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00011,
+          "ci95_low": -0.00559,
+          "ci95_high": 0.00526,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00252,
+          "ci95_low": -0.00094,
+          "ci95_high": 0.00587,
+          "significant": false
+        }
+      }
+    },
+    "G35900_minus_C35900": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.04923,
+          "ci95_low": -0.00011,
+          "ci95_high": 0.10056,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00912,
+          "ci95_low": -0.0355,
+          "ci95_high": 0.01103,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.11969,
+          "ci95_low": -0.47703,
+          "ci95_high": 0.75495,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.08077,
+          "ci95_low": -0.09801,
+          "ci95_high": 0.27183,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.02171,
+          "ci95_low": -0.00191,
+          "ci95_high": 0.04665,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.10604,
+          "ci95_low": -0.03374,
+          "ci95_high": 0.25698,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00343,
+          "ci95_low": -0.00294,
+          "ci95_high": 0.0103,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00134,
+          "ci95_low": -0.00541,
+          "ci95_high": 0.00219,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00515,
+          "ci95_low": -0.01432,
+          "ci95_high": 0.00423,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00094,
+          "ci95_low": -0.00147,
+          "ci95_high": 0.00341,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -8e-05,
+          "ci95_low": -0.00091,
+          "ci95_high": 0.00075,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.02118,
+          "ci95_low": -0.01791,
+          "ci95_high": 0.06152,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0051,
+          "ci95_low": -0.00625,
+          "ci95_high": 0.01803,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.17392,
+          "ci95_low": -0.72838,
+          "ci95_high": 1.13388,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.15366,
+          "ci95_low": -0.04819,
+          "ci95_high": 0.34508,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.03897,
+          "ci95_low": 0.01857,
+          "ci95_high": 0.05978,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.08212,
+          "ci95_low": -0.16965,
+          "ci95_high": 0.00605,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.0019,
+          "ci95_low": -0.0046,
+          "ci95_high": 0.00091,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00786,
+          "ci95_low": -0.01517,
+          "ci95_high": -0.00161,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01597,
+          "ci95_low": -0.02662,
+          "ci95_high": -0.00503,
+          "significant": true
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 7e-05,
+          "ci95_low": -0.00339,
+          "ci95_high": 0.00319,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00027,
+          "ci95_low": -0.0009,
+          "ci95_high": 0.00033,
+          "significant": false
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.07729,
+          "ci95_low": -0.00565,
+          "ci95_high": 0.16538,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.02335,
+          "ci95_low": -0.0737,
+          "ci95_high": 0.0134,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.06547,
+          "ci95_low": -1.26101,
+          "ci95_high": 1.41097,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00787,
+          "ci95_low": -0.3151,
+          "ci95_high": 0.36603,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00445,
+          "ci95_low": -0.03729,
+          "ci95_high": 0.04604,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.29419,
+          "ci95_low": 0.01088,
+          "ci95_high": 0.59162,
+          "significant": true
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00875,
+          "ci95_low": -0.00308,
+          "ci95_high": 0.02139,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00518,
+          "ci95_low": -0.00106,
+          "ci95_high": 0.01138,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00566,
+          "ci95_low": -0.0084,
+          "ci95_high": 0.01982,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0018,
+          "ci95_low": -0.00152,
+          "ci95_high": 0.00521,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.0001,
+          "ci95_low": -0.00147,
+          "ci95_high": 0.00164,
+          "significant": false
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.0895,
+          "ci95_low": -0.03459,
+          "ci95_high": 0.2172,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.01957,
+          "ci95_low": -0.11241,
+          "ci95_high": 0.04201,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.8856,
+          "ci95_low": -1.89432,
+          "ci95_high": 0.09608,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.0789,
+          "ci95_low": -0.31496,
+          "ci95_high": 0.53971,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.02083,
+          "ci95_low": -0.03579,
+          "ci95_high": 0.07747,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.10964,
+          "ci95_low": -0.02465,
+          "ci95_high": 0.25936,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00276,
+          "ci95_low": -0.0164,
+          "ci95_high": 0.01087,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00556,
+          "ci95_low": -0.01286,
+          "ci95_high": 0.00127,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00323,
+          "ci95_low": -0.0159,
+          "ci95_high": 0.02302,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00344,
+          "ci95_low": -0.00054,
+          "ci95_high": 0.00751,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00101,
+          "ci95_low": -0.00383,
+          "ci95_high": 0.00172,
+          "significant": false
+        }
+      }
+    },
+    "C35900_minus_base35k": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.02584,
+          "ci95_low": -0.03046,
+          "ci95_high": 0.08098,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00117,
+          "ci95_low": -0.01428,
+          "ci95_high": 0.01934,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -1.38827,
+          "ci95_low": -2.0435,
+          "ci95_high": -0.75391,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.08339,
+          "ci95_low": -0.28037,
+          "ci95_high": 0.11246,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.03741,
+          "ci95_low": -0.05696,
+          "ci95_high": -0.01827,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.02481,
+          "ci95_low": -0.14322,
+          "ci95_high": 0.09132,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00811,
+          "ci95_low": -0.01325,
+          "ci95_high": -0.00299,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.01302,
+          "ci95_low": 0.00377,
+          "ci95_high": 0.0235,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00592,
+          "ci95_low": -0.0049,
+          "ci95_high": 0.01684,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00056,
+          "ci95_low": -0.00334,
+          "ci95_high": 0.00222,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00078,
+          "ci95_low": -0.0018,
+          "ci95_high": 0.00024,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.02629,
+          "ci95_low": -0.01469,
+          "ci95_high": 0.06769,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00236,
+          "ci95_low": -0.01337,
+          "ci95_high": 0.00854,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.66576,
+          "ci95_low": -1.3327,
+          "ci95_high": -0.00528,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.02759,
+          "ci95_low": -0.18618,
+          "ci95_high": 0.13237,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.02881,
+          "ci95_low": -0.04573,
+          "ci95_high": -0.01291,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00816,
+          "ci95_low": -0.11135,
+          "ci95_high": 0.09474,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00024,
+          "ci95_low": -0.00279,
+          "ci95_high": 0.00314,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00655,
+          "ci95_low": 7e-05,
+          "ci95_high": 0.01276,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00148,
+          "ci95_low": -0.01428,
+          "ci95_high": 0.01793,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00186,
+          "ci95_low": -0.00588,
+          "ci95_high": 0.00212,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00031,
+          "ci95_low": -0.00125,
+          "ci95_high": 0.00046,
+          "significant": false
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.02539,
+          "ci95_low": -0.07755,
+          "ci95_high": 0.12603,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00469,
+          "ci95_low": -0.02236,
+          "ci95_high": 0.03835,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -2.11077,
+          "ci95_low": -3.38043,
+          "ci95_high": -0.91515,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.13918,
+          "ci95_low": -0.48981,
+          "ci95_high": 0.21116,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.04601,
+          "ci95_low": -0.08527,
+          "ci95_high": -0.00885,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.04145,
+          "ci95_low": -0.23598,
+          "ci95_high": 0.15232,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01646,
+          "ci95_low": -0.02521,
+          "ci95_high": -0.00765,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01949,
+          "ci95_low": 0.00312,
+          "ci95_high": 0.0381,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01036,
+          "ci95_low": -0.00344,
+          "ci95_high": 0.02441,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00073,
+          "ci95_low": -0.00265,
+          "ci95_high": 0.00404,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00125,
+          "ci95_low": -0.00319,
+          "ci95_high": 0.00064,
+          "significant": false
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.07265,
+          "ci95_low": -0.21026,
+          "ci95_high": 0.06796,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.01079,
+          "ci95_low": -0.04426,
+          "ci95_high": 0.07746,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.84425,
+          "ci95_low": -1.90339,
+          "ci95_high": 0.19976,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.05729,
+          "ci95_low": -0.63242,
+          "ci95_high": 0.51884,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.02826,
+          "ci95_low": -0.06773,
+          "ci95_high": 0.0093,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00776,
+          "ci95_low": -0.15621,
+          "ci95_high": 0.20316,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.01556,
+          "ci95_low": -0.02636,
+          "ci95_high": -0.00507,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.01165,
+          "ci95_low": 0.00065,
+          "ci95_high": 0.02289,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.01506,
+          "ci95_low": -0.03893,
+          "ci95_high": 0.00939,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00074,
+          "ci95_low": -0.00536,
+          "ci95_high": 0.00762,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00033,
+          "ci95_low": -0.00226,
+          "ci95_high": 0.0031,
+          "significant": false
+        }
+      }
+    },
+    "G35900_minus_base35k": {
+      "all": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.07507,
+          "ci95_low": 0.01416,
+          "ci95_high": 0.13635,
+          "significant": true
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00796,
+          "ci95_low": -0.02111,
+          "ci95_high": 0.00399,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -1.26857,
+          "ci95_low": -1.93812,
+          "ci95_high": -0.64283,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00262,
+          "ci95_low": -0.1877,
+          "ci95_high": 0.18249,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.0157,
+          "ci95_low": -0.04087,
+          "ci95_high": 0.00905,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.08123,
+          "ci95_low": -0.04805,
+          "ci95_high": 0.22214,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00469,
+          "ci95_low": -0.00971,
+          "ci95_high": 0.00042,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.01168,
+          "ci95_low": 0.00355,
+          "ci95_high": 0.02048,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00077,
+          "ci95_low": -0.00959,
+          "ci95_high": 0.0112,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": 0.00038,
+          "ci95_low": -0.00284,
+          "ci95_high": 0.00363,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 80,
+          "mean_delta": -0.00086,
+          "ci95_low": -0.00182,
+          "ci95_high": 1e-05,
+          "significant": false
+        }
+      },
+      "F1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.04746,
+          "ci95_low": -0.00298,
+          "ci95_high": 0.09824,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00274,
+          "ci95_low": -0.00841,
+          "ci95_high": 0.01375,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.49185,
+          "ci95_low": -1.28632,
+          "ci95_high": 0.31088,
+          "significant": false
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.12607,
+          "ci95_low": -0.07052,
+          "ci95_high": 0.3137,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01016,
+          "ci95_low": -0.00903,
+          "ci95_high": 0.02822,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.09028,
+          "ci95_low": -0.18071,
+          "ci95_high": -0.00063,
+          "significant": true
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00166,
+          "ci95_low": -0.00462,
+          "ci95_high": 0.0011,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00131,
+          "ci95_low": -0.00939,
+          "ci95_high": 0.00583,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01449,
+          "ci95_low": -0.02979,
+          "ci95_high": 0.00073,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00179,
+          "ci95_low": -0.00543,
+          "ci95_high": 0.00183,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00058,
+          "ci95_low": -0.00182,
+          "ci95_high": 0.00033,
+          "significant": false
+        }
+      },
+      "M1": {
+        "f0_mae_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.10268,
+          "ci95_low": -0.00523,
+          "ci95_high": 0.20948,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.01866,
+          "ci95_low": -0.04254,
+          "ci95_high": 0.0016,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -2.04529,
+          "ci95_low": -3.45869,
+          "ci95_high": -0.67205,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.13131,
+          "ci95_low": -0.44119,
+          "ci95_high": 0.17982,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.04156,
+          "ci95_low": -0.08125,
+          "ci95_high": -0.00222,
+          "significant": true
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.25274,
+          "ci95_low": 0.02358,
+          "ci95_high": 0.50681,
+          "significant": true
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00771,
+          "ci95_low": -0.01788,
+          "ci95_high": 0.00223,
+          "significant": false
+        },
+        "mel_dtw": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.02467,
+          "ci95_low": 0.00921,
+          "ci95_high": 0.04153,
+          "significant": true
+        },
+        "oracle_dur_stft": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.01602,
+          "ci95_low": 0.00205,
+          "ci95_high": 0.02978,
+          "significant": true
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": 0.00254,
+          "ci95_low": -0.00208,
+          "ci95_high": 0.00724,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 40,
+          "n_recordings": 40,
+          "mean_delta": -0.00115,
+          "ci95_low": -0.00274,
+          "ci95_high": 0.00033,
+          "significant": false
+        }
+      },
+      "question": {
+        "f0_mae_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.01685,
+          "ci95_low": -0.10985,
+          "ci95_high": 0.14889,
+          "significant": false
+        },
+        "f0_corr": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00877,
+          "ci95_low": -0.04769,
+          "ci95_high": 0.02846,
+          "significant": false
+        },
+        "f0_slope_mae_st_s": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -1.72985,
+          "ci95_low": -2.53764,
+          "ci95_high": -0.96466,
+          "significant": true
+        },
+        "end_delta_abs_err_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.02161,
+          "ci95_low": -0.45217,
+          "ci95_high": 0.5224,
+          "significant": false
+        },
+        "gen_f0_local_std_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00743,
+          "ci95_low": -0.07479,
+          "ci95_high": 0.05877,
+          "significant": false
+        },
+        "gen_accent_prom_st": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.1174,
+          "ci95_low": -0.16555,
+          "ci95_high": 0.45085,
+          "significant": false
+        },
+        "gen_vowel_voiced": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.01832,
+          "ci95_low": -0.02988,
+          "ci95_high": -0.00649,
+          "significant": true
+        },
+        "mel_dtw": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00609,
+          "ci95_low": -0.00361,
+          "ci95_high": 0.01602,
+          "significant": false
+        },
+        "oracle_dur_stft": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.01184,
+          "ci95_low": -0.03218,
+          "ci95_high": 0.00763,
+          "significant": false
+        },
+        "phone_rel_dur_mae": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": 0.00419,
+          "ci95_low": -0.00136,
+          "ci95_high": 0.01023,
+          "significant": false
+        },
+        "gen_f0_break_rate": {
+          "n_texts": 10,
+          "n_recordings": 20,
+          "mean_delta": -0.00068,
+          "ci95_low": -0.00233,
+          "ci95_high": 0.00028,
+          "significant": false
+        }
+      }
+    }
+  },
+  "per_recording_csv": ".local-runs/p5_audit/p4_reproducibility/p4_final_per_recording.csv"
+}
