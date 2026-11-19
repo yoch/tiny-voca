@@ -76,4 +76,7 @@ Source complète : [`docs/experiments/p7_eval_dev_summary.json`](p7_eval_dev_sum
      --prosody-refiner .local-runs/p7_refiner/p7_sp_cal_prosody.pt \
      --voice F1 --text "Me voici à toutes mes jeunes et premières impressions !" --output out.wav
    ```
-3. **Étape suivante** : écoute aveugle humaine paire par paire (**12 paires**, `p7_sp_cal_prosody` vs `fr_ref_35k`, mélangées 6/6, issues uniquement de `validation.jsonl`) via `scripts/blind_ab_ui.py` avant toute décision sur les 121 paires vierges de `test.jsonl`.
+3. **Résultat de l'écoute aveugle humaine (12 paires, `p7_sp_cal_prosody` vs `fr_ref_35k`, mélangées 6/6)** :
+   - **Score** : **`p7_sp_cal_prosody` : 1 · `fr_ref_35k` : 0 · Égalité : 11**.
+   - **Observation clé** : sur **`P02`** (*« Peux-tu me rappeler si Karim Martin préfère venir vendredi ou lundi ? »*, `Δdur = -213 ms`), l'auditeur a immédiatement identifié et sanctionné la fausse pause `<sp>` de `fr_ref_35k` (*« B a une pause pas naturelle »*) en préférant `p7_sp_cal_prosody`. Sur les 10 autres paires sans pause `<sp>` modifiée (`Δdur = 0 ms`), les corrections F0 résiduelles du Stage B (réelles en métriques automatiques et WER `-1,82 pp`, mais d'amplitude modérée) restent sous le seuil perceptif sur phrases isolées — et `P01` (*« jeunes et premières »*) avait une probabilité `<sp>` de `0,98 > 0,95`, donc non filtrée à `0,95`.
+   - **Conclusion honnête** : P7 est **sans régression et auditivement gagnant dès qu'une fausse pause `<sp>` est supprimée**, mais `fr_ref_35k` est désormais très proche du plafond perceptif de cette architecture `4,5 M` sur phrases courtes. La réserve vierge de `121` paires `test.jsonl` reste intacte.
