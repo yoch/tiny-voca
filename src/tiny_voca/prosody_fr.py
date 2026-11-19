@@ -556,6 +556,12 @@ def prepare_french_structure(text: str) -> str:
                 rebuilt.append(ln)
         text = "\n".join(rebuilt)
     text = re.sub(r"([.!?…])\s+»", r"\1»", text)
+    # Expand period-bearing abbreviations before sentence splitting (preserving case)
+    # so elided forms like "l'art. 3" never falsely split a sentence at the period.
+    text = re.sub(r"\bArt\.\s*(?=\d)", "Article ", text)
+    text = re.sub(r"\bart\.\s*(?=\d)", "article ", text)
+    text = re.sub(r"\bTél\.\s*", "Téléphone ", text)
+    text = re.sub(r"\btél\.\s*", "téléphone ", text)
     return text
 
 
@@ -590,11 +596,7 @@ def prepare_french_tts_text(text: str) -> str:
     # 3. French 10-digit phone numbers ("06 12 34 56 78") -> paused digit pairs.
     text = _FR_PHONE_SPLIT_RE.sub(r"\1, \2, \3, \4, \5", text)
 
-    # 4. Everyday French abbreviations & smart acronym/initialism detection (preserving case for sentence splitting).
-    text = re.sub(r"\bArt\.\s*(?=\d)", "Article ", text)
-    text = re.sub(r"\bart\.\s*(?=\d)", "article ", text)
-    text = re.sub(r"\bTél\.\s*", "Téléphone ", text)
-    text = re.sub(r"\btél\.\s*", "téléphone ", text)
+    # 4. Smart acronym/initialism detection (period abbreviations handled in prepare_french_structure).
     text = _ALL_CAPS_WORD_RE.sub(_expand_french_acronym, text)
 
     # 5. Computing & metric units ("725 Ko", "16 Go", "250 ms", "250 ml", "50 cl", "500 mg", "44 kHz").

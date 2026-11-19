@@ -1,0 +1,148 @@
+{
+  "description": "Golden non-regression suite for the French TTS frontend (prepare_french_structure + sentences + finished + prepare_french_tts_text + phonemize) and optional ONNX pause invariants.",
+  "cases": [
+    {
+      "id": "units_computing_metric",
+      "category": "units",
+      "text": "Le fichier pèse 725 Ko, tourne sur CPU en 250 ms avec 16 Go de RAM à 44 kHz et 120 kWh.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "k i l ɔ ɔ k t ɛ",
+        "s e p e y",
+        "m i l i z ɡ ɔ̃ d",
+        "ʒ i ɡ a ɔ k t ɛ",
+        "d ə <sp> ʁ a m",
+        "k i l o ɛ ʁ t s",
+        "k i l o w a t œ ʁ"
+      ],
+      "forbid_ipa": ["k o ,", "ɡ o <sp>", "ɛ m ɛ s", "ɛ ʁ <sp> a <sp> ɛ m"]
+    },
+    {
+      "id": "units_kitchen_pharma",
+      "category": "units",
+      "text": "Ajoutez 250 ml de lait, 50 cl d'eau, 20 dl et 500 mg de sel.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "m i l i l i t ʁ",
+        "s ɑ̃ t i l i t ʁ",
+        "d e s i l i t ʁ",
+        "m i l i ɡ ʁ a m"
+      ],
+      "forbid_ipa": ["ɛ m ɛ l", "s e ɛ l", "d e ɛ l", "ɛ m ʒ e"]
+    },
+    {
+      "id": "acronyms_oms_rgpd_split_and_colon",
+      "category": "acronyms",
+      "text": "Le rapport de l'ONU et de l'OMS mentionne le RGPD. Tél. : 06 12 34 56 78.",
+      "expect_sentences": 2,
+      "expect_ipa_contains": [
+        "l o n y",
+        "l o ɛ m ɛ s",
+        "ɛ ʁ ʒ e p e d e",
+        "t e l e f ɔ n , z e ʁ o <sp> s i s"
+      ],
+      "forbid_ipa": ["l ɔ m", "l o <sp> ɛ m", "t e l :"],
+      "onnx_check": {
+        "expect_punct_pause_min_frames": 10
+      }
+    },
+    {
+      "id": "acronyms_misc_french",
+      "category": "acronyms",
+      "text": "Le CNRS, le CHU, la NASA, l'UNESCO, le MEDEF, un EHPAD, un AVC et le FBI.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "s e ɛ n ɛ ʁ ɛ s",
+        "s e a ʃ y",
+        "n a z a",
+        "y n ɛ s k o",
+        "m e d ɛ f",
+        "e p a d",
+        "a v e s e",
+        "ɛ f b e i"
+      ],
+      "forbid_ipa": ["l ə <sp> ʃ y", "a v k", "f b i", "e j p a d"]
+    },
+    {
+      "id": "roman_numerals_and_titles",
+      "category": "abbreviations",
+      "text": "MM. Dupont citent Louis XIV et l'art. 3, p. 42, à 14:30.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "m e s j ø",
+        "l w i <sp> k a t ɔ ʁ z",
+        "a ʁ t i k l <sp> t ʁ w a",
+        "p a ʒ <sp> k a ʁ ɑ̃ t d ø",
+        "k a t ɔ ʁ z <sp> œ ʁ <sp> t ʁ ɑ̃ t"
+      ],
+      "forbid_ipa": ["a ʁ <sp> t ʁ w a"]
+    },
+    {
+      "id": "fractions_and_multipliers",
+      "category": "fractions",
+      "text": "1/2 litre d'huile, 1/2 heure, 3/4 d'heure, 1/3 du temps, 2x plus vite.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "œ̃ <sp> d ə m i <sp> l i t ʁ",
+        "y n <sp> d ə m j œ ʁ",
+        "t ʁ w a <sp> k a ʁ <sp> d œ ʁ",
+        "œ̃ <sp> t j ɛ ʁ",
+        "d ø <sp> f w a"
+      ],
+      "forbid_ipa": ["œ̃ <sp> d ø <sp> l i t ʁ", "t ʁ w a <sp> k a t ʁ <sp> d œ ʁ", "d ø <sp> i k s"]
+    },
+    {
+      "id": "email_and_url",
+      "category": "symbols",
+      "text": "Contactez bonjour@exemple.fr ou https://example.org/docs.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "a ʁ o b a z",
+        "p w ɛ̃ <sp> ɛ f ɛ ʁ",
+        "p w ɛ̃ <sp> ɔ ʁ ɡ <sp> s l a ʃ"
+      ],
+      "forbid_ipa": ["d ɔ k <sp> p w ɛ̃"]
+    },
+    {
+      "id": "bullet_list_splits_cleanly",
+      "category": "punctuation",
+      "text": "Ingrédients :\n- 3 œufs\n- 100 g de sucre\n- 1 pincée de sel",
+      "expect_sentences": 3,
+      "expect_ipa_contains": ["ɛ̃ ɡ ʁ e d j ɑ̃ , t ʁ w a z <sp> ø", "s ɑ̃ <sp> ɡ ʁ a m"],
+      "forbid_ipa": ["—"]
+    },
+    {
+      "id": "guillemets_no_stray_period",
+      "category": "punctuation",
+      "text": "Oui… enfin, je crois : « On verra ! »",
+      "expect_sentences": 1,
+      "expect_ipa_contains": ["ɔ̃ <sp> v ɛ ʁ a ! \""],
+      "forbid_ipa": ["! \" ."]
+    },
+    {
+      "id": "no_false_sp_pause_vendredi_ou_lundi",
+      "category": "pauses",
+      "text": "Peux-tu me rappeler si Karim Martin préfère venir vendredi ou lundi ?",
+      "expect_sentences": 1,
+      "expect_ipa_contains": ["v ɑ̃ d ʁ ə d i <sp> u <sp> l œ̃ d i ?"],
+      "forbid_ipa": [],
+      "onnx_check": {
+        "voice": 1,
+        "expect_max_sp_pauses": 0
+      }
+    },
+    {
+      "id": "no_false_sp_pause_lina_claire",
+      "category": "pauses",
+      "text": "J'ai demandé à Lina, Claire et Jade de nous retrouver au café.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": ["l i n a , k l ɛ ʁ <sp> e <sp> ʒ a d"],
+      "forbid_ipa": [],
+      "onnx_check": {
+        "voice": 0,
+        "expect_max_sp_pauses": 0,
+        "expect_punct_pause_min_frames": 10
+      }
+    }
+  ]
+}
