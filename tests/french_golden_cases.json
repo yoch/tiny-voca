@@ -18,6 +18,20 @@
       "forbid_ipa": ["k o ,", "ɡ o <sp>", "ɛ m ɛ s", "ɛ ʁ <sp> a <sp> ɛ m"]
     },
     {
+      "id": "units_one_letter_not_before_elision",
+      "category": "units",
+      "text": "Les 3 l'ont vu en 2014 s'il pleuvait, en 2015 m’a-t-on dit, mais 2 m de tissu et 10 s suffisent.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "t ʁ w a <sp> l ɔ̃ <sp> v y",
+        "k a t ɔ ʁ z <sp> s i l",
+        "k ɛ̃ z <sp> m a t ɔ̃",
+        "d ø <sp> m ɛ t ʁ <sp> d ə",
+        "d i <sp> s ə ɡ ɔ̃ d"
+      ],
+      "forbid_ipa": ["l i t ʁ ə s ɔ̃", "s ə ɡ ɔ̃ d ə s i l", "m ɛ t ʁ ə s a"]
+    },
+    {
       "id": "units_kitchen_pharma",
       "category": "units",
       "text": "Ajoutez 250 ml de lait, 50 cl d'eau, 20 dl et 500 mg de sel.",

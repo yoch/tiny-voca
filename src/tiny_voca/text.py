@@ -433,10 +433,11 @@ def _expand_french_text(text):
     text = re.sub(r"\bm³", " mètres cubes", text)
     text = re.sub(r"\b1\s*min\b", "une minute", text)
     text = re.sub(r"\b(\d+(?:,\d+)?)\s*min\b", r"\1 minutes", text)
-    text = re.sub(r"\b(\d+(?:,\d+)?)\s*g\b", r"\1 grammes", text)
-    text = re.sub(r"\b(\d+(?:,\d+)?)\s*m\b", r"\1 mètres", text)
-    text = re.sub(r"\b(\d+(?:,\d+)?)\s*[Ll]\b", r"\1 litres", text)
-    text = re.sub(r"\b(\d+(?:,\d+)?)\s+s\b", r"\1 secondes", text)
+    # A one-letter unit followed by an apostrophe is an elided pronoun, not a unit: "en 2014 s'est", "les 3 l'ont vu".
+    text = re.sub(r"\b(\d+(?:,\d+)?)\s*g\b(?!['’ʼ])", r"\1 grammes", text)
+    text = re.sub(r"\b(\d+(?:,\d+)?)\s*m\b(?!['’ʼ])", r"\1 mètres", text)
+    text = re.sub(r"\b(\d+(?:,\d+)?)\s*[Ll]\b(?!['’ʼ])", r"\1 litres", text)
+    text = re.sub(r"\b(\d+(?:,\d+)?)\s+s\b(?!['’ʼ])", r"\1 secondes", text)
 
     # 8. Ordinals & contextual Roman numerals.
     def _arabic_ord(m):
