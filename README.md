@@ -68,6 +68,17 @@ bash fetch_assets.sh /path/to/dizione
 npx wrangler dev
 ```
 
+## Plain JavaScript
+
+An experiment in `js/`: the model and the phonemizer in plain scripts, with no
+libraries. It reads one 8 MB file and runs in the browser, in Node and in Bun.
+
+```bash
+node js/say.mjs "Hello! This is tiny voca." --voice M2 --output hello.wav
+```
+
+See [js/README.md](js/README.md).
+
 ## Training
 
 ```bash
@@ -97,23 +108,40 @@ PYTHONPATH=src:tests python -m unittest discover -s tests
 
 ## Community
 
-Built by other people on top of tiny-voca. I have not tested them.
+Built by other people on top of tiny-voca.
 
 Languages and voices:
 
 - [apptor-tiny-tts](https://huggingface.co/apptor/apptor-tiny-tts): German.
+- [apptor-tiny-tts-at](https://huggingface.co/apptor/apptor-tiny-tts-at): Austrian German, with an accent you can turn up or down and a [browser demo](https://tiny-tts.apptor.at).
 - [tiny-voca-it](https://github.com/carbogninalberto/tiny-voca-it): Italian.
 - [zerre-tts](https://github.com/erkinemreta1/zerre-tts): Turkish.
+- [clarvia-tts-tiny](https://huggingface.co/wite-tech/clarvia-tts-tiny): Turkish, ten voices, with its own [phonemizer](https://huggingface.co/wite-tech/clarvia-phonemizer) for numbers, dates and money.
 - [korean-tts](https://github.com/ooodev/korean-tts): Korean, and Korean mixed with English.
+- [tiny-voca-ja-tsukuyomi-chan](https://huggingface.co/ayousanz/tiny-voca-ja-tsukuyomi-chan): Japanese, in Tsukuyomi-chan's voice, under that voice's own terms.
 - [slyszeglosy](https://github.com/damaon/slyszeglosy): Polish.
+- [tiny-voca-ru](https://github.com/yilbegan/tiny-voca-ru): Russian, with a [browser demo](https://huggingface.co/spaces/egnch/tiny-voca-ru-demo).
 - [mini-voz](https://github.com/ElMariones/mini-voz): Spanish, with a Castilian accent.
+- [tiny-voca-es](https://github.com/stdevMac/tiny-voca): Spanish from Spain, with a browser demo.
+- [tiny-voca-fr](https://github.com/DanielSuncost/tiny-voca-fr): French, with a browser demo.
+- [tiny-voca-ptbr](https://github.com/SemFence/tiny-voca-ptbr): Brazilian Portuguese, with its own phonemizer.
+- [tiny-voca-ptbr-kokoro](https://github.com/Haple/tiny-voca-ptbr-kokoro): Brazilian Portuguese, with Kokoro's Brazilian voices as the teacher.
+- [tiny-voca Arabic](https://github.com/BenkadourKhaled/tiny-voca/tree/arabic-halabi-f2): Modern Standard Arabic, trained on a CPU from the Arabic Speech Corpus.
+- [tiny-voca-ar](https://huggingface.co/abdullah/tiny-voca-ar): Modern Standard Arabic, an early version with a [browser demo](https://tiny-voca-ar-site.pages.dev).
+- [tiny-voca-he](https://github.com/buzagloidan/tiny-voca-he): Hebrew, one male voice, with a browser demo.
+- [Bengali Voice](https://tts.hansda.in/): Bengali script and Romanized Bengali, with a browser demo.
+- [tiny-voca-hindi](https://huggingface.co/RL10x/tiny-voca-hindi): Hindi, one voice with eight speaking styles, and a C++ engine.
+- [tiny-urdu](https://github.com/Zafar205/tiny-urdu): Roman Urdu, with a browser demo.
+- [Kurdish Behdînî Voice](https://behdinan.com/): Kurdish Behdînî, 21 voices, with a browser demo.
 - [alpa](https://huggingface.co/77ethers/alpa): Sanskrit, fine-tuned from tiny-voca on a CPU.
 - [fiato](https://huggingface.co/cfahlgren1/fiato): English, with sighs, exhales and gasps.
 
 Ports and apps:
 
+- [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/multimodal/tts.md#tiny-voca): runs tiny-voca with `llama-tts`, from [GGUF files](https://huggingface.co/ggml-org/tiny-voca-GGUF).
 - [voca](https://github.com/sultson/voca): a rewrite in Rust.
 - [tiny-voca-esp32s3](https://github.com/ngxson/tiny-voca-esp32s3): runs on an ESP32-S3 microcontroller.
+- [tiny-voca-ane](https://github.com/razorback16/tiny-voca-ane): runs on the Apple Neural Engine with Core ML, with a Swift package.
 - [tiny-voca-dashboard](https://github.com/kleenpulse/tiny-voca-dashboard): a local dashboard.
 - [tinyvoca](https://github.com/spurious-cox/tinyvoca): a Mac app.
 - [tiny-voca-esp32s3](https://github.com/ngxson/tiny-voca-esp32s3): ESP32-S3 port.
@@ -121,6 +149,12 @@ Ports and apps:
 Same idea, other sounds:
 
 - [tinygroove](https://github.com/totomanov/tinygroove): a drum machine with no samples.
+
+Write-ups:
+
+- [Three small TTS models](https://ai.satyajit.si/articles/tiny-tts-roundup): how tiny-voca works, measured next to Kitten TTS and Tontaube on one CPU.
+- [tiny-voca review](https://andrew.ooo/posts/tiny-voca-review-4-5m-parameter-cpu-text-to-speech/): what it does well, where it breaks and how to run it.
+- [AlphaSignal](https://alphasignal.ai/model/tiny-voca-packs-two-ai-voices-into-an-18-mb-model-for-9): a short summary of the model, the data and the limits.
 
 Made something? Open an issue and I will add it.
 

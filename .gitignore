@@ -17,3 +17,4 @@ ops/
 web/public/assets/
 web/.wrangler/
 node_modules/
+js/tiny-voca.gguf
