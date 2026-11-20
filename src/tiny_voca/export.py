@@ -10,6 +10,8 @@ utterance, written with operations ONNX has: the short-time Fourier transforms
 of the source-filter head become real convolutions with fixed kernels, the
 complex filter responses are kept as separate real and imaginary parts, and
 the frame expansion uses a comparison instead of a sorted search.
+``--optimized`` writes a smaller, faster graph with the same audio up to float
+rounding (see ``Exportable``).
 
 Inputs
     tokens       int64 [1, N]   phoneme ids, with the edge tokens
@@ -67,14 +69,54 @@ def _synthesis_kernel(window):
     return (torch.cat((real, imaginary)) * window.double())[:, None].float().contiguous()
 
 
-class Exportable(nn.Module):
-    """Single-utterance synthesis in ONNX-friendly operations."""
+class _FrameOwners(torch.autograd.Function):
+    """The token that owns each frame: count the token ends at every frame,
+    then sum them along time. O(tokens + frames) instead of a comparison of
+    every frame with every end. Equal ends (zero durations) add up."""
 
-    def __init__(self, model, external_noise=False, omit_mask=True, sp_pause_threshold=0.5):
+    @staticmethod
+    def forward(ctx, ends, frame):
+        zeros = torch.cat((torch.zeros_like(frame), ends.new_zeros((1, 1))), dim=1)
+        counts = zeros.scatter_add(1, ends, torch.ones_like(ends))
+        return counts.cumsum(1)[:, :-1]
+
+    @staticmethod
+    def symbolic(g, ends, frame):
+        constant = lambda value: g.op("Constant", value_t=torch.tensor(value, dtype=torch.int64))
+        zeros = g.op("ConstantOfShape", g.op("Shape", frame), value_t=torch.zeros(1, dtype=torch.int64))
+        zeros = g.op("Concat", zeros, constant([[0]]), axis_i=1)
+        ones = g.op("ConstantOfShape", g.op("Shape", ends), value_t=torch.ones(1, dtype=torch.int64))
+        counts = g.op("ScatterElements", zeros, ends, ones, axis_i=1, reduction_s="add")
+        owners = g.op("CumSum", counts, constant(1))
+        return g.op("Slice", owners, constant([0]), constant([-1]), constant([1]))
+
+
+def _envelope_rows(window):
+    # In the kept crop the left edge lacks the fourth window for exactly one hop.
+    # The right crop ends before the last analysis frame contributes any samples.
+    quarters = window.double().square().float().reshape(4, -1)
+    w0, w1, w2, w3 = quarters.unbind()
+    prefix = (w2 + w1) + w0
+    return prefix, ((w3 + w2) + w1) + w0
+
+
+class Exportable(nn.Module):
+    """Single-utterance synthesis in ONNX-friendly operations.
+
+    ``optimized`` gives the same audio, up to float rounding, with a smaller
+    graph that runs faster:
+    no all-true masks (one utterance has no padding), real and imaginary
+    parts in one convolution and one matrix product, no analysis frame past
+    the end, a precomputed overlap-add envelope, and frame owners by a running
+    count (opset 16 or later)."""
+
+    def __init__(self, model, external_noise=False, optimized=False, omit_mask=True, sp_pause_threshold=0.5):
         super().__init__()
         self.model = model
         self.external_noise = external_noise
-        self.omit_mask = omit_mask
+        self.optimized = optimized
+        # fr: the all-true masks are left out by default; ``optimized`` always leaves them out.
+        self.omit_mask = omit_mask or optimized
         self.sp_pause_threshold = float(sp_pause_threshold)
         if self.sp_pause_threshold >= 1.0:
             self._sp_logit_threshold = 1e9
@@ -84,18 +126,27 @@ class Exportable(nn.Module):
             self._sp_logit_threshold = math.log(self.sp_pause_threshold / (1.0 - self.sp_pause_threshold))
         c = model.config
         v = model.vocoder
+        if optimized and (c.synth_fft != 4 * c.synth_hop or c.noise_fft != 4 * c.noise_hop):
+            raise ValueError("the optimized graph needs synthesis windows of four hops")
         causal = list(range(c.cep_causal))
         anti = [c.synth_fft - 1 - i for i in range(c.cep_anti)]
         for name, (real, imaginary) in (("harmonic", _cepstrum_matrices(causal + anti, c.synth_fft)),
                                         ("noise", _cepstrum_matrices(list(range(c.noise_cep)), c.noise_fft))):
             self.register_buffer(f"{name}_real", real, persistent=False)
             self.register_buffer(f"{name}_imaginary", imaginary, persistent=False)
+            if optimized:
+                self.register_buffer(f"{name}_response", torch.cat((real, imaginary), dim=1), persistent=False)
         for name, window in (("synth", v.synth_window), ("noise", v.noise_window)):
             real, imaginary = _analysis_kernels(window)
             self.register_buffer(f"{name}_analysis_real", real, persistent=False)
             self.register_buffer(f"{name}_analysis_imaginary", imaginary, persistent=False)
             self.register_buffer(f"{name}_synthesis", _synthesis_kernel(window), persistent=False)
             self.register_buffer(f"{name}_envelope", (window.double() ** 2).float()[None, None].contiguous(), persistent=False)
+            if optimized:
+                self.register_buffer(f"{name}_analysis", torch.cat((real, imaginary)), persistent=False)
+                prefix, steady = _envelope_rows(window)
+                self.register_buffer(f"{name}_prefix", prefix[None], persistent=False)
+                self.register_buffer(f"{name}_steady", steady[None], persistent=False)
         self.register_buffer("ramp", torch.arange(c.hop, dtype=torch.float32) / c.hop, persistent=False)
         self.phase_steps = 1 << 24
 
@@ -112,10 +163,28 @@ class Exportable(nn.Module):
         envelope = F.conv_transpose1d(torch.ones_like(s_real[:, :1]), getattr(self, f"{name}_envelope"), stride=hop)
         return (wave / envelope)[:, 0, fft // 2:fft // 2 + samples]
 
+    def _packed_filter(self, source, real, imaginary, name, fft, hop):
+        samples = source.shape[1]
+        # The final analysis frame in the reference starts just after the crop.
+        padded = F.pad(source[:, None], (fft // 2, fft - hop))
+        analysis = F.conv1d(padded, getattr(self, f"{name}_analysis"), stride=hop)
+        s_real, s_imaginary = analysis.split(fft // 2 + 1, dim=1)
+        real, imaginary = real.transpose(1, 2), imaginary.transpose(1, 2)
+        product = torch.cat((s_real * real - s_imaginary * imaginary, s_real * imaginary + s_imaginary * real), dim=1)
+        wave = F.conv_transpose1d(product, getattr(self, f"{name}_synthesis"), stride=hop, padding=fft // 2)[:, 0, :samples]
+        steady = getattr(self, f"{name}_steady").expand(samples // hop - 1, -1)
+        envelope = torch.cat((getattr(self, f"{name}_prefix"), steady)).reshape(1, -1)
+        return wave / envelope
+
     @staticmethod
     def _response(cepstrum, real, imaginary):
         magnitude = torch.exp((cepstrum @ real).clamp(-14, 6))
         angle = cepstrum @ imaginary
+        return magnitude * torch.cos(angle), magnitude * torch.sin(angle)
+
+    def _packed_response(self, cepstrum, name, fft):
+        amplitude, angle = (cepstrum @ getattr(self, f"{name}_response")).split(fft // 2 + 1, dim=-1)
+        magnitude = torch.exp(amplitude.clamp(-14, 6))
         return magnitude * torch.cos(angle), magnitude * torch.sin(angle)
 
     def _pulses(self, f0):
@@ -147,33 +216,41 @@ class Exportable(nn.Module):
         c = self.model.config
         v = self.model.vocoder
         last = total - 1
+        tail = 2 if self.optimized else 3
         # Harmonic branch.
         h = v.harmonic(hidden)
         split = c.cep_causal + c.cep_anti
         steps = v.harmonic_steps
-        sub = torch.minimum(torch.arange(steps * total + 3, device=hidden.device), steps * total - 1)
+        sub = torch.minimum(torch.arange(steps * total + tail, device=hidden.device), steps * total - 1)
         here = torch.div(sub, steps, rounding_mode="floor")
         following = torch.minimum(torch.div(sub + 1, steps, rounding_mode="floor"), last)
         envelope = 0.5 * (h[..., :split].index_select(1, here) + h[..., :split].index_select(1, following))
         envelope = envelope * torch.cat((v.causal_lifter, v.anti_lifter))
         gain = h[..., split:].flatten(1).index_select(1, sub)[..., None]
         envelope = torch.cat((envelope[..., :1] + gain, envelope[..., 1:]), dim=-1)
-        harmonic_real, harmonic_imaginary = self._response(envelope, self.harmonic_real, self.harmonic_imaginary)
+        if self.optimized:
+            harmonic_real, harmonic_imaginary = self._packed_response(envelope, "harmonic", c.synth_fft)
+        else:
+            harmonic_real, harmonic_imaginary = self._response(envelope, self.harmonic_real, self.harmonic_imaginary)
         # Noise branch.
         n = v.noise(hidden)
         steps = v.noise_steps
-        sub = torch.minimum(torch.arange(steps * total + 3, device=hidden.device), steps * total - 1)
+        sub = torch.minimum(torch.arange(steps * total + tail, device=hidden.device), steps * total - 1)
         shape = n[..., :c.noise_cep].index_select(1, torch.div(sub, steps, rounding_mode="floor")) * v.noise_lifter
         gain = n[..., c.noise_cep:].flatten(1).index_select(1, sub)[..., None]
         shape = torch.cat((shape[..., :1] + gain, shape[..., 1:]), dim=-1)
-        noise_real, noise_imaginary = self._response(shape, self.noise_real, self.noise_imaginary)
+        if self.optimized:
+            noise_real, noise_imaginary = self._packed_response(shape, "noise", c.noise_fft)
+        else:
+            noise_real, noise_imaginary = self._response(shape, self.noise_real, self.noise_imaginary)
         pulses = self._pulses(f0)
         if noise is None:
             noise = torch.randn_like(pulses)
         else:
             noise = noise.index_select(1, torch.arange(c.hop * total, device=hidden.device))
-        return (self._filter(pulses, harmonic_real, harmonic_imaginary, "synth", c.synth_fft, c.synth_hop)
-                + self._filter(noise, noise_real, noise_imaginary, "noise", c.noise_fft, c.noise_hop))
+        filter_source = self._packed_filter if self.optimized else self._filter
+        return (filter_source(pulses, harmonic_real, harmonic_imaginary, "synth", c.synth_fft, c.synth_hop)
+                + filter_source(noise, noise_real, noise_imaginary, "noise", c.noise_fft, c.noise_hop))
 
     def forward(self, tokens, stress, voice, speed, pitch_shift, pitch_range, noise=None):
         m = self.model
@@ -197,7 +274,7 @@ class Exportable(nn.Module):
         ends = durations.cumsum(1)
         total = ends[0, -1]
         frame = torch.arange(total, device=tokens.device)[None]
-        index = (ends[:, None, :] <= frame[:, :, None]).sum(-1)
+        index = _FrameOwners.apply(ends, frame) if self.optimized else (ends[:, None, :] <= frame[:, :, None]).sum(-1)
         owned = durations.gather(1, index).clamp_min(1)
         offset = frame - (ends.gather(1, index) - durations.gather(1, index))
         relative = (offset.to(hidden.dtype) + 0.5) / owned
@@ -225,8 +302,10 @@ def example_inputs(length=24):
     return tokens, torch.zeros_like(tokens), torch.tensor([0]), one(1.0), one(0.0), one(1.0)
 
 
-def export(model, path, external_noise=False, opset=17, omit_mask=True, sp_pause_threshold=0.5):
-    wrapper = Exportable(model, external_noise, omit_mask=omit_mask, sp_pause_threshold=sp_pause_threshold).eval()
+def export(model, path, external_noise=False, opset=17, optimized=False, omit_mask=True, sp_pause_threshold=0.5):
+    if optimized and opset < 16:
+        raise ValueError("the optimized graph needs opset 16 or later (ScatterElements with a reduction)")
+    wrapper = Exportable(model, external_noise, optimized, omit_mask=omit_mask, sp_pause_threshold=sp_pause_threshold).eval()
     inputs = example_inputs()
     names = list(INPUTS)
     axes = {"tokens": {1: "tokens"}, "stress": {1: "tokens"}, "audio": {1: "samples"}, "durations": {1: "tokens"}}
@@ -255,6 +334,7 @@ def main():
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--external-noise", action="store_true", help="Take the noise signal as an input (for exact comparisons)")
+    parser.add_argument("--optimized", action="store_true", help="Same audio, smaller and faster graph (see Exportable)")
     parser.add_argument("--keep-mask", action="store_true", help="Keep redundant all-true attention masks in single-utterance ONNX")
     parser.add_argument("--sp-pause-threshold", type=float, default=0.5, help="Word-space <sp> pause threshold baked into ONNX (default: 0.5)")
     parser.add_argument("--opset", type=int, default=17)
@@ -262,7 +342,7 @@ def main():
     match_frontend(args.checkpoint)
     model = load_model(args.checkpoint, "cpu")
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    export(model, args.output, args.external_noise, args.opset, omit_mask=not args.keep_mask,
+    export(model, args.output, args.external_noise, args.opset, args.optimized, omit_mask=not args.keep_mask,
            sp_pause_threshold=args.sp_pause_threshold)
     meta = metadata(model, args.checkpoint)
     if args.sp_pause_threshold != 0.5:

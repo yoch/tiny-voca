@@ -58,8 +58,8 @@ class Attention(nn.Module):
     def forward(self, x, mask, table):
         b, t, c = x.shape
         q, k, v = self.qkv(x).view(b, t, 3, self.heads, c // self.heads).permute(2, 0, 3, 1, 4)
-        attn_mask = None if mask is None else mask[:, None, None, :]
-        y = F.scaled_dot_product_attention(rotate(q, table), rotate(k, table), v, attn_mask=attn_mask,
+        y = F.scaled_dot_product_attention(rotate(q, table), rotate(k, table), v,
+                                           attn_mask=None if mask is None else mask[:, None, None, :],
                                            dropout_p=self.dropout if self.training else 0.0)
         return self.out(y.transpose(1, 2).reshape(b, t, c))
 

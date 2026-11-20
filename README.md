@@ -53,6 +53,10 @@ WAV. In Python, `tiny_voca.infer.speak_text` does the same.
 python -m tiny_voca.export --checkpoint weights/tiny-voca.pt --output tiny-voca.onnx
 ```
 
+`--optimized` writes a smaller graph with the same audio, up to float
+rounding. In ONNX Runtime on a CPU it is about 10% faster on a 3-second
+sentence and 25 to 40% faster on a 10-second one. It needs opset 16 or later.
+
 A ready file is in the weights repository as `onnx/model.onnx`. The
 [model card](https://huggingface.co/n4ze3m/tiny-voca) shows how to call it.
 
