@@ -14,3 +14,7 @@ source-filter synthesizer in llama.cpp (`tools/mtmd/models/tiny-voca.cpp`), agai
 
 Results go to `bench/llama_cpp_fft/results/<host>-<utc>/`. First run: Intel i7-3770 (AVX, no AVX2),
 synth -74 to -75 %, stacks + synth -31 to -40 %, 16-bit WAV within 1 LSB.
+
+## License
+The patches and `bench.cpp` contain code from llama.cpp (https://github.com/ggml-org/llama.cpp), MIT License,
+Copyright (c) 2023-2026 The ggml authors: see `LICENSE-llama.cpp`. The rest of this repository is Apache-2.0.
