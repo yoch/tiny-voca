@@ -1,0 +1,4 @@
+u1.bin frames=66 C=2.40 ms  T(2 thr)=1.66 (-31%)  K(3 thr)=1.34 (-44%, SNR vs C 156 dB)  K(4 thr)=1.52 (-36%, SNR vs C 164 dB)
+u3.bin frames=98 C=3.02 ms  T(2 thr)=2.19 (-27%)  K(3 thr)=2.08 (-31%, SNR vs C 159 dB)  K(4 thr)=1.94 (-36%, SNR vs C 157 dB)
+u5.bin frames=293 C=9.73 ms  T(2 thr)=6.63 (-32%)  K(3 thr)=6.08 (-38%, SNR vs C 172 dB)  K(4 thr)=5.60 (-42%, SNR vs C 162 dB)
+u7.bin frames=1022 C=35.57 ms  T(2 thr)=23.62 (-34%)  K(3 thr)=19.93 (-44%, SNR vs C 209 dB)  K(4 thr)=18.97 (-47%, SNR vs C 177 dB)

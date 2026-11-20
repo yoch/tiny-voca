@@ -1,0 +1,82 @@
+== host
+CPU(s):                                  4
+Model name:                              Intel(R) Xeon(R) Processor @ 2.10GHz
+Thread(s) per core:                      1
+Core(s) per socket:                      4
+Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl
+== llama.cpp 9d6f04f
+9d6f04fa99936708b9df140b7b2df62a8925afd5 2026-11-20
+== build base
+[100%] Built target llama-tts
+== build fast
+[100%] Built target llama-tts
+ tools/mtmd/models/tiny-voca.cpp | 228 +++++++++++++++++++++++++++++-----------
+ tools/mtmd/mtmd.cpp             |  23 ++++
+ tools/tts/tts.cpp               |   5 +-
+ 3 files changed, 192 insertions(+), 64 deletions(-)
+== models
+c70b6ba351335bb72bdd1ae42412f64490816c3accaec2a2c2990fbcfc33c48c  /tmp/tv-bench/gguf/mmproj-tiny-voca-F32.gguf
+6cc38fe1a32ac312d906da6549a142de8cb6a2d0d1f10e63966a8f7c49be72cc  /tmp/tv-bench/gguf/tiny-voca-F32.gguf
+== interleaved timings (median of 10, base and fast alternated)
+threads=1 short  F2 frames=98 | base stacks=32.2 synth=15.1 | fast stacks=37.0 synth=4.2 | synth -72%, stacks+synth -13%
+threads=1 short  M2 frames=89 | base stacks=32.4 synth=13.0 | fast stacks=29.5 synth=3.1 | synth -76%, stacks+synth -28%
+threads=1 medium F2 frames=293 | base stacks=113.3 synth=53.2 | fast stacks=103.7 synth=10.1 | synth -81%, stacks+synth -32%
+threads=1 medium M2 frames=264 | base stacks=89.2 synth=37.4 | fast stacks=87.3 synth=8.6 | synth -77%, stacks+synth -24%
+threads=1 long   F2 frames=1022 | base stacks=474.5 synth=169.0 | fast stacks=462.1 synth=33.5 | synth -80%, stacks+synth -23%
+threads=1 long   M2 frames=964 | base stacks=514.5 synth=165.6 | fast stacks=482.2 synth=33.1 | synth -80%, stacks+synth -24%
+threads=4 short  F2 frames=98 | base stacks=19.8 synth=13.9 | fast stacks=19.5 synth=3.1 | synth -78%, stacks+synth -33%
+threads=4 short  M2 frames=89 | base stacks=20.6 synth=13.8 | fast stacks=18.5 synth=2.9 | synth -79%, stacks+synth -38%
+threads=4 medium F2 frames=293 | base stacks=48.1 synth=42.1 | fast stacks=47.9 synth=9.7 | synth -77%, stacks+synth -36%
+threads=4 medium M2 frames=264 | base stacks=48.6 synth=37.2 | fast stacks=45.2 synth=8.2 | synth -78%, stacks+synth -38%
+threads=4 long   F2 frames=1022 | base stacks=179.2 synth=143.1 | fast stacks=188.0 synth=33.1 | synth -77%, stacks+synth -31%
+threads=4 long   M2 frames=964 | base stacks=179.8 synth=141.5 | fast stacks=176.3 synth=31.6 | synth -78%, stacks+synth -35%
+== WAV parity base vs fast (8 utterances)
+u1 same_length=True max_abs_diff_lsb=1 snr_db=101.7
+u2 same_length=True max_abs_diff_lsb=1 snr_db=103.3
+u3 same_length=True max_abs_diff_lsb=1 snr_db=101.7
+u4 same_length=True max_abs_diff_lsb=1 snr_db=100.2
+u5 same_length=True max_abs_diff_lsb=1 snr_db=100.6
+u6 same_length=True max_abs_diff_lsb=1 snr_db=99.7
+u7 same_length=True max_abs_diff_lsb=1 snr_db=100.8
+u8 same_length=True max_abs_diff_lsb=1 snr_db=98.9
+== standalone harness (old synth copy vs variants A/B/C/D, threads T/K)
+case       frames |   ref_ms     A_ms     B_ms     C_ms |   SNR_A   SNR_B   SNR_C |      A      B      C
+(D printed on a second line per case)
+u1.bin         66 |    6.780    6.170    2.757    1.971 |   135.9   118.8   119.0 |     9%    59%    71%
+                    T_ms    1.398   SNR_T vs C bit-identical   (T vs C -29%)
+                    D_ms    1.817   SNR_D   118.9   D    73%   (D vs C -8%)
+u2.bin         63 |    6.276    5.641    2.618    1.875 |   136.4   119.8   120.0 |    10%    58%    70%
+                    T_ms    1.344   SNR_T vs C bit-identical   (T vs C -28%)
+                    D_ms    1.714   SNR_D   120.0   D    73%   (D vs C -9%)
+u3.bin         98 |    9.724    8.749    4.082    3.190 |   135.7   115.5   116.1 |    10%    58%    67%
+                    T_ms    2.197   SNR_T vs C bit-identical   (T vs C -31%)
+                    D_ms    2.928   SNR_D   116.1   D    70%   (D vs C -8%)
+u4.bin         89 |    9.046    8.499    3.780    2.720 |   135.8   116.6   117.2 |     6%    58%    70%
+                    T_ms    2.000   SNR_T vs C bit-identical   (T vs C -26%)
+                    D_ms    2.482   SNR_D   117.0   D    73%   (D vs C -9%)
+u5.bin        293 |   34.688   27.249   12.988    9.449 |   135.1   116.4   116.9 |    21%    63%    73%
+                    T_ms    6.273   SNR_T vs C bit-identical   (T vs C -34%)
+                    D_ms    8.157   SNR_D   116.9   D    76%   (D vs C -14%)
+u6.bin        264 |   27.862   34.536   11.645    8.318 |   134.7   114.8   115.3 |   -24%    58%    70%
+                    T_ms    9.381   SNR_T vs C bit-identical   (T vs C +13%)
+                    D_ms    7.532   SNR_D   115.2   D    73%   (D vs C -9%)
+u7.bin       1022 |  106.288   97.240   47.033   34.908 |   135.1   117.2   117.8 |     9%    56%    67%
+                    T_ms   23.889   SNR_T vs C bit-identical   (T vs C -32%)
+                    D_ms   31.569   SNR_D   117.7   D    70%   (D vs C -10%)
+u8.bin        964 |  100.998   91.485   46.580   32.631 |   134.8   117.0   117.5 |     9%    54%    68%
+                    T_ms   22.639   SNR_T vs C bit-identical   (T vs C -31%)
+                    D_ms   29.047   SNR_D   117.5   D    71%   (D vs C -11%)
+cut1            1 |    0.195    0.148    0.056    0.040 |   125.4   123.6   123.4 |    24%    71%    79%
+                    T_ms    0.053   SNR_T vs C bit-identical   (T vs C +33%)
+                    D_ms    0.043   SNR_D   123.4   D    78%   (D vs C +6%)
+cut2            2 |    0.293    0.234    0.095    0.068 |   123.8   122.1   121.9 |    20%    68%    77%
+                    T_ms    0.071   SNR_T vs C bit-identical   (T vs C +5%)
+                    D_ms    0.068   SNR_D   121.9   D    77%   (D vs C +1%)
+cut3            3 |    0.388    0.318    0.134    0.095 |   124.2   122.4   122.2 |    18%    65%    76%
+                    T_ms    0.093   SNR_T vs C bit-identical   (T vs C -2%)
+                    D_ms    0.093   SNR_D   122.2   D    76%   (D vs C -2%)
+u1.bin frames=66 C=2.40 ms  T(2 thr)=1.66 (-31%)  K(3 thr)=1.34 (-44%, SNR vs C 156 dB)  K(4 thr)=1.52 (-36%, SNR vs C 164 dB)
+u3.bin frames=98 C=3.02 ms  T(2 thr)=2.19 (-27%)  K(3 thr)=2.08 (-31%, SNR vs C 159 dB)  K(4 thr)=1.94 (-36%, SNR vs C 157 dB)
+u5.bin frames=293 C=9.73 ms  T(2 thr)=6.63 (-32%)  K(3 thr)=6.08 (-38%, SNR vs C 172 dB)  K(4 thr)=5.60 (-42%, SNR vs C 162 dB)
+u7.bin frames=1022 C=35.57 ms  T(2 thr)=23.62 (-34%)  K(3 thr)=19.93 (-44%, SNR vs C 209 dB)  K(4 thr)=18.97 (-47%, SNR vs C 177 dB)
+== done: /home/user/tiny-voca/bench/llama_cpp_fft/results/vm-20261120T105859Z

@@ -1,0 +1,15 @@
+[  3%] Built target vendor-hash
+[  5%] Built target llama-common-base
+[  5%] Built target cpp-httplib
+[ 12%] Built target ggml-base
+[ 23%] Built target ggml-cpu
+[ 25%] Built target ggml
+[ 52%] Built target llama
+[ 52%] Building CXX object tools/mtmd/CMakeFiles/mtmd.dir/mtmd.cpp.o
+[ 52%] Building CXX object tools/mtmd/CMakeFiles/mtmd.dir/Unity/unity_3_cxx.cxx.o
+[ 89%] Built target llama-common
+[ 89%] Linking CXX shared library ../../bin/libmtmd.so
+[ 98%] Built target mtmd
+[ 98%] Building CXX object tools/tts/CMakeFiles/llama-tts.dir/tts.cpp.o
+[100%] Linking CXX executable ../../bin/llama-tts
+[100%] Built target llama-tts

@@ -1,0 +1,35 @@
+case       frames |   ref_ms     A_ms     B_ms     C_ms |   SNR_A   SNR_B   SNR_C |      A      B      C
+(D printed on a second line per case)
+u1.bin         66 |    6.780    6.170    2.757    1.971 |   135.9   118.8   119.0 |     9%    59%    71%
+                    T_ms    1.398   SNR_T vs C bit-identical   (T vs C -29%)
+                    D_ms    1.817   SNR_D   118.9   D    73%   (D vs C -8%)
+u2.bin         63 |    6.276    5.641    2.618    1.875 |   136.4   119.8   120.0 |    10%    58%    70%
+                    T_ms    1.344   SNR_T vs C bit-identical   (T vs C -28%)
+                    D_ms    1.714   SNR_D   120.0   D    73%   (D vs C -9%)
+u3.bin         98 |    9.724    8.749    4.082    3.190 |   135.7   115.5   116.1 |    10%    58%    67%
+                    T_ms    2.197   SNR_T vs C bit-identical   (T vs C -31%)
+                    D_ms    2.928   SNR_D   116.1   D    70%   (D vs C -8%)
+u4.bin         89 |    9.046    8.499    3.780    2.720 |   135.8   116.6   117.2 |     6%    58%    70%
+                    T_ms    2.000   SNR_T vs C bit-identical   (T vs C -26%)
+                    D_ms    2.482   SNR_D   117.0   D    73%   (D vs C -9%)
+u5.bin        293 |   34.688   27.249   12.988    9.449 |   135.1   116.4   116.9 |    21%    63%    73%
+                    T_ms    6.273   SNR_T vs C bit-identical   (T vs C -34%)
+                    D_ms    8.157   SNR_D   116.9   D    76%   (D vs C -14%)
+u6.bin        264 |   27.862   34.536   11.645    8.318 |   134.7   114.8   115.3 |   -24%    58%    70%
+                    T_ms    9.381   SNR_T vs C bit-identical   (T vs C +13%)
+                    D_ms    7.532   SNR_D   115.2   D    73%   (D vs C -9%)
+u7.bin       1022 |  106.288   97.240   47.033   34.908 |   135.1   117.2   117.8 |     9%    56%    67%
+                    T_ms   23.889   SNR_T vs C bit-identical   (T vs C -32%)
+                    D_ms   31.569   SNR_D   117.7   D    70%   (D vs C -10%)
+u8.bin        964 |  100.998   91.485   46.580   32.631 |   134.8   117.0   117.5 |     9%    54%    68%
+                    T_ms   22.639   SNR_T vs C bit-identical   (T vs C -31%)
+                    D_ms   29.047   SNR_D   117.5   D    71%   (D vs C -11%)
+cut1            1 |    0.195    0.148    0.056    0.040 |   125.4   123.6   123.4 |    24%    71%    79%
+                    T_ms    0.053   SNR_T vs C bit-identical   (T vs C +33%)
+                    D_ms    0.043   SNR_D   123.4   D    78%   (D vs C +6%)
+cut2            2 |    0.293    0.234    0.095    0.068 |   123.8   122.1   121.9 |    20%    68%    77%
+                    T_ms    0.071   SNR_T vs C bit-identical   (T vs C +5%)
+                    D_ms    0.068   SNR_D   121.9   D    77%   (D vs C +1%)
+cut3            3 |    0.388    0.318    0.134    0.095 |   124.2   122.4   122.2 |    18%    65%    76%
+                    T_ms    0.093   SNR_T vs C bit-identical   (T vs C -2%)
+                    D_ms    0.093   SNR_D   122.2   D    76%   (D vs C -2%)
