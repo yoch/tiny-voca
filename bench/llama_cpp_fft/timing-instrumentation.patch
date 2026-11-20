@@ -1,0 +1,66 @@
+diff --git a/tools/mtmd/mtmd.cpp b/tools/mtmd/mtmd.cpp
+index 511e01f..23c5a8f 100644
+--- a/tools/mtmd/mtmd.cpp
++++ b/tools/mtmd/mtmd.cpp
+@@ -1,3 +1,4 @@
++#include <chrono>
+ #include "mtmd-subcontext.h"
+ #include "models/models.h"
+ #include "mtmd-impl.h"
+@@ -3772,12 +3773,16 @@ static bool tiny_voca_stack(mtmd_context * ctx, llama_model * model, const std::
+     cparams.attention_type  = LLAMA_ATTENTION_TYPE_NON_CAUSAL;
+     cparams.flash_attn_type = ctx->tiny_voca_flash_attn;
+     cparams.no_perf         = true;
++    const auto st0 = std::chrono::steady_clock::now();
+     llama_context_ptr lctx(llama_init_from_model(model, cparams));
+     if (!lctx) {
+         LOG_ERR("%s: failed to create the context of a frame stack\n", __func__);
+         return false;
+     }
+ 
++    if (getenv("TV_TIMING")) {
++        fprintf(stderr, "TV_STACK_INIT ms=%.3f\n", std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - st0).count());
++    }
+     llama_batch_ext_ptr batch(llama_batch_ext_init(lctx.get()));
+     for (int32_t i = 0; i < n_rows; i++) {
+         const llama_embd row = { in.data() + (size_t) i * n_embd, 1, (size_t) n_embd };
+@@ -3796,6 +3801,9 @@ static bool tiny_voca_stack(mtmd_context * ctx, llama_model * model, const std::
+     }
+     const float * h = llama_get_embeddings(lctx.get());
+     out.assign(h, h + (size_t) n_rows * n_embd);
++    if (getenv("TV_TIMING")) {
++        fprintf(stderr, "TV_STACK rows=%d ms=%.3f\n", n_rows, std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - st0).count());
++    }
+     return true;
+ }
+ 
+@@ -3803,6 +3811,7 @@ static bool tiny_voca_stack(mtmd_context * ctx, llama_model * model, const std::
+ // codes: the tokens; feats: the voice row (encoder half, frame half), then the encoder state of each token
+ static int32_t mtmd_gen_wav_tiny_voca(mtmd_context * ctx, mtmd_gen_state * state, const mtmd_gen_inp * inp, mtmd_gen_out * out) {
+     using g = mtmd_graph_tiny_voca;
++    const auto tv_t0 = std::chrono::steady_clock::now();
+     const auto &  tv     = ctx->ctx_gen_a->model.tiny_voca;
+     const int64_t n_embd = ctx->ctx_gen_a->model.hparams.n_embd;
+     const int64_t n_tok  = (int64_t) inp->n_codes;
+@@ -3903,7 +3912,21 @@ static int32_t mtmd_gen_wav_tiny_voca(mtmd_context * ctx, mtmd_gen_state * state
+         return 1;
+     }
+ 
++    const auto tv_t1 = std::chrono::steady_clock::now();
++    if (const char * dump = getenv("TV_DUMP")) {
++        FILE * fp = fopen(dump, "wb");
++        const int64_t nf = n_frames;
++        fwrite(&nf, sizeof(nf), 1, fp);
++        fwrite(f0.data(), sizeof(float), f0.size(), fp);
++        fwrite(voc.data(), sizeof(float), voc.size(), fp);
++        fclose(fp);
++    }
+     g::synth(voc, f0, state->gen_state->rng, state->out_audio);
++    const auto tv_t2 = std::chrono::steady_clock::now();
++    if (getenv("TV_TIMING")) {
++        fprintf(stderr, "TV_TIMING frames=%lld net_ms=%.3f synth_ms=%.3f\n", (long long) n_frames,
++                std::chrono::duration<double, std::milli>(tv_t1 - tv_t0).count(), std::chrono::duration<double, std::milli>(tv_t2 - tv_t1).count());
++    }
+     out->audio     = state->out_audio.data();
+     out->n_samples = state->out_audio.size();
+     return 0;
