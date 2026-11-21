@@ -105,7 +105,15 @@ console.log(JSON.stringify(JSON.parse(fs.readFileSync(0, "utf8")).map((text) => 
             '"Stop!" she said. "Go." (Really.) 3 times', "It works. it really does", "We met at 5 p.m. Then we left",
             "Écoutez bien. À demain ! Il l'a. Et toi ?", "M. Dupont arrive. Mme Martin part",
             "MM. Dupont et Mgr Martin arrivent. Ils parlent.", "Voir fig. 2, p. 12 et chap. 3. Ensuite on lit.",
-            "... !!! Hello. :)", "No mark here " + BOM, "Shopping list:\n- eggs\n- milk\n- bread\n"]
+            "... !!! Hello. :)", "No mark here " + BOM, "Shopping list:\n- eggs\n- milk\n- bread\n",
+            "Ça marche ! Être ou ne pas être ? Œuvre majeure.",
+            "« Bonjour ! » dit-il. Ensuite il part.",
+            "Voir art. 3, vol. 2, p. 12. Fin.",
+            "C'est fini… À demain !",
+            "Un texte sans point final\u00a0",
+            "Il dit : « Oui ! »",
+            "Première phrase (avec parenthèse). Deuxième phrase.",
+        ]
         done = subprocess.run(["node", "-e", harness, str(worker)], input=json.dumps(texts), capture_output=True, text=True,
                               encoding="utf-8", check=True)
         for text, (ended, parts) in zip(texts, json.loads(done.stdout)):
