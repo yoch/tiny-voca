@@ -1,0 +1,30 @@
+== 2026-11-22T06:59:48Z  Model name: Intel(R) Xeon(R) Processor @ 2.10GHz  nproc 4  g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+-- reference (audio.cpp 337af0c), FFT single-threaded
+u0vF2s0     75 frames  synth    8.581 ms  (pulse_train   1.035 ms)  SNR vs PyTorch  122.9 dB
+u0vM2s0     68 frames  synth    7.891 ms  (pulse_train   0.946 ms)  SNR vs PyTorch  126.5 dB
+u1vF2s0    334 frames  synth   40.527 ms  (pulse_train   4.913 ms)  SNR vs PyTorch  125.6 dB
+u1vM2s0    301 frames  synth   34.387 ms  (pulse_train   4.289 ms)  SNR vs PyTorch  125.8 dB
+u2vF2s0    532 frames  synth   58.540 ms  (pulse_train   7.318 ms)  SNR vs PyTorch  125.2 dB
+u2vM2s0    497 frames  synth   69.473 ms  (pulse_train   8.624 ms)  SNR vs PyTorch  126.1 dB
+u3vF2s0    670 frames  synth   99.047 ms  (pulse_train  11.891 ms)  SNR vs PyTorch  124.8 dB
+u3vM2s0    590 frames  synth   85.941 ms  (pulse_train  10.288 ms)  SNR vs PyTorch  126.0 dB
+TOTAL 3067 frames: synth 404.39 ms (131.9 us/frame), pulse_train 49.30 ms
+-- optimized (opt/), FFT single-threaded
+u0vF2s0     75 frames  synth    2.098 ms  (pulse_train   0.511 ms)  SNR vs PyTorch  126.2 dB
+u0vM2s0     68 frames  synth    3.177 ms  (pulse_train   0.700 ms)  SNR vs PyTorch  127.1 dB
+u1vF2s0    334 frames  synth   14.567 ms  (pulse_train   3.377 ms)  SNR vs PyTorch  126.0 dB
+u1vM2s0    301 frames  synth    7.472 ms  (pulse_train   1.939 ms)  SNR vs PyTorch  126.6 dB
+u2vF2s0    532 frames  synth   13.212 ms  (pulse_train   3.450 ms)  SNR vs PyTorch  126.2 dB
+u2vM2s0    497 frames  synth   22.752 ms  (pulse_train   5.615 ms)  SNR vs PyTorch  127.3 dB
+u3vF2s0    670 frames  synth   25.156 ms  (pulse_train   6.258 ms)  SNR vs PyTorch  126.2 dB
+u3vM2s0    590 frames  synth   19.409 ms  (pulse_train   4.856 ms)  SNR vs PyTorch  126.8 dB
+TOTAL 3067 frames: synth 107.84 ms (35.2 us/frame), pulse_train 26.71 ms
+-- parity optimized vs reference
+u0vF2s0   samples   19200  SNR  124.8 dB  16-bit max diff 1 LSB, 22 samples differ
+u0vM2s0   samples   17408  SNR  128.6 dB  16-bit max diff 1 LSB, 20 samples differ
+u1vF2s0   samples   85504  SNR  126.2 dB  16-bit max diff 1 LSB, 119 samples differ
+u1vM2s0   samples   77056  SNR  126.1 dB  16-bit max diff 1 LSB, 119 samples differ
+u2vF2s0   samples  136192  SNR  126.2 dB  16-bit max diff 1 LSB, 103 samples differ
+u2vM2s0   samples  127232  SNR  126.6 dB  16-bit max diff 1 LSB, 167 samples differ
+u3vF2s0   samples  171520  SNR  125.7 dB  16-bit max diff 1 LSB, 176 samples differ
+u3vM2s0   samples  151040  SNR  126.0 dB  16-bit max diff 1 LSB, 175 samples differ

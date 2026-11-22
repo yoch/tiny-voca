@@ -2,4 +2,4 @@ The files under include/ and src/ here are modified copies of
 include/engine/community_models/tiny_voca/source_filter.h and src/community_models/tiny_voca/source_filter.cpp
 from audio.cpp (https://github.com/0xShug0/audio.cpp) at commit 337af0c, Copyright 2026 ShugoAI LLC,
 licensed under the Apache License, Version 2.0 (LICENSE in this folder).
-Changes: see ../README.md ("What is already done in opt/") and the git history of this folder.
+Changes: see ../README.md ("What is already done in opt/"), ../results/SUMMARY.md and the git history of this folder.

@@ -1,0 +1,72 @@
+# Parity of the final opt/ against the reference (audio.cpp 337af0c), compare.py on the 8 real dumps
+
+## g++ -O3 -march=native -DENGINE_SPEECHFFT_NO_MULTITHREADING (harness default)
+u0vF2s0   samples   19200  SNR  124.8 dB  16-bit max diff 1 LSB, 21 samples differ
+u0vM2s0   samples   17408  SNR  128.4 dB  16-bit max diff 1 LSB, 22 samples differ
+u1vF2s0   samples   85504  SNR  126.1 dB  16-bit max diff 1 LSB, 119 samples differ
+u1vM2s0   samples   77056  SNR  126.1 dB  16-bit max diff 1 LSB, 118 samples differ
+u2vF2s0   samples  136192  SNR  126.2 dB  16-bit max diff 1 LSB, 108 samples differ
+u2vM2s0   samples  127232  SNR  126.5 dB  16-bit max diff 1 LSB, 173 samples differ
+u3vF2s0   samples  171520  SNR  125.6 dB  16-bit max diff 1 LSB, 179 samples differ
+u3vM2s0   samples  151040  SNR  126.0 dB  16-bit max diff 1 LSB, 176 samples differ
+PARITY min SNR 124.8 dB, max diff 1 LSB, 916 samples differ
+
+## kit opt/ (before this work), same build
+PARITY min SNR 124.8 dB, max diff 1 LSB, 901 samples differ
+
+## g0 (g0 = g++ -O3, cn = clang++ -O3 -march=native, c0 = clang++ -O3); final vs g++ native reference, then vs the same-compiler reference
+PARITY min SNR 127.5 dB, max diff 1 LSB, 730 samples differ
+same-compiler: min SNR 127.8 dB, max diff 1 LSB, 693 samples differ
+
+## cn (g0 = g++ -O3, cn = clang++ -O3 -march=native, c0 = clang++ -O3); final vs g++ native reference, then vs the same-compiler reference
+PARITY min SNR 124.8 dB, max diff 1 LSB, 913 samples differ
+same-compiler: min SNR 128.4 dB, max diff 1 LSB, 695 samples differ
+
+## c0 (g0 = g++ -O3, cn = clang++ -O3 -march=native, c0 = clang++ -O3); final vs g++ native reference, then vs the same-compiler reference
+PARITY min SNR 127.5 dB, max diff 1 LSB, 730 samples differ
+same-compiler: min SNR 127.8 dB, max diff 1 LSB, 693 samples differ
+
+## pulse train vs reference pulse train (in-process, g++ native)
+u0vF2s0   pulse SNR  184.0 dB  max abs diff 5.96e-08  (peak 10.4)
+u0vM2s0   pulse SNR  194.5 dB  max abs diff 1.49e-08  (peak 15.2)
+u1vF2s0   pulse SNR  174.3 dB  max abs diff 2.38e-07  (peak 11.1)
+u1vM2s0   pulse SNR  169.6 dB  max abs diff 4.77e-07  (peak 16.2)
+u2vF2s0   pulse SNR  162.4 dB  max abs diff 9.54e-07  (peak 11.5)
+u2vM2s0   pulse SNR  158.0 dB  max abs diff 9.54e-07  (peak 15.8)
+u3vF2s0   pulse SNR  161.2 dB  max abs diff 9.54e-07  (peak 11.6)
+u3vM2s0   pulse SNR  163.0 dB  max abs diff 9.54e-07  (peak 16.9)
+
+## short inputs cut from the longest dump, vs reference (g++ native, then g++ -O3)
+N=1    samples    256  SNR  125.2 dB  16-bit max diff 0
+N=2    samples    512  SNR  124.5 dB  16-bit max diff 0
+N=3    samples    768  SNR  123.7 dB  16-bit max diff 1
+N=4    samples   1024  SNR  123.8 dB  16-bit max diff 1
+N=5    samples   1280  SNR  123.2 dB  16-bit max diff 1
+N=7    samples   1792  SNR  122.2 dB  16-bit max diff 1
+N=8    samples   2048  SNR  122.3 dB  16-bit max diff 1
+N=15   samples   3840  SNR  123.2 dB  16-bit max diff 1
+N=16   samples   4096  SNR  123.1 dB  16-bit max diff 1
+N=17   samples   4352  SNR  122.8 dB  16-bit max diff 1
+N=31   samples   7936  SNR  130.1 dB  16-bit max diff 1
+N=32   samples   8192  SNR  130.0 dB  16-bit max diff 1
+N=33   samples   8448  SNR  129.9 dB  16-bit max diff 1
+N=34   samples   8704  SNR  129.9 dB  16-bit max diff 1
+N=63   samples  16128  SNR  127.8 dB  16-bit max diff 1
+N=64   samples  16384  SNR  127.8 dB  16-bit max diff 1
+N=65   samples  16640  SNR  127.8 dB  16-bit max diff 1
+N=66   samples  16896  SNR  127.8 dB  16-bit max diff 1
+N=127  samples  32512  SNR  126.4 dB  16-bit max diff 1
+N=128  samples  32768  SNR  126.4 dB  16-bit max diff 1
+N=129  samples  33024  SNR  126.4 dB  16-bit max diff 1
+N=200  samples  51200  SNR  126.1 dB  16-bit max diff 1
+N=590  samples 151040  SNR  126.0 dB  16-bit max diff 1
+EDGE worst SNR 122.2 dB, max diff 1 LSB
+EDGE worst SNR 123.9 dB, max diff 1 LSB
+
+## determinism: 3 runs of the threaded-FFT build bit-identical, and identical to the -DENGINE_SPEECHFFT_NO_MULTITHREADING build: yes (checked with cmp)
+
+## -ffast-math build of the final source (variant only)
+PARITY min SNR 116.8 dB, max diff 1 LSB, 2027 samples differ
+
+## target_clones variant (g++ -O3)
+PARITY min SNR 124.8 dB, max diff 1 LSB, 941 samples differ

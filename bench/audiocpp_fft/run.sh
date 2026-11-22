@@ -21,6 +21,20 @@ if [ ! -d venv ]; then
   venv/bin/pip -q install torch --index-url https://download.pytorch.org/whl/cpu
   venv/bin/pip -q install numpy soundfile huggingface_hub "./up[own]"
 fi
+# dizione ships without its built data. Build the dictionary only (CMUdict at its pinned commit);
+# its unknown-word model takes 1.5 h to train and the dump sentences are all dictionary words.
+if [ -z "${DIZIONE_DATA:-}" ] && ! venv/bin/python -c "import dizione.engine as e; e.Phonemizer()" 2>/dev/null; then
+  if [ ! -f dizione_data/built/lexicon.tsv ]; then
+    rev=$(venv/bin/python -c "import json, importlib.metadata as m; print(json.loads(m.distribution('dizione').read_text('direct_url.json'))['vcs_info']['commit_id'])")
+    [ -d dizione_src ] || git clone -q https://github.com/n4ze3m/dizione dizione_src
+    git -C dizione_src checkout -q "$rev"
+    commit=$(grep -o 'CMUDICT_COMMIT="[0-9a-f]*"' dizione_src/scripts/fetch_sources.sh | cut -d'"' -f2)
+    mkdir -p dizione_data/cmudict dizione_data/built
+    curl -fsSL "https://raw.githubusercontent.com/cmusphinx/cmudict/$commit/cmudict.dict" -o dizione_data/cmudict/cmudict.dict
+    venv/bin/python dizione_src/scripts/build_lexicon.py --cmudict dizione_data/cmudict/cmudict.dict --output dizione_data/built
+  fi
+  export DIZIONE_DATA=$W/dizione_data/built
+fi
 if [ ! -f dumps/cases.txt ]; then
   CK=$(venv/bin/python -c "from huggingface_hub import hf_hub_download; print(hf_hub_download('n4ze3m/tiny-voca', 'tiny-voca.pt'))")
   (cd up && TINY_VOCA_FRONTEND=own PYTHONPATH=src ../venv/bin/python "$B/dump.py" "$CK" "$W/dumps" en)

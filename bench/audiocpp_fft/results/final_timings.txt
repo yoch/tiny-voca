@@ -1,0 +1,103 @@
+# Harness timings (bench_ac.cpp via work/tools/cmp.py): 15 rounds, each round runs every binary once with 15 inner runs (median), pinned to core 2; medians over rounds; 'paired ratio' = median over rounds of total(candidate)/total(reference) of the same round.
+# ref = audio.cpp 337af0c verbatim, kit = opt/ before this work, fin = opt/ after. us/frame = synthesize() per acoustic frame (256 samples at 24 kHz); pulse_train timed separately.
+
+=== g++ -O3 -march=native -DENGINE_SPEECHFFT_NO_MULTITHREADING
+case      frames            ref_gn_nomt            kit_gn_nomt            fin_gn_nomt
+u0vF2s0       75      10.818 ms ( 1.320)       2.605 ms ( 0.621)       1.044 ms ( 0.136)
+u0vM2s0       68      10.018 ms ( 1.200)       2.396 ms ( 0.569)       0.990 ms ( 0.122)
+u1vF2s0      334      47.620 ms ( 5.888)      10.872 ms ( 2.788)       4.242 ms ( 0.600)
+u1vM2s0      301      42.991 ms ( 5.287)       9.911 ms ( 2.516)       3.628 ms ( 0.534)
+u2vF2s0      532      79.350 ms ( 9.399)      17.653 ms ( 4.422)       6.789 ms ( 0.955)
+u2vM2s0      497      71.304 ms ( 8.739)      17.263 ms ( 4.356)       6.291 ms ( 0.889)
+u3vF2s0      670      96.158 ms (11.780)      22.697 ms ( 5.659)       8.221 ms ( 1.199)
+u3vM2s0      590      86.083 ms (10.362)      19.679 ms ( 4.894)       7.285 ms ( 1.061)
+ref_gn_nomt              total   446.31 ms = 145.52 us/frame (min 132.82, max 162.50); pulse_train 17.63 us/frame
+kit_gn_nomt              total   107.69 ms =  35.11 us/frame (min  30.03, max  47.20); pulse_train  8.87 us/frame
+fin_gn_nomt              total    38.72 ms =  12.62 us/frame (min  10.11, max  18.14); pulse_train  1.79 us/frame
+paired ratio kit_gn_nomt/ref_gn_nomt: median 0.245 (quartiles 0.230 .. 0.259)
+paired ratio fin_gn_nomt/ref_gn_nomt: median 0.087 (quartiles 0.084 .. 0.094)
+=== g++ -O3 -march=native 
+case      frames              ref_gn_mt              kit_gn_mt              fin_gn_mt
+u0vF2s0       75      11.132 ms ( 1.331)       2.677 ms ( 0.618)       1.065 ms ( 0.135)
+u0vM2s0       68      10.266 ms ( 1.214)       2.423 ms ( 0.561)       0.951 ms ( 0.120)
+u1vF2s0      334      48.705 ms ( 5.860)      11.612 ms ( 2.807)       4.291 ms ( 0.603)
+u1vM2s0      301      46.463 ms ( 5.334)      10.314 ms ( 2.508)       3.786 ms ( 0.544)
+u2vF2s0      532      76.812 ms ( 9.338)      18.063 ms ( 4.463)       6.894 ms ( 0.976)
+u2vM2s0      497      71.641 ms ( 8.660)      17.033 ms ( 4.098)       6.309 ms ( 0.898)
+u3vF2s0      670      96.128 ms (11.708)      23.305 ms ( 5.591)       8.385 ms ( 1.213)
+u3vM2s0      590      85.568 ms (10.313)      20.465 ms ( 4.831)       7.211 ms ( 1.055)
+ref_gn_mt                total   451.00 ms = 147.05 us/frame (min 136.05, max 172.36); pulse_train 17.69 us/frame
+kit_gn_mt                total   106.57 ms =  34.75 us/frame (min  32.08, max  47.66); pulse_train  8.33 us/frame
+fin_gn_mt                total    40.76 ms =  13.29 us/frame (min   9.90, max  16.71); pulse_train  1.86 us/frame
+paired ratio kit_gn_mt/ref_gn_mt: median 0.238 (quartiles 0.225 .. 0.254)
+paired ratio fin_gn_mt/ref_gn_mt: median 0.088 (quartiles 0.080 .. 0.096)
+=== g++ -O3 -DENGINE_SPEECHFFT_NO_MULTITHREADING
+case      frames            ref_g0_nomt            kit_g0_nomt            fin_g0_nomt
+u0vF2s0       75       8.323 ms ( 1.280)       2.740 ms ( 0.752)       2.077 ms ( 0.446)
+u0vM2s0       68       7.240 ms ( 1.133)       2.503 ms ( 0.651)       1.925 ms ( 0.402)
+u1vF2s0      334      37.326 ms ( 5.875)      11.458 ms ( 3.162)       8.836 ms ( 2.019)
+u1vM2s0      301      33.170 ms ( 5.198)      10.366 ms ( 2.826)       8.009 ms ( 1.797)
+u2vF2s0      532      58.947 ms ( 9.288)      18.209 ms ( 5.034)      13.785 ms ( 3.171)
+u2vM2s0      497      55.123 ms ( 8.621)      16.827 ms ( 4.657)      13.148 ms ( 2.965)
+u3vF2s0      670      75.202 ms (11.720)      22.494 ms ( 6.332)      17.891 ms ( 4.060)
+u3vM2s0      590      65.778 ms (10.245)      20.119 ms ( 5.536)      15.814 ms ( 3.555)
+ref_g0_nomt              total   336.21 ms = 109.62 us/frame (min 106.64, max 122.60); pulse_train 17.00 us/frame
+kit_g0_nomt              total   103.32 ms =  33.69 us/frame (min  28.26, max  37.37); pulse_train  9.33 us/frame
+fin_g0_nomt              total    82.41 ms =  26.87 us/frame (min  22.98, max  28.42); pulse_train  6.01 us/frame
+paired ratio kit_g0_nomt/ref_g0_nomt: median 0.300 (quartiles 0.291 .. 0.323)
+paired ratio fin_g0_nomt/ref_g0_nomt: median 0.236 (quartiles 0.229 .. 0.253)
+=== clang++ -O3 -march=native -DENGINE_SPEECHFFT_NO_MULTITHREADING
+case      frames            ref_cn_nomt            kit_cn_nomt            fin_cn_nomt
+u0vF2s0       75      13.062 ms ( 1.410)       3.798 ms ( 0.757)       2.058 ms ( 0.119)
+u0vM2s0       68      11.927 ms ( 1.276)       3.375 ms ( 0.671)       1.863 ms ( 0.105)
+u1vF2s0      334      57.066 ms ( 6.266)      16.354 ms ( 3.381)       8.812 ms ( 0.530)
+u1vM2s0      301      51.279 ms ( 5.506)      14.637 ms ( 2.999)       7.815 ms ( 0.474)
+u2vF2s0      532      91.337 ms ( 9.981)      25.768 ms ( 5.322)      13.704 ms ( 0.832)
+u2vM2s0      497      85.937 ms ( 9.353)      24.093 ms ( 4.921)      12.802 ms ( 0.782)
+u3vF2s0      670     116.874 ms (12.659)      32.652 ms ( 6.727)      17.293 ms ( 1.049)
+u3vM2s0      590     103.277 ms (11.026)      28.493 ms ( 5.803)      15.155 ms ( 0.921)
+ref_cn_nomt              total   528.20 ms = 172.22 us/frame (min 156.25, max 176.95); pulse_train 18.54 us/frame
+kit_cn_nomt              total   148.64 ms =  48.46 us/frame (min  42.70, max  50.97); pulse_train  9.93 us/frame
+fin_cn_nomt              total    79.49 ms =  25.92 us/frame (min  21.17, max  27.01); pulse_train  1.56 us/frame
+paired ratio kit_cn_nomt/ref_cn_nomt: median 0.282 (quartiles 0.269 .. 0.290)
+paired ratio fin_cn_nomt/ref_cn_nomt: median 0.149 (quartiles 0.141 .. 0.157)
+=== clang++ -O3 -DENGINE_SPEECHFFT_NO_MULTITHREADING
+case      frames            ref_c0_nomt            kit_c0_nomt            fin_c0_nomt
+u0vF2s0       75       9.900 ms ( 1.343)       2.925 ms ( 0.834)       1.703 ms ( 0.610)
+u0vM2s0       68       9.122 ms ( 1.217)       2.730 ms ( 0.756)       1.584 ms ( 0.549)
+u1vF2s0      334      44.003 ms ( 5.993)      12.480 ms ( 3.567)       7.279 ms ( 2.734)
+u1vM2s0      301      40.097 ms ( 5.400)      11.183 ms ( 3.152)       6.442 ms ( 2.439)
+u2vF2s0      532      70.376 ms ( 9.499)      19.439 ms ( 5.588)      11.327 ms ( 4.366)
+u2vM2s0      497      67.199 ms ( 8.941)      18.188 ms ( 5.192)      10.492 ms ( 4.031)
+u3vF2s0      670      88.982 ms (11.996)      24.424 ms ( 7.116)      14.333 ms ( 5.516)
+u3vM2s0      590      79.244 ms (10.512)      21.600 ms ( 6.125)      12.636 ms ( 4.822)
+ref_c0_nomt              total   410.51 ms = 133.85 us/frame (min 125.96, max 156.29); pulse_train 17.95 us/frame
+kit_c0_nomt              total   115.68 ms =  37.72 us/frame (min  34.71, max  43.25); pulse_train 10.69 us/frame
+fin_c0_nomt              total    66.78 ms =  21.77 us/frame (min  18.85, max  24.10); pulse_train  8.17 us/frame
+paired ratio kit_c0_nomt/ref_c0_nomt: median 0.282 (quartiles 0.268 .. 0.301)
+paired ratio fin_c0_nomt/ref_c0_nomt: median 0.165 (quartiles 0.154 .. 0.168)
+=== variant target_clones, g++ -O3 (no -march) -DENGINE_SPEECHFFT_NO_MULTITHREADING
+case      frames            fin_g0_nomt              clones_g0
+u0vF2s0       75       2.079 ms ( 0.444)       1.092 ms ( 0.117)
+u0vM2s0       68       1.921 ms ( 0.401)       0.974 ms ( 0.106)
+u1vF2s0      334       8.888 ms ( 2.021)       4.314 ms ( 0.536)
+u1vM2s0      301       8.048 ms ( 1.804)       3.845 ms ( 0.482)
+u2vF2s0      532      13.842 ms ( 3.196)       6.754 ms ( 0.861)
+u2vM2s0      497      13.127 ms ( 2.978)       6.219 ms ( 0.797)
+u3vF2s0      670      18.010 ms ( 4.064)       8.444 ms ( 1.081)
+u3vM2s0      590      16.509 ms ( 3.598)       7.194 ms ( 0.947)
+fin_g0_nomt              total    83.59 ms =  27.26 us/frame (min  22.89, max  34.61); pulse_train  6.00 us/frame
+clones_g0                total    40.45 ms =  13.19 us/frame (min  11.89, max  15.49); pulse_train  1.62 us/frame
+paired ratio clones_g0/fin_g0_nomt: median 0.482 (quartiles 0.431 .. 0.536)
+FINAL_DONE
+
+# In-process paired timing (work/tools/pair.cpp, 30 iterations), g++ -O3 (no -march, the real build's flags) without ENGINE_SPEECHFFT_NO_MULTITHREADING: A = kit opt/, B = final
+u0vF2s0     75 frames  A    2.978 ms  B    2.186 ms  B/A 0.734
+u0vM2s0     68 frames  A    2.571 ms  B    2.080 ms  B/A 0.809
+u1vF2s0    334 frames  A   13.204 ms  B    9.200 ms  B/A 0.697
+u1vM2s0    301 frames  A   12.119 ms  B    8.702 ms  B/A 0.718
+u2vF2s0    532 frames  A   21.517 ms  B   14.871 ms  B/A 0.691
+u2vM2s0    497 frames  A   19.850 ms  B   13.834 ms  B/A 0.697
+u3vF2s0    670 frames  A   27.300 ms  B   18.512 ms  B/A 0.678
+u3vM2s0    590 frames  A   25.159 ms  B   16.747 ms  B/A 0.666
+TOTAL 3067 frames: A 40.56 us/frame  B 28.63 us/frame  paired B/A median 0.701 (quartiles 0.675 .. 0.718)  [0]

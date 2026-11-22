@@ -26,6 +26,8 @@ double (coefficients x bins table) plus exp, cos and sin in double per bin.
 4. Pulse train: one exp per frame (geometric series), phase in cycles in [0, 1), two sin/cos pairs per sample.
 Result: ~100 us per frame (-73 %); parity SNR 125-130 dB, max 1 LSB on < 0.1 % of 16-bit samples.
 Remaining profile: pulse train ~24 us/frame (2 double sincos per sample), shape() ~76 us/frame.
+Second pass (results/SUMMARY.md, results/STEPS.md): no libm in the loops, register-tiled head, block-sized overlap-add,
+FFT threads = 1; 35.1 -> 12.6 us/frame on a Xeon with AVX-512 (g++ -march=native), 33.7 -> 26.9 at baseline ISA.
 Their FFT default `threads = 0` uses a thread pool per block: a net loss here (measured both ways).
 
 ## Constraints for any further change
