@@ -1,0 +1,11 @@
+CXX_DEFINES = -DGGML_BACKEND_SHARED -DGGML_SHARED -DGGML_USE_CPU -DLLAMA_BUILD -DLLAMA_SHARED -DMTMD_VIDEO -D_USE_MATH_DEFINES -Dmtmd_EXPORTS
+CXX_INCLUDES = -I/tmp/tv/llama.cpp/tools/mtmd/. -I/tmp/tv/llama.cpp/ggml/src/../include -I/tmp/tv/llama.cpp/src/../include -I/tmp/tv/llama.cpp/vendor/hash/.. -I/tmp/tv/llama.cpp/vendor/miniaudio/.. -I/tmp/tv/llama.cpp/vendor/stb/.. -I/tmp/tv/llama.cpp/vendor/sheredom/..
+CXX_FLAGS = -O3 -DNDEBUG -fPIC -Wmissing-declarations -Wmissing-noreturn -Wall -Wextra -Wpedantic -Wcast-qual -Wno-unused-function -Wno-array-bounds -Wextra-semi -Wno-cast-qual -Wno-maybe-uninitialized
+43:#include "/tmp/tv/llama.cpp/tools/mtmd/models/tiny-voca.cpp"
+CMAKE_BUILD_TYPE:STRING=Release
+CMAKE_CXX_FLAGS:STRING=
+CMAKE_CXX_FLAGS_DEBUG:STRING=-g
+CMAKE_CXX_FLAGS_MINSIZEREL:STRING=-Os -DNDEBUG
+CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
+CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
+GGML_NATIVE:BOOL=ON

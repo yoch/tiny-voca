@@ -1,0 +1,8 @@
+ab ref C iters=30 | ref med=514.643 ms | C med=115.190 ms | ratio_of_medians=0.2238 | pair_ratio q25=0.2284 med=0.2376 q75=0.2626
+ab ref Pc iters=30 | ref med=463.042 ms | Pc med=454.494 ms | ratio_of_medians=0.9815 | pair_ratio q25=0.8909 med=0.9638 q75=1.0768
+ab ref Pw iters=30 | ref med=474.247 ms | Pw med=459.642 ms | ratio_of_medians=0.9692 | pair_ratio q25=0.9216 med=0.9885 q75=1.0476
+ab ref Pt iters=30 | ref med=509.782 ms | Pt med=466.169 ms | ratio_of_medians=0.9144 | pair_ratio q25=0.8322 med=0.9855 q75=1.0151
+ab ref T iters=30 | ref med=481.564 ms | T med=485.257 ms | ratio_of_medians=1.0077 | pair_ratio q25=0.9377 med=1.0073 q75=1.1099
+ab ref N iters=30 | ref med=483.065 ms | N med=484.127 ms | ratio_of_medians=1.0022 | pair_ratio q25=0.9594 med=1.0246 q75=1.0752
+ab ref H iters=30 | ref med=455.960 ms | H med=287.007 ms | ratio_of_medians=0.6295 | pair_ratio q25=0.6143 med=0.6364 q75=0.6428
+DONE

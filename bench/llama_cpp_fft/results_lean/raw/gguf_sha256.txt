@@ -1,0 +1,2 @@
+c70b6ba351335bb72bdd1ae42412f64490816c3accaec2a2c2990fbcfc33c48c  mmproj-tiny-voca-F32.gguf
+6cc38fe1a32ac312d906da6549a142de8cb6a2d0d1f10e63966a8f7c49be72cc  tiny-voca-F32.gguf

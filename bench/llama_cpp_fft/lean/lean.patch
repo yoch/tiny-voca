@@ -1,0 +1,148 @@
+diff --git a/tools/mtmd/models/tiny-voca.cpp b/tools/mtmd/models/tiny-voca.cpp
+index ab155b93f..2129908a9 100644
+--- a/tools/mtmd/models/tiny-voca.cpp
++++ b/tools/mtmd/models/tiny-voca.cpp
+@@ -77,6 +77,93 @@ static void tiny_voca_pulse_train(const std::vector<float> & f0, std::vector<flo
+     }
+ }
+ 
++// real FFT of n samples (a power of two, 8 <= n <= 512) as an iterative radix-2 complex FFT of m = n / 2 points
++struct tiny_voca_rfft {
++    int m;
++    std::vector<int>   rev;          // bit reversal of 0 .. m - 1
++    std::vector<float> tw_c, tw_s;   // twiddles of the stage of size 2 h at h - 1 + j: exp(-i pi j / h)
++    std::vector<float> rot_c, rot_s; // exp(-2 pi i k / n), k = 0 .. m - 1
++
++    explicit tiny_voca_rfft(int n) : m(n / 2), rev(m), tw_c(m), tw_s(m), rot_c(m), rot_s(m) {
++        GGML_ASSERT(n >= 8 && n <= 512 && (n & (n - 1)) == 0);
++        for (int k = 0; k < m; k++) {
++            for (int b = m / 2, i = k; b > 0; b >>= 1, i >>= 1) {
++                rev[k] = 2 * rev[k] + (i & 1);
++            }
++        }
++        for (int h = 1; h < m; h *= 2) {
++            for (int j = 0; j < h; j++) {
++                tw_c[h - 1 + j] = std::cos(-M_PI * j / h);
++                tw_s[h - 1 + j] = std::sin(-M_PI * j / h);
++            }
++        }
++        for (int k = 0; k < m; k++) {
++            rot_c[k] = std::cos(-2.0 * M_PI * k / n);
++            rot_s[k] = std::sin(-2.0 * M_PI * k / n);
++        }
++    }
++
++    void butterflies(float * r, float * im) const {
++        // stages of size 2 and 4 together, their twiddles are 1 and -i
++        for (int a = 0; a < m; a += 4) {
++            const float r0 = r[a] + r[a + 1],     i0 = im[a] + im[a + 1],     r1 = r[a] - r[a + 1],     i1 = im[a] - im[a + 1];
++            const float r2 = r[a + 2] + r[a + 3], i2 = im[a + 2] + im[a + 3], r3 = r[a + 2] - r[a + 3], i3 = im[a + 2] - im[a + 3];
++            r[a]     = r0 + r2; im[a]     = i0 + i2;
++            r[a + 2] = r0 - r2; im[a + 2] = i0 - i2;
++            r[a + 1] = r1 + i3; im[a + 1] = i1 - r3;
++            r[a + 3] = r1 - i3; im[a + 3] = i1 + r3;
++        }
++        for (int h = 4; h < m; h *= 2) {
++            const float * c = tw_c.data() + h - 1;
++            const float * s = tw_s.data() + h - 1;
++            for (int block = 0; block < m; block += 2 * h) {
++                for (int j = 0; j < h; j++) {
++                    const int   a  = block + j, b = a + h;
++                    const float tr = r[b] * c[j] - im[b] * s[j];
++                    const float ti = r[b] * s[j] + im[b] * c[j];
++                    r[b] = r[a] - tr; im[b] = im[a] - ti;
++                    r[a] += tr;       im[a] += ti;
++                }
++            }
++        }
++    }
++
++    // x: n samples -> X: m + 1 bins (interleaved complex)
++    void forward(const float * x, float * X) const {
++        float r[256], im[256];
++        for (int j = 0; j < m; j++) {
++            r[j]  = x[2 * rev[j]];
++            im[j] = x[2 * rev[j] + 1];
++        }
++        butterflies(r, im);
++        X[0] = r[0] + im[0];
++        X[1] = 0.0f;
++        X[2 * m] = r[0] - im[0];
++        X[2 * m + 1] = 0.0f;
++        for (int k = 1; k < m; k++) {
++            const float dr = r[k] - r[m - k], di = im[k] + im[m - k];
++            X[2 * k]     = 0.5f * (r[k] + r[m - k] + di * rot_c[k] + dr * rot_s[k]);
++            X[2 * k + 1] = 0.5f * (im[k] - im[m - k] - dr * rot_c[k] + di * rot_s[k]);
++        }
++    }
++
++    // X: m + 1 bins with zero imaginary parts at DC and Nyquist -> y: n samples, scaled by 1 / n
++    void inverse(const float * X, float * y) const {
++        float r[256], im[256];
++        for (int j = 0; j < m; j++) {
++            const int   k  = rev[j], o = m - k;
++            const float dr = X[2 * k] - X[2 * o], di = X[2 * k + 1] + X[2 * o + 1];
++            r[j]  =  0.5f * (X[2 * k] + X[2 * o] - di * rot_c[k] + dr * rot_s[k]);
++            im[j] = -0.5f * (X[2 * k + 1] - X[2 * o + 1] + dr * rot_c[k] + di * rot_s[k]);
++        }
++        butterflies(r, im);
++        for (int j = 0; j < m; j++) {
++            y[2 * j]     =  r[j] / m;
++            y[2 * j + 1] = -im[j] / m;
++        }
++    }
++};
++
+ // time-varying filter: STFT of the source (center, zero padding), times exp(rfft(cepstrum)) of each frame, ISTFT
+ // cep(j, buf) writes the n_fft cepstrum of STFT frame j, the source gets n_fft / 2 trailing zeros first
+ static void tiny_voca_filter(const std::vector<float> & src, int n_fft, int hop,
+@@ -87,8 +174,8 @@ static void tiny_voca_filter(const std::vector<float> & src, int n_fft, int hop,
+     const int64_t n_stft = 1 + n_pad / hop;        // frames, center = true
+     const int64_t n_full = n_pad + n_fft;          // with the center padding
+ 
++    const tiny_voca_rfft fft(n_fft);
+     mtmd_audio_cache cache;
+-    cache.fill_sin_cos_table(n_fft);
+     cache.fill_hann_window(n_fft, true);
+     const float * win = cache.hann_window.data();
+ 
+@@ -102,8 +189,7 @@ static void tiny_voca_filter(const std::vector<float> & src, int n_fft, int hop,
+         // response of this frame
+         std::fill(cbuf.begin(), cbuf.end(), 0.0f);
+         cep(j, cbuf.data());
+-        std::copy(cbuf.begin(), cbuf.end(), rin.begin());
+-        mtmd_audio_fft(cache, rin.data(), n_fft, rout.data());
++        fft.forward(cbuf.data(), rout.data());
+         for (int k = 0; k < n_bins; k++) {
+             const float mag = std::exp(std::clamp(rout[2 * k], -14.0f, 6.0f));
+             resp[2 * k + 0] = mag * std::cos(rout[2 * k + 1]);
+@@ -115,25 +201,21 @@ static void tiny_voca_filter(const std::vector<float> & src, int n_fft, int hop,
+         for (int i = 0; i < n_fft; i++) {
+             fin[i] = seg[i] * win[i];
+         }
+-        mtmd_audio_fft(cache, fin.data(), n_fft, fout.data());
++        fft.forward(fin.data(), fout.data());
+ 
+-        // filtered spectrum, mirrored for the complex inverse FFT; irfft ignores the imaginary parts of DC and Nyquist
++        // filtered spectrum, the imaginary parts of DC and Nyquist are zero as irfft ignores them
+         for (int k = 0; k < n_bins; k++) {
+             const float a = fout[2 * k], b = fout[2 * k + 1];
+             const float c = resp[2 * k], d = resp[2 * k + 1];
+             rin[2 * k + 0] = a * c - b * d;
+             rin[2 * k + 1] = (k == 0 || k == n_fft / 2) ? 0.0f : a * d + b * c;
+         }
+-        for (int k = 1; k < n_fft - n_bins + 1; k++) {
+-            rin[2 * (n_fft - k) + 0] =  rin[2 * k + 0];
+-            rin[2 * (n_fft - k) + 1] = -rin[2 * k + 1];
+-        }
+-        mtmd_audio_ifft(cache, rin.data(), n_fft, rout.data());
++        fft.inverse(rin.data(), rout.data());
+ 
+         float * o = ola.data() + j * hop;
+         float * e = env.data() + j * hop;
+         for (int i = 0; i < n_fft; i++) {
+-            o[i] += rout[2 * i] * win[i];
++            o[i] += rout[i] * win[i];
+             e[i] += win[i] * win[i];
+         }
+     }

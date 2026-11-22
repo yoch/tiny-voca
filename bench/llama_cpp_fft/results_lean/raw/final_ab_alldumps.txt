@@ -1,0 +1,31 @@
+real-ab ref lean iters=40 | A med=464.879 ms | B med=141.181 ms | ratio_of_medians=0.3037 | pair_ratio q25=0.2881 med=0.3096 q75=0.3139
+real-ab ref mid iters=40 | A med=450.281 ms | B med=122.283 ms | ratio_of_medians=0.2716 | pair_ratio q25=0.2695 med=0.2725 q75=0.2810
+real-ab ref full iters=40 | A med=474.217 ms | B med=115.605 ms | ratio_of_medians=0.2438 | pair_ratio q25=0.2436 med=0.2524 q75=0.2557
+real-ab ref C iters=40 | A med=463.962 ms | B med=103.603 ms | ratio_of_medians=0.2233 | pair_ratio q25=0.2192 med=0.2320 q75=0.2356
+real-ab C lean iters=40 | A med=107.896 ms | B med=144.833 ms | ratio_of_medians=1.3423 | pair_ratio q25=1.2801 med=1.3264 q75=1.3573
+real-ab C mid iters=40 | A med=104.233 ms | B med=121.607 ms | ratio_of_medians=1.1667 | pair_ratio q25=1.1230 med=1.1677 q75=1.1822
+real-ab C full iters=40 | A med=104.688 ms | B med=115.516 ms | ratio_of_medians=1.1034 | pair_ratio q25=1.0736 med=1.0928 q75=1.1280
+harness-o3 ab ref lean iters=40 | ref med=442.187 ms | lean med=133.599 ms | ratio_of_medians=0.3021 | pair_ratio q25=0.2943 med=0.3022 q75=0.3082
+harness-o3 ab ref mid iters=40 | ref med=442.858 ms | mid med=114.284 ms | ratio_of_medians=0.2581 | pair_ratio q25=0.2538 med=0.2597 q75=0.2626
+harness-o3 ab ref full iters=40 | ref med=440.924 ms | full med=107.968 ms | ratio_of_medians=0.2449 | pair_ratio q25=0.2435 med=0.2482 q75=0.2499
+harness-o3 ab ref C iters=40 | ref med=472.513 ms | C med=105.268 ms | ratio_of_medians=0.2228 | pair_ratio q25=0.2164 med=0.2330 q75=0.2436
+harness-native ab ref lean iters=40 | ref med=427.742 ms | lean med=127.330 ms | ratio_of_medians=0.2977 | pair_ratio q25=0.2872 med=0.3019 q75=0.3089
+harness-native ab ref mid iters=40 | ref med=428.709 ms | mid med=103.778 ms | ratio_of_medians=0.2421 | pair_ratio q25=0.2411 med=0.2448 q75=0.2524
+harness-native ab ref full iters=40 | ref med=434.971 ms | full med=97.481 ms | ratio_of_medians=0.2241 | pair_ratio q25=0.2171 med=0.2308 q75=0.2350
+harness-native ab ref C iters=40 | ref med=424.824 ms | C med=94.540 ms | ratio_of_medians=0.2225 | pair_ratio q25=0.2186 med=0.2258 q75=0.2313
+HARNESS_DONE
+done threads=1 short F2
+done threads=1 short M2
+done threads=1 medium F2
+done threads=1 medium M2
+done threads=1 long F2
+done threads=1 long M2
+done threads=4 short F2
+done threads=4 short M2
+done threads=4 medium F2
+done threads=4 medium M2
+done threads=4 long F2
+done threads=4 long M2
+== WAV parity
+TTS_DONE
+ALL_DONE

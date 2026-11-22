@@ -1,0 +1,19 @@
+ab ref C iters=40 | ref med=83.178 ms | C med=18.928 ms | ratio_of_medians=0.2276 | pair_ratio q25=0.2195 med=0.2264 q75=0.2286
+ab ref Pc iters=40 | ref med=96.309 ms | Pc med=90.622 ms | ratio_of_medians=0.9409 | pair_ratio q25=0.8685 med=0.9635 q75=1.0106
+ab ref Pw iters=40 | ref med=94.431 ms | Pw med=89.945 ms | ratio_of_medians=0.9525 | pair_ratio q25=0.9318 med=0.9947 q75=1.0612
+ab ref Pt iters=40 | ref med=88.370 ms | Pt med=87.311 ms | ratio_of_medians=0.9880 | pair_ratio q25=0.9667 med=1.0003 q75=1.0251
+ab ref T iters=40 | ref med=86.490 ms | T med=85.189 ms | ratio_of_medians=0.9850 | pair_ratio q25=0.9581 med=1.0005 q75=1.0076
+ab ref N iters=40 | ref med=92.531 ms | N med=90.929 ms | ratio_of_medians=0.9827 | pair_ratio q25=0.9397 med=0.9892 q75=1.0411
+ab ref R iters=40 | ref med=92.628 ms | R med=81.847 ms | ratio_of_medians=0.8836 | pair_ratio q25=0.7991 med=0.8750 q75=0.9045
+ab ref H iters=40 | ref med=129.946 ms | H med=83.135 ms | ratio_of_medians=0.6398 | pair_ratio q25=0.6227 med=0.6451 q75=0.6647
+ab ref I iters=40 | ref med=131.032 ms | I med=59.080 ms | ratio_of_medians=0.4509 | pair_ratio q25=0.4564 med=0.4726 q75=0.4953
+ab ref H_Pc iters=40 | ref med=119.635 ms | H_Pc med=77.492 ms | ratio_of_medians=0.6477 | pair_ratio q25=0.5907 med=0.6097 q75=0.6430
+ab ref I_Pc iters=40 | ref med=94.580 ms | I_Pc med=39.908 ms | ratio_of_medians=0.4220 | pair_ratio q25=0.4170 med=0.4307 q75=0.4465
+ab ref R_Pc iters=40 | ref med=88.800 ms | R_Pc med=78.341 ms | ratio_of_medians=0.8822 | pair_ratio q25=0.8459 med=0.8575 q75=0.8854
+ab ref H_R iters=40 | ref med=86.139 ms | H_R med=49.259 ms | ratio_of_medians=0.5719 | pair_ratio q25=0.5653 med=0.5750 q75=0.5805
+ab ref I_R iters=40 | ref med=88.154 ms | I_R med=37.736 ms | ratio_of_medians=0.4281 | pair_ratio q25=0.4189 med=0.4351 q75=0.4507
+ab ref H_R_Pc iters=40 | ref med=89.621 ms | H_R_Pc med=49.262 ms | ratio_of_medians=0.5497 | pair_ratio q25=0.5314 med=0.5431 q75=0.5692
+ab ref I_R_Pc iters=40 | ref med=90.115 ms | I_R_Pc med=34.970 ms | ratio_of_medians=0.3881 | pair_ratio q25=0.3814 med=0.3912 q75=0.3998
+ab ref H_R_Pc_N iters=40 | ref med=118.256 ms | H_R_Pc_N med=51.401 ms | ratio_of_medians=0.4347 | pair_ratio q25=0.5184 med=0.5276 q75=0.5578
+ab ref I_R_Pc_N iters=40 | ref med=88.295 ms | I_R_Pc_N med=33.879 ms | ratio_of_medians=0.3837 | pair_ratio q25=0.3675 med=0.3860 q75=0.3960
+DONE

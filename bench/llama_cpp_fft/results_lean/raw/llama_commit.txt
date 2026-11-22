@@ -1,0 +1,3 @@
+e300919cc704ddde3a8a8346a8714f57eeeee71b 2026-11-22 17:08:21 +0900
+git diff 9d6f04f HEAD -- tiny-voca.cpp mtmd-audio.cpp mtmd-audio.h: 0 lines
+tiny-voca part of models.h: 0 changed lines mentioning voca

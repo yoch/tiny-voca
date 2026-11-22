@@ -1,0 +1,3 @@
+lean: clang++ -c 0 warnings, g++ -c 0 warnings, g++ (no -Wno-maybe-uninitialized) 0
+mid: clang++ -c 0 warnings, g++ -c 0 warnings, g++ (no -Wno-maybe-uninitialized) 0
+full: clang++ -c 0 warnings, g++ -c 0 warnings, g++ (no -Wno-maybe-uninitialized) 0

@@ -1,0 +1,31 @@
+# NOTE: real-build ablation, u5+u6, 40 ABBA pairs. Names at run time: "mid" here = lean_R (lean + response once per envelope); "lean_Pc" here = the final MID candidate (src/mid.cpp).
+real-ab ref Pw iters=40 | A med=89.627 ms | B med=88.059 ms | ratio_of_medians=0.9825 | pair_ratio q25=0.9698 med=0.9875 q75=1.0146
+real-ab ref Pt iters=40 | A med=97.468 ms | B med=93.941 ms | ratio_of_medians=0.9638 | pair_ratio q25=0.9280 med=0.9945 q75=1.0231
+real-ab ref Pc iters=40 | A med=88.991 ms | B med=83.510 ms | ratio_of_medians=0.9384 | pair_ratio q25=0.9407 med=0.9572 q75=0.9844
+real-ab ref T iters=40 | A med=88.765 ms | B med=87.460 ms | ratio_of_medians=0.9853 | pair_ratio q25=0.9749 med=0.9966 q75=1.0147
+real-ab ref N iters=40 | A med=94.121 ms | B med=91.137 ms | ratio_of_medians=0.9683 | pair_ratio q25=0.9590 med=0.9912 q75=1.0107
+real-ab ref R iters=40 | A med=87.658 ms | B med=78.899 ms | ratio_of_medians=0.9001 | pair_ratio q25=0.8817 med=0.8939 q75=0.9225
+real-ab ref H iters=40 | A med=93.340 ms | B med=61.481 ms | ratio_of_medians=0.6587 | pair_ratio q25=0.6187 med=0.6326 q75=0.6633
+real-ab ref H_R iters=40 | A med=90.102 ms | B med=51.735 ms | ratio_of_medians=0.5742 | pair_ratio q25=0.5732 med=0.5842 q75=0.5920
+real-ab ref H_R_Pc iters=40 | A med=91.114 ms | B med=50.840 ms | ratio_of_medians=0.5580 | pair_ratio q25=0.5323 med=0.5496 q75=0.5711
+real-ab ref H_R_Pc_N iters=40 | A med=85.206 ms | B med=44.857 ms | ratio_of_medians=0.5265 | pair_ratio q25=0.5160 med=0.5236 q75=0.5325
+real-ab ref I_R_Pc_N iters=40 | A med=89.887 ms | B med=34.669 ms | ratio_of_medians=0.3857 | pair_ratio q25=0.3809 med=0.3889 q75=0.3975
+real-ab ref lean_nofuse iters=40 | A med=87.672 ms | B med=33.019 ms | ratio_of_medians=0.3766 | pair_ratio q25=0.3742 med=0.3783 q75=0.3845
+real-ab ref lean iters=40 | A med=86.387 ms | B med=27.160 ms | ratio_of_medians=0.3144 | pair_ratio q25=0.3118 med=0.3139 q75=0.3165
+real-ab ref lean_Pc iters=40 | A med=86.704 ms | B med=23.506 ms | ratio_of_medians=0.2711 | pair_ratio q25=0.2665 med=0.2711 q75=0.2741
+real-ab ref mid iters=40 | A med=86.483 ms | B med=25.595 ms | ratio_of_medians=0.2960 | pair_ratio q25=0.2912 med=0.2960 q75=0.2980
+real-ab ref full iters=40 | A med=86.475 ms | B med=22.091 ms | ratio_of_medians=0.2555 | pair_ratio q25=0.2484 med=0.2540 q75=0.2566
+real-ab ref full_N iters=40 | A med=89.475 ms | B med=21.815 ms | ratio_of_medians=0.2438 | pair_ratio q25=0.2386 med=0.2447 q75=0.2496
+real-ab ref C iters=40 | A med=87.294 ms | B med=19.428 ms | ratio_of_medians=0.2226 | pair_ratio q25=0.2139 med=0.2222 q75=0.2266
+real-ab ref Cnofuse iters=40 | A med=87.687 ms | B med=23.607 ms | ratio_of_medians=0.2692 | pair_ratio q25=0.2637 med=0.2717 q75=0.2761
+real-ab ref CnoP iters=40 | A med=86.230 ms | B med=22.766 ms | ratio_of_medians=0.2640 | pair_ratio q25=0.2581 med=0.2629 q75=0.2670
+real-ab ref CnoN iters=40 | A med=88.104 ms | B med=20.191 ms | ratio_of_medians=0.2292 | pair_ratio q25=0.2239 med=0.2302 q75=0.2383
+real-ab lean lean_Pc iters=40 | A med=27.584 ms | B med=23.915 ms | ratio_of_medians=0.8670 | pair_ratio q25=0.8521 med=0.8632 q75=0.8844
+real-ab lean_Pc full iters=40 | A med=21.999 ms | B med=20.472 ms | ratio_of_medians=0.9306 | pair_ratio q25=0.9277 med=0.9329 q75=0.9371
+real-ab lean mid iters=40 | A med=25.990 ms | B med=24.511 ms | ratio_of_medians=0.9431 | pair_ratio q25=0.9365 med=0.9410 q75=0.9489
+real-ab mid full iters=40 | A med=25.730 ms | B med=22.241 ms | ratio_of_medians=0.8644 | pair_ratio q25=0.8479 med=0.8575 q75=0.8735
+real-ab full full_N iters=40 | A med=22.034 ms | B med=21.634 ms | ratio_of_medians=0.9818 | pair_ratio q25=0.9653 med=0.9851 q75=1.0078
+real-ab full C iters=40 | A med=20.961 ms | B med=19.008 ms | ratio_of_medians=0.9068 | pair_ratio q25=0.9040 med=0.9176 q75=0.9252
+real-ab lean_nofuse lean iters=40 | A med=32.575 ms | B med=27.688 ms | ratio_of_medians=0.8500 | pair_ratio q25=0.8329 med=0.8530 q75=0.8647
+real-ab H_R_Pc_N full iters=40 | A med=46.813 ms | B med=21.966 ms | ratio_of_medians=0.4692 | pair_ratio q25=0.4530 med=0.4697 q75=0.4794
+DONE
