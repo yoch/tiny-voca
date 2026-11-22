@@ -1,0 +1,54 @@
+round=1 build=master
+chatterbox_ref preprocess 10s  med=  321.991 ms q25=  318.023 q75=  357.149 values=361840
+log_mel_frame 400 x500         med=   19.436 ms q25=   19.132 q75=   19.696 values=64000
+istft 1280 x200                med=    5.047 ms q25=    4.988 q75=    5.104 values=64480
+istft 2048 x200                med=   10.295 ms q25=    8.656 q75=   12.904 values=103168
+zonos3 synth x120              med=   66.197 ms q25=   60.928 q75=   69.830 values=22050
+round=1 build=exact
+chatterbox_ref preprocess 10s  med=  249.280 ms q25=  237.477 q75=  274.326 values=361840
+log_mel_frame 400 x500         med=   18.175 ms q25=   12.415 q75=   18.872 values=64000
+istft 1280 x200                med=    2.498 ms q25=    2.466 q75=    2.595 values=64480
+istft 2048 x200                med=    3.559 ms q25=    3.476 q75=    3.627 values=103168
+zonos3 synth x120              med=   24.784 ms q25=   24.618 q75=   25.198 values=22050
+round=1 build=packed
+chatterbox_ref preprocess 10s  med=  246.787 ms q25=  239.011 q75=  259.901 values=361840
+log_mel_frame 400 x500         med=   18.669 ms q25=   18.346 q75=   18.811 values=64000
+istft 1280 x200                med=    4.308 ms q25=    4.207 q75=    4.360 values=64480
+istft 2048 x200                med=    6.478 ms q25=    4.291 q75=    6.683 values=103168
+zonos3 synth x120              med=   24.892 ms q25=   24.751 q75=   25.594 values=22050
+round=2 build=master
+chatterbox_ref preprocess 10s  med=  304.663 ms q25=  302.791 q75=  322.890 values=361840
+log_mel_frame 400 x500         med=   18.869 ms q25=   18.799 q75=   18.937 values=64000
+istft 1280 x200                med=    4.929 ms q25=    4.907 q75=    4.973 values=64480
+istft 2048 x200                med=    7.988 ms q25=    7.953 q75=    8.090 values=103168
+zonos3 synth x120              med=   58.480 ms q25=   57.629 q75=   59.766 values=22050
+round=2 build=exact
+chatterbox_ref preprocess 10s  med=  274.984 ms q25=  239.594 q75=  285.682 values=361840
+log_mel_frame 400 x500         med=   19.062 ms q25=   13.698 q75=   19.258 values=64000
+istft 1280 x200                med=    2.506 ms q25=    2.434 q75=    2.532 values=64480
+istft 2048 x200                med=    3.420 ms q25=    3.378 q75=    3.690 values=103168
+zonos3 synth x120              med=   25.333 ms q25=   24.852 q75=   27.998 values=22050
+round=2 build=packed
+chatterbox_ref preprocess 10s  med=  259.187 ms q25=  238.290 q75=  314.605 values=361840
+log_mel_frame 400 x500         med=   11.291 ms q25=   11.204 q75=   11.388 values=64000
+istft 1280 x200                med=    2.431 ms q25=    2.380 q75=    2.455 values=64480
+istft 2048 x200                med=    3.427 ms q25=    3.391 q75=    3.498 values=103168
+zonos3 synth x120              med=   25.514 ms q25=   24.959 q75=   26.883 values=22050
+round=3 build=master
+chatterbox_ref preprocess 10s  med=  323.596 ms q25=  303.736 q75=  338.797 values=361840
+log_mel_frame 400 x500         med=   18.887 ms q25=   18.783 q75=   18.976 values=64000
+istft 1280 x200                med=    4.939 ms q25=    4.906 q75=    4.994 values=64480
+istft 2048 x200                med=    8.224 ms q25=    8.111 q75=    8.305 values=103168
+zonos3 synth x120              med=   58.897 ms q25=   58.555 q75=   71.491 values=22050
+round=3 build=exact
+chatterbox_ref preprocess 10s  med=  237.378 ms q25=  236.132 q75=  242.591 values=361840
+log_mel_frame 400 x500         med=   11.502 ms q25=   11.491 q75=   11.533 values=64000
+istft 1280 x200                med=    2.372 ms q25=    2.349 q75=    2.390 values=64480
+istft 2048 x200                med=    3.336 ms q25=    3.326 q75=    3.351 values=103168
+zonos3 synth x120              med=   24.017 ms q25=   23.875 q75=   24.358 values=22050
+round=3 build=packed
+chatterbox_ref preprocess 10s  med=  243.384 ms q25=  240.469 q75=  244.622 values=361840
+log_mel_frame 400 x500         med=   11.671 ms q25=   11.484 q75=   11.819 values=64000
+istft 1280 x200                med=    2.565 ms q25=    2.396 q75=    2.865 values=64480
+istft 2048 x200                med=    3.556 ms q25=    3.432 q75=    3.829 values=103168
+zonos3 synth x120              med=   29.522 ms q25=   27.568 q75=   32.185 values=22050

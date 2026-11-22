@@ -1,0 +1,40 @@
+case                           dir        N variant   exact    max_abs    max_rel  SNR_old   errO_dB   errN_dB   outs_ok
+tiny-voca harm fft             fft      512 exact     28/28           0          0    999.0     137.2     137.2       det
+tiny-voca harm fft             fft      512 packed     0/28    9.54e-06   2.98e-07    135.5     137.2     137.0       det
+tiny-voca harm ifft            ifft     512 exact     28/28           0          0    999.0     137.0     137.0       det
+tiny-voca harm ifft            ifft     512 packed    28/28           0          0    999.0     137.0     137.0       det
+tiny-voca noise fft            fft      256 exact     28/28           0          0    999.0     137.9     137.9       det
+tiny-voca noise fft            fft      256 packed     0/28    5.72e-06   2.94e-07    136.2     137.9     137.5       det
+tiny-voca noise ifft           ifft     256 exact     28/28           0          0    999.0     137.7     137.7       det
+tiny-voca noise ifft           ifft     256 packed    28/28           0          0    999.0     137.7     137.7       det
+s3tok/ve/voxtral-rt mel 400    fft      400 exact     28/28           0          0    999.0     135.1     135.1       det
+s3tok/ve/voxtral-rt mel 400    fft      400 packed     0/28    9.54e-06   3.49e-07    133.5     135.1     134.9       det
+kaldi fbank 512                fft      512 exact     28/28           0          0    999.0     137.2     137.2       det
+kaldi fbank 512                fft      512 packed     0/28    9.54e-06   2.98e-07    135.5     137.2     137.0       det
+matcha mel 1920                fft     1920 exact     28/28           0          0    999.0     133.5     133.5       det
+matcha mel 1920                fft     1920 packed     0/28    3.05e-05   5.08e-07    131.3     133.5     133.4       det
+zonos3 ifft 736                ifft     736 exact     28/28           0          0    999.0     134.9     134.9       det
+zonos3 ifft 736                ifft     736 packed    28/28           0          0    999.0     134.9     134.9       det
+zonos3 ifft 2208               ifft    2208 exact     28/28           0          0    999.0     133.2     133.2       det
+zonos3 ifft 2208               ifft    2208 packed    28/28           0          0    999.0     133.2     133.2       det
+lfm3a istft 1280               ifft    1280 exact     28/28           0          0    999.0     134.0     134.0       det
+lfm3a istft 1280               ifft    1280 packed    28/28           0          0    999.0     134.0     134.0       det
+istft 2048 (soprano?)          ifft    2048 exact     28/28           0          0    999.0     135.8     135.8       det
+istft 2048 (soprano?)          ifft    2048 packed    28/28           0          0    999.0     135.8     135.8       det
+edge 1                         fft        1 exact     28/28           0          0    999.0     152.9     152.9       det
+edge 1                         fft        1 packed    28/28           0          0    999.0     152.9     152.9       det
+edge 1 inv                     ifft       1 exact     28/28           0          0    999.0     152.3     152.3       det
+edge 1 inv                     ifft       1 packed    28/28           0          0    999.0     152.3     152.3       det
+edge 2                         fft        2 exact     28/28           0          0    999.0     147.5     147.5       det
+edge 2                         fft        2 packed     0/28    8.48e-08   8.74e-08    146.7     147.5     144.1       det
+edge 2 inv                     ifft       2 exact     28/28           0          0    999.0     151.3     151.3       det
+edge 2 inv                     ifft       2 packed    28/28           0          0    999.0     151.3     151.3       det
+edge 3                         ifft       3 exact     28/28           0          0    999.0     142.2     142.2       det
+edge 3                         ifft       3 packed    28/28           0          0    999.0     142.2     142.2       det
+edge 6                         fft        6 exact     28/28           0          0    999.0     140.2     140.2       det
+edge 6                         fft        6 packed     0/28    4.17e-07   2.35e-07    138.8     140.2     141.0       det
+edge 12 inv                    ifft      12 exact     28/28           0          0    999.0     137.7     137.7       det
+edge 12 inv                    ifft      12 packed    28/28           0          0    999.0     137.7     137.7       det
+SNR_old: new vs old output; errO_dB / errN_dB: SNR of old / new output against a double-precision DFT (higher is better)
+sweep exact    cases=1264 bit-exact=1264 worst max_rel=0 (N=0) worst SNR vs old=999.0 dB
+sweep packed   cases=1264 bit-exact=932 worst max_rel=6.67e-07 (N=3000) worst SNR vs old=125.6 dB

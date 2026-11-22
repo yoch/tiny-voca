@@ -1,0 +1,179 @@
+// FFT/IFFT of N = n_sub * n_odd points, n_sub = 2^p, n_odd odd (any N > 0 works)
+//   1. a direct DFT of size n_odd of each of the n_sub subsequences in[r + n_sub * n], all r at once
+//      (the result of subsequence r goes to block bitrev(r) of out)
+//   2. p in-place radix-2 stages; the first one needs no twiddle and, for n_odd == 1, is done in step 1
+// the arithmetic of each output is the same as in the former recursive implementation
+// Template parameters:
+//   Inverse: false = FFT with exp(-2πi·k/N), no scaling
+//            true  = IFFT with exp(+2πi·k/N), scales by 1/N
+//   RealInput: true = input is real-valued (stride 1)
+//              false = input is complex-valued (interleaved real/imag, stride 2)
+// in is not modified, out needs 2 * N floats + 2 * max(N / 2, n_sub) floats of scratch
+template <bool Inverse, bool RealInput>
+static void fft_impl(const mtmd_audio_cache & cache, const float * in, int N, float * out) {
+    GGML_ASSERT(N > 0);
+    const int n_sin_cos_vals = cache.sin_vals.size();
+
+    constexpr float sign  = Inverse ? 1.0f : -1.0f;
+    constexpr float scale = Inverse ? 0.5f : 1.0f;
+    constexpr int   n_in  = RealInput ? 1 : 2; // floats per input value
+
+    int n_odd  = N;
+    int n_bits = 0;
+    while (n_odd % 2 == 0) {
+        n_odd /= 2;
+        n_bits++;
+    }
+    const int n_sub = N / n_odd;
+    // j = bitrev(r) for r = 0, 1, ...: increment j from its highest bit, of value h
+    auto bitrev_next = [](int & j, int h) {
+        for (; j & h; h >>= 1) {
+            j ^= h;
+        }
+        j |= h;
+    };
+
+    float * scratch = out + 2 * N;
+    int len = 2 * n_odd; // size of the blocks after the next stage
+    if (n_odd > 1) {
+        const int   sin_cos_step = n_sin_cos_vals / n_odd;
+        const float dft_scale    = Inverse ? (1.0f / n_odd) : 1.0f;
+        float * acc = scratch;
+        for (int k = 0; k < n_odd; k++) {
+            std::fill(acc, acc + 2 * n_sub, 0.0f);
+            int idx = 0; // (k * n * sin_cos_step) % n_sin_cos_vals
+            for (int n = 0; n < n_odd; n++) {
+                const float   cos_val = cache.cos_vals[idx];
+                const float   sin_val = cache.sin_vals[idx];
+                const float * x       = in + n * n_sub * n_in;
+                for (int r = 0; r < n_sub; r++) {
+                    if constexpr (RealInput) {
+                        acc[2 * r + 0] += x[r] * cos_val;
+                        acc[2 * r + 1] += sign * x[r] * sin_val;
+                    } else {
+                        // (a + bi) * (cos + sign*i*sin) = (a*cos - sign*b*sin) + (sign*a*sin + b*cos)i
+                        acc[2 * r + 0] += x[2 * r + 0] * cos_val - sign * x[2 * r + 1] * sin_val;
+                        acc[2 * r + 1] += sign * x[2 * r + 0] * sin_val + x[2 * r + 1] * cos_val;
+                    }
+                }
+                idx += k * sin_cos_step;
+                if (idx >= n_sin_cos_vals) {
+                    idx -= n_sin_cos_vals;
+                }
+            }
+            for (int r = 0, j = 0; r < n_sub; r++, bitrev_next(j, n_sub / 2)) {
+                out[2 * (j * n_odd + k) + 0] = acc[2 * r + 0] * dft_scale;
+                out[2 * (j * n_odd + k) + 1] = acc[2 * r + 1] * dft_scale;
+            }
+        }
+    } else if (N == 1) {
+        out[0] = in[0];
+        out[1] = RealInput ? 0.0f : in[1];
+        return;
+    } else {
+        // size 1 subsequences: in bit-reversed order, pairs j, j + N / 2 form the blocks of the first stage
+        const int half_N = N / 2;
+        for (int j = 0, r = 0; j < half_N; j++, bitrev_next(r, half_N / 2)) {
+            const float * a = in + r * n_in;
+            const float * b = in + (r + half_N) * n_in;
+            if constexpr (RealInput) {
+                out[4 * j + 0] = a[0] + b[0];
+                out[4 * j + 1] = 0.0f;
+                out[4 * j + 2] = a[0] - b[0];
+                out[4 * j + 3] = 0.0f;
+            } else {
+                out[4 * j + 0] = scale * (a[0] + b[0]);
+                out[4 * j + 1] = scale * (a[1] + b[1]);
+                out[4 * j + 2] = scale * (a[0] - b[0]);
+                out[4 * j + 3] = scale * (a[1] - b[1]);
+            }
+        }
+        len = 4;
+    }
+
+    // radix-2 butterfly of the stage of size len: e, o = e + w o, e - w o
+    auto butterfly = [](float * even_fft, float * odd_fft, float re, float im) {
+        const float re_even = even_fft[0];
+        const float im_even = even_fft[1];
+        const float re_odd  = odd_fft[0];
+        const float im_odd  = odd_fft[1];
+
+        even_fft[0] = scale * (re_even + re * re_odd - im * im_odd);
+        even_fft[1] = scale * (im_even + re * im_odd + im * re_odd);
+
+        odd_fft[0] = scale * (re_even - re * re_odd + im * im_odd);
+        odd_fft[1] = scale * (im_even - re * im_odd - im * re_odd);
+    };
+    for (; len <= N; len *= 2) {
+        const int half_N       = len / 2;
+        const int sin_cos_step = n_sin_cos_vals / len;
+        if (half_N < 8) {
+            // short blocks: one twiddle for all of them
+            for (int k = 0; k < half_N; k++) {
+                const float re = cache.cos_vals[k * sin_cos_step];
+                const float im = sign * cache.sin_vals[k * sin_cos_step];
+                for (int i = 0; i < N; i += len) {
+                    butterfly(out + 2 * (i + k), out + 2 * (i + k + half_N), re, im);
+                }
+            }
+            continue;
+        }
+        // twiddles of this stage, contiguous
+        float * twiddle = scratch;
+        for (int k = 0; k < half_N; k++) {
+            twiddle[2 * k + 0] = cache.cos_vals[k * sin_cos_step];  // t = 2*M_PI*k/len
+            twiddle[2 * k + 1] = sign * cache.sin_vals[k * sin_cos_step];
+        }
+        for (int i = 0; i < N; i += len) {
+            for (int k = 0; k < half_N; k++) {
+                butterfly(out + 2 * (i + k), out + 2 * (i + k + half_N), twiddle[2 * k + 0], twiddle[2 * k + 1]);
+            }
+        }
+    }
+}
+
+// Forward FFT for real input (used by mel spectrogram)
+// for even N, the N real values are transformed as N / 2 complex values, then split into the spectrum
+static void fft(const mtmd_audio_cache & cache, float * in, int N, float * out) {
+    if (N % 2 != 0) {
+        fft_impl<false, true>(cache, in, N, out);
+        return;
+    }
+    const int half_N = N / 2;
+    float * z = out + 2 * N;
+    fft_impl<false, false>(cache, in, half_N, z);
+
+    // X[k] = (Z[k] + conj(Z[N/2 - k])) / 2 - i exp(-2πi·k/N) (Z[k] - conj(Z[N/2 - k])) / 2, with Z[N/2] = Z[0]
+    z[N + 0] = z[0];
+    z[N + 1] = z[1];
+    const int sin_cos_step = cache.sin_vals.size() / N;
+    for (int k = 0; k <= half_N; k++) {
+        const float * a  = z + 2 * k;
+        const float * b  = z + 2 * (half_N - k);
+        const float   er = 0.5f * (a[0] + b[0]);
+        const float   ei = 0.5f * (a[1] - b[1]);
+        const float   or_ = 0.5f * (a[1] + b[1]);
+        const float   oi = 0.5f * (b[0] - a[0]);
+        const float   wr = cache.cos_vals[k * sin_cos_step];
+        const float   wi = -cache.sin_vals[k * sin_cos_step];
+        out[2 * k + 0] = er + wr * or_ - wi * oi;
+        out[2 * k + 1] = ei + wr * oi + wi * or_;
+    }
+    for (int k = 1; k < half_N; k++) {
+        out[2 * (N - k) + 0] =  out[2 * k + 0];
+        out[2 * (N - k) + 1] = -out[2 * k + 1];
+    }
+}
+
+// Inverse FFT for complex input
+static void ifft(const mtmd_audio_cache & cache, float * in, int N, float * out) {
+    fft_impl<true, false>(cache, in, N, out);
+}
+
+void mtmd_audio_fft(const mtmd_audio_cache & cache, float * in, int N, float * out) {
+    fft(cache, in, N, out);
+}
+
+void mtmd_audio_ifft(const mtmd_audio_cache & cache, float * in, int N, float * out) {
+    ifft(cache, in, N, out);
+}

@@ -1,0 +1,6 @@
+median over 5 rounds of the per-round median (15 calls each), ms; ratio vs master (n rounds)
+chatterbox_ref preprocess 10s    master   304.52 | exact   244.12 (0.802, n=5) | packed   230.88 (0.758, n=5)
+log_mel_frame 400 x500           master    18.95 | exact    11.68 (0.616, n=5) | packed    11.11 (0.586, n=5)
+istft 1280 x200                  master     5.07 | exact     2.44 (0.482, n=5) | packed     2.38 (0.468, n=5)
+istft 2048 x200                  master     8.05 | exact     3.45 (0.428, n=5) | packed     3.33 (0.413, n=5)
+zonos3 synth x120                master    59.09 | exact    24.61 (0.416, n=5) | packed    24.55 (0.416, n=5)

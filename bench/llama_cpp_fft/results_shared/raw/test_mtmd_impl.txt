@@ -1,0 +1,15 @@
+== master (warnings: 0)
+test_audio_fft
+test_audio_fft (18 assertion(s))                                                [PASS]
+assertions : 312
+failures   : 0
+== exact (warnings: 0)
+test_audio_fft
+test_audio_fft (18 assertion(s))                                                [PASS]
+assertions : 312
+failures   : 0
+== packed (warnings: 0)
+test_audio_fft
+test_audio_fft (18 assertion(s))                                                [PASS]
+assertions : 312
+failures   : 0

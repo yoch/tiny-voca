@@ -1,0 +1,7 @@
+real-ab bins/master bins/exact iters=40 | A med=470.247 ms | B med=238.638 ms | ratio_of_medians=0.5075 | pair_ratio q25=0.4778 med=0.5158 q75=0.5615
+real-ab bins/master bins/packed iters=40 | A med=431.814 ms | B med=201.329 ms | ratio_of_medians=0.4662 | pair_ratio q25=0.4092 med=0.4475 q75=0.4810
+real-ab bins/master bins/lean iters=40 | A med=450.880 ms | B med=134.631 ms | ratio_of_medians=0.2986 | pair_ratio q25=0.2792 med=0.3122 q75=0.3423
+real-ab bins/master bins/mid iters=40 | A med=446.256 ms | B med=129.313 ms | ratio_of_medians=0.2898 | pair_ratio q25=0.2627 med=0.2877 q75=0.3148
+real-ab bins/master bins/packed_pc iters=40 | A med=454.641 ms | B med=188.435 ms | ratio_of_medians=0.4145 | pair_ratio q25=0.4048 med=0.4178 q75=0.4523
+real-ab bins/master bins/exact_pc iters=40 | A med=470.696 ms | B med=212.590 ms | ratio_of_medians=0.4517 | pair_ratio q25=0.4088 med=0.4569 q75=0.4680
+real-ab bins/master bins/master2 iters=40 | A med=476.503 ms | B med=499.058 ms | ratio_of_medians=1.0473 | pair_ratio q25=0.9462 med=1.0009 q75=1.0900

@@ -1,0 +1,1 @@
+8d60873dfb8619f2b5ed31adfbab07cccb40db5c 2026-11-22 13:40:10 +0200 ggml/gguf : avoid creating invalid enum values from untrusted file data (#32641)

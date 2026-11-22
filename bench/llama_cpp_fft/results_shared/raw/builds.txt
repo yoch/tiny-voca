@@ -1,0 +1,7 @@
+built exact (audio=exact tv=ref): 0 warnings
+built packed (audio=packed tv=ref): 0 warnings
+built lean (audio=master tv=lean): 0 warnings
+built mid (audio=master tv=mid): 0 warnings
+built packed_pc (audio=packed tv=Pc): 0 warnings
+built exact_pc (audio=exact tv=Pc): 0 warnings
+built master2 (audio=master tv=ref): 0 warnings

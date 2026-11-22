@@ -1,0 +1,6 @@
+output                           values      max_abs     max|ref|     SNR_dB    exact
+chatterbox_ref preprocess 10s     361840     0.000899         20.8      119.7       no
+log_mel_frame 400 x500            64000     0.000305         9.96      117.3       no
+istft 1280 x200                   64480            0        0.767      999.0      yes
+istft 2048 x200                  103168            0        0.846      999.0      yes
+zonos3 synth x120                 22050            0      0.00736      999.0      yes

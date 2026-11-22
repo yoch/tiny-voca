@@ -1,0 +1,6 @@
+Soprano-1.1-80M Q8_0, llama-tts, long text, wall ms, median of 6 interleaved runs [min, max]
+threads=4: master 838 [765, 927] (1.000) | exact 814 [742, 1037] (0.971) | packed 848 [778, 896] (1.012)
+threads=1: master 2443 [2341, 2541] (1.000) | exact 2464 [2343, 2676] (1.009) | packed 2398 [2304, 2485] (0.982)
+WAV master_again vs master: samples 331776 vs 331776 at 32000 Hz, identical=True, max_lsb=0
+WAV exact vs master: samples 331776 vs 331776 at 32000 Hz, identical=True, max_lsb=0
+WAV packed vs master: samples 331776 vs 331776 at 32000 Hz, identical=True, max_lsb=0
