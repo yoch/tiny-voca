@@ -1,0 +1,9 @@
+ref -> LEAN [v3]: TOTAL 3067 frames: A 158.92 us/frame  B 38.14 us/frame  paired B/A median 0.241 (quartiles 0.231 .. 0.247)  [0]
+ref -> MID [v3]: TOTAL 3067 frames: A 153.63 us/frame  B 27.21 us/frame  paired B/A median 0.179 (quartiles 0.172 .. 0.181)  [0]
+ref -> MIDG [v3]: TOTAL 3067 frames: A 156.90 us/frame  B 24.38 us/frame  paired B/A median 0.151 (quartiles 0.147 .. 0.156)  [0]
+ref -> fin [v3]: TOTAL 3067 frames: A 154.30 us/frame  B 24.90 us/frame  paired B/A median 0.159 (quartiles 0.153 .. 0.163)  [0]
+ref -> kit [v3]: TOTAL 3067 frames: A 150.84 us/frame  B 36.11 us/frame  paired B/A median 0.244 (quartiles 0.239 .. 0.255)  [0]
+fin -> LEAN [v3]: TOTAL 3067 frames: A 26.04 us/frame  B 38.90 us/frame  paired B/A median 1.468 (quartiles 1.449 .. 1.480)  [0]
+fin -> MID [v3]: TOTAL 3067 frames: A 25.50 us/frame  B 27.54 us/frame  paired B/A median 1.103 (quartiles 1.020 .. 1.128)  [0]
+fin -> MIDG [v3]: TOTAL 3067 frames: A 28.14 us/frame  B 25.79 us/frame  paired B/A median 0.944 (quartiles 0.911 .. 0.974)  [0]
+BATCH_DONE

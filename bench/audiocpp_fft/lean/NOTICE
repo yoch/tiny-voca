@@ -1,0 +1,6 @@
+The files source_filter.h and source_filter.cpp in lean/, mid/ and fast/ here (and the patches next to them) are
+modified copies of include/engine/community_models/tiny_voca/source_filter.h and
+src/community_models/tiny_voca/source_filter.cpp from audio.cpp (https://github.com/0xShug0/audio.cpp) at commit
+337af0c, Copyright 2026 ShugoAI LLC, licensed under the Apache License, Version 2.0 (LICENSE in this folder).
+Changes: see ../results_lean/SUMMARY.md and ../results_lean/ABLATION.md. Each <name>.patch applies to an audio.cpp
+337af0c checkout with `git apply` (or `patch -p1`).

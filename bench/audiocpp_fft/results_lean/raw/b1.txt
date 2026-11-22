@@ -1,0 +1,9 @@
+ref -> E [real]: TOTAL 3067 frames: A 115.75 us/frame  B 114.25 us/frame  paired B/A median 0.972 (quartiles 0.960 .. 0.980)  [0]
+ref -> C [real]: TOTAL 3067 frames: A 116.23 us/frame  B 112.35 us/frame  paired B/A median 0.964 (quartiles 0.947 .. 0.990)  [0]
+ref -> D [real]: TOTAL 3067 frames: A 120.78 us/frame  B 112.80 us/frame  paired B/A median 0.935 (quartiles 0.923 .. 0.956)  [0]
+ref -> A [real]: TOTAL 3067 frames: A 117.40 us/frame  B 54.15 us/frame  paired B/A median 0.460 (quartiles 0.447 .. 0.468)  [0]
+ref -> AB [real]: TOTAL 3067 frames: A 118.00 us/frame  B 51.52 us/frame  paired B/A median 0.443 (quartiles 0.429 .. 0.457)  [0]
+ref -> kit [real]: TOTAL 3067 frames: A 121.39 us/frame  B 38.00 us/frame  paired B/A median 0.318 (quartiles 0.306 .. 0.321)  [0]
+ref -> fin [real]: TOTAL 3067 frames: A 150.01 us/frame  B 32.53 us/frame  paired B/A median 0.219 (quartiles 0.207 .. 0.229)  [0]
+kit -> fin [real]: TOTAL 3067 frames: A 50.87 us/frame  B 33.95 us/frame  paired B/A median 0.692 (quartiles 0.662 .. 0.709)  [0]
+BATCH_DONE

@@ -1,0 +1,5 @@
+A1ECDF -> A1ECDFP [real]: TOTAL 3067 frames: A 36.22 us/frame  B 31.65 us/frame  paired B/A median 0.968 (quartiles 0.947 .. 0.984)  [0]
+A1ECDFP -> A1ECDFG [real]: TOTAL 3067 frames: A 43.38 us/frame  B 39.91 us/frame  paired B/A median 0.929 (quartiles 0.913 .. 0.937)  [0]
+ref -> A1ECD [real]: TOTAL 3067 frames: A 126.21 us/frame  B 39.27 us/frame  paired B/A median 0.306 (quartiles 0.298 .. 0.317)  [0]
+ref -> fin [real]: TOTAL 3067 frames: A 153.85 us/frame  B 33.21 us/frame  paired B/A median 0.219 (quartiles 0.214 .. 0.230)  [0]
+BATCH_DONE

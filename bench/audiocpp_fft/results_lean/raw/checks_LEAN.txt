@@ -1,0 +1,34 @@
+== LEAN pulse_train vs reference
+u0vF2s0   pulse SNR  183.1 dB  max abs diff 5.96e-08  (peak 10.4)
+u0vM2s0   pulse SNR  194.3 dB  max abs diff 1.49e-08  (peak 15.2)
+u1vF2s0   pulse SNR  174.4 dB  max abs diff 2.38e-07  (peak 11.1)
+u1vM2s0   pulse SNR  169.6 dB  max abs diff 4.77e-07  (peak 16.2)
+u2vF2s0   pulse SNR  162.4 dB  max abs diff 9.54e-07  (peak 11.5)
+u2vM2s0   pulse SNR  158.0 dB  max abs diff 9.54e-07  (peak 15.8)
+u3vF2s0   pulse SNR  161.3 dB  max abs diff 9.54e-07  (peak 11.6)
+u3vM2s0   pulse SNR  162.9 dB  max abs diff 9.54e-07  (peak 16.9)
+== LEAN short inputs vs reference
+N=1    samples    256  SNR  125.6 dB  16-bit max diff 1
+N=2    samples    512  SNR  125.4 dB  16-bit max diff 0
+N=3    samples    768  SNR  125.0 dB  16-bit max diff 1
+N=4    samples   1024  SNR  125.5 dB  16-bit max diff 1
+N=5    samples   1280  SNR  125.2 dB  16-bit max diff 1
+N=7    samples   1792  SNR  125.5 dB  16-bit max diff 1
+N=8    samples   2048  SNR  125.5 dB  16-bit max diff 1
+N=15   samples   3840  SNR  126.0 dB  16-bit max diff 1
+N=16   samples   4096  SNR  126.1 dB  16-bit max diff 1
+N=17   samples   4352  SNR  126.1 dB  16-bit max diff 1
+N=31   samples   7936  SNR  131.2 dB  16-bit max diff 1
+N=32   samples   8192  SNR  131.0 dB  16-bit max diff 1
+N=33   samples   8448  SNR  131.3 dB  16-bit max diff 1
+N=34   samples   8704  SNR  131.3 dB  16-bit max diff 1
+N=63   samples  16128  SNR  130.3 dB  16-bit max diff 1
+N=64   samples  16384  SNR  130.3 dB  16-bit max diff 1
+N=65   samples  16640  SNR  130.3 dB  16-bit max diff 1
+N=66   samples  16896  SNR  130.3 dB  16-bit max diff 1
+N=127  samples  32512  SNR  129.3 dB  16-bit max diff 1
+N=128  samples  32768  SNR  129.3 dB  16-bit max diff 1
+N=129  samples  33024  SNR  129.3 dB  16-bit max diff 1
+N=200  samples  51200  SNR  129.7 dB  16-bit max diff 1
+N=590  samples 151040  SNR  129.9 dB  16-bit max diff 1
+EDGE worst SNR 125.0 dB, max diff 1 LSB

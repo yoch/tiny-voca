@@ -1,0 +1,2 @@
+LEAN -> LEANB [real]: TOTAL 3067 frames: A 38.92 us/frame  B 37.96 us/frame  paired B/A median 0.970 (quartiles 0.942 .. 0.991)  [0]
+BATCH_DONE

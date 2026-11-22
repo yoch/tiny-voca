@@ -1,0 +1,49 @@
+# audio.cpp 337af0c, CPU only, Release (results/tools/build_acpp.sh: -DCMAKE_BUILD_TYPE=Release -DENGINE_ENABLE_CUDA=OFF -DENGINE_ENABLE_VULKAN=OFF -DENGINE_BUILD_TESTS=ON -DENGINE_BUILD_MODEL_TESTS=ON).
+# source_filter.cpp compiled by audio.cpp with (build/CMakeFiles/.../flags.make): CXX_FLAGS = -O3 -DNDEBUG -std=c++17 -Wall -Wextra -Wpedantic -pedantic-errors -fopenmp
+#   (no -march; ENGINE_SPEECHFFT_NO_MULTITHREADING not defined). No warnings in any of the four builds.
+# ref = unchanged; lean = lean/lean; mid = lean/mid; fin = opt/ (the final) copied over source_filter.h/.cpp, then
+#   audiocpp_cli and tiny_voca_unit_test rebuilt (results_lean/tools/e2e_prep.sh); static binaries copied per version.
+# model: tools/model_manager_v2.py install tiny_voca_orig (models/tiny-voca-GGUF/tiny-voca-orig.gguf, 23.6 MB)
+# command (results/tools/e2e.py): audiocpp_cli --task tts --family tiny_voca --model ... --backend cpu --text TEXT --voice-id M2|F2 --seed 0 --out X.wav
+# wall = whole process, median over 10 interleaved rounds; RTF = wall / audio; RSS = peak (wait4), max over rounds.
+# WAV parity: 16-bit PCM from the CLI against the unchanged binary (1-LSB flips on ~0.05 % of samples cap the SNR near 102 dB).
+
+## tiny_voca_unit_test
+ref: tiny_voca unit test passed
+lean: tiny_voca unit test passed
+mid: tiny_voca unit test passed
+fin: tiny_voca unit test passed
+
+## 10 interleaved rounds: ref, lean, mid, fin
+case        audio s                                ref                               lean                                mid                                fin
+short_M2       2.04    145.2 ms RTF 0.0713 RSS   63.0 MB    128.5 ms RTF 0.0631 RSS   63.0 MB    119.5 ms RTF 0.0586 RSS   63.2 MB    124.2 ms RTF 0.0610 RSS   62.9 MB
+short_F2       2.35    153.3 ms RTF 0.0653 RSS   63.1 MB    127.6 ms RTF 0.0544 RSS   63.3 MB    127.7 ms RTF 0.0544 RSS   62.9 MB    127.8 ms RTF 0.0545 RSS   62.9 MB
+medium_M2      4.79    281.8 ms RTF 0.0588 RSS   63.1 MB    215.8 ms RTF 0.0451 RSS   62.8 MB    213.9 ms RTF 0.0447 RSS   63.3 MB    194.5 ms RTF 0.0406 RSS   63.0 MB
+medium_F2      5.15    276.4 ms RTF 0.0536 RSS   63.0 MB    213.3 ms RTF 0.0414 RSS   63.2 MB    214.4 ms RTF 0.0416 RSS   63.4 MB    222.9 ms RTF 0.0433 RSS   62.9 MB
+long_M2       27.93   1247.7 ms RTF 0.0447 RSS   63.5 MB    897.0 ms RTF 0.0321 RSS   63.1 MB    833.6 ms RTF 0.0299 RSS   63.1 MB    848.0 ms RTF 0.0304 RSS   63.0 MB
+long_F2       30.53   1309.3 ms RTF 0.0429 RSS   64.2 MB    918.9 ms RTF 0.0301 RSS   63.6 MB    948.9 ms RTF 0.0311 RSS   63.5 MB    918.9 ms RTF 0.0301 RSS   63.6 MB
+ref: total wall median 3414.3 ms over 6 cases; deterministic across rounds: True
+lean: total wall median 2492.2 ms over 6 cases; deterministic across rounds: True
+mid: total wall median 2464.3 ms over 6 cases; deterministic across rounds: True
+fin: total wall median 2466.6 ms over 6 cases; deterministic across rounds: True
+paired ratio lean/ref: median 0.738 (min 0.655, max 0.808)
+  WAV short_M2   PCM_16: same length True (48896 vs 48896), SNR  104.3 dB, max diff 1 LSB, differing samples 33
+  WAV short_F2   PCM_16: same length True (56320 vs 56320), SNR  104.9 dB, max diff 1 LSB, differing samples 43
+  WAV medium_M2  PCM_16: same length True (114944 vs 114944), SNR  102.7 dB, max diff 1 LSB, differing samples 79
+  WAV medium_F2  PCM_16: same length True (123648 vs 123648), SNR  103.6 dB, max diff 1 LSB, differing samples 85
+  WAV long_M2    PCM_16: same length True (670208 vs 670208), SNR  102.4 dB, max diff 1 LSB, differing samples 339
+  WAV long_F2    PCM_16: same length True (732672 vs 732672), SNR  102.4 dB, max diff 1 LSB, differing samples 559
+paired ratio mid/ref: median 0.714 (min 0.659, max 0.863)
+  WAV short_M2   PCM_16: same length True (48896 vs 48896), SNR  104.8 dB, max diff 1 LSB, differing samples 30
+  WAV short_F2   PCM_16: same length True (56320 vs 56320), SNR  104.6 dB, max diff 1 LSB, differing samples 46
+  WAV medium_M2  PCM_16: same length True (114944 vs 114944), SNR  102.9 dB, max diff 1 LSB, differing samples 77
+  WAV medium_F2  PCM_16: same length True (123648 vs 123648), SNR  103.6 dB, max diff 1 LSB, differing samples 85
+  WAV long_M2    PCM_16: same length True (670208 vs 670208), SNR  102.3 dB, max diff 1 LSB, differing samples 347
+  WAV long_F2    PCM_16: same length True (732672 vs 732672), SNR  102.4 dB, max diff 1 LSB, differing samples 564
+paired ratio fin/ref: median 0.723 (min 0.647, max 0.862)
+  WAV short_M2   PCM_16: same length True (48896 vs 48896), SNR  102.5 dB, max diff 1 LSB, differing samples 50
+  WAV short_F2   PCM_16: same length True (56320 vs 56320), SNR  104.1 dB, max diff 1 LSB, differing samples 52
+  WAV medium_M2  PCM_16: same length True (114944 vs 114944), SNR  102.1 dB, max diff 1 LSB, differing samples 91
+  WAV medium_F2  PCM_16: same length True (123648 vs 123648), SNR  102.0 dB, max diff 1 LSB, differing samples 123
+  WAV long_M2    PCM_16: same length True (670208 vs 670208), SNR  101.3 dB, max diff 1 LSB, differing samples 438
+  WAV long_F2    PCM_16: same length True (732672 vs 732672), SNR  101.8 dB, max diff 1 LSB, differing samples 640
