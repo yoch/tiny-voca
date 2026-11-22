@@ -105,14 +105,14 @@ _TENS_FR = {2: "vingt", 3: "trente", 4: "quarante", 5: "cinquante", 6: "soixante
 _ROMAN_VALUES = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
 _ROMAN_VALID = re.compile(r"^M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})$")
 _ROMAN_ORDINAL_RE = re.compile(
-    r"\b((?:I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII|XIII|XIV|XV|XVI|XVII|XVIII|XIX|"
-    r"XX|XXI|XXII|XXIII|XXIV|XXV|XXVI|XXVII|XXVIII|XXIX|XXX)(?:er|ers|re|res|ère|ères|e|es|ème|èmes)|"
+    r"\b((?:II|III|IV|V|VI|VII|VIII|IX|X|XI|XII|XIII|XIV|XV|XVI|XVII|XVIII|XIX|"
+    r"XX|XXI|XXII|XXIII|XXIV|XXV|XXVI|XXVII|XXVIII|XXIX|XXX)(?:e|es|ème|èmes)|"
     r"I(?:er|ers|re|res|ère|ères))\b"
 )
 _ROMAN_CONTEXT_RE = re.compile(
     r"\b(Louis|Henri|Charles|François|Philippe|Napoléon|Jean-Paul|Benoît|Pie|Léon|Clément|"
     r"Innocent|Grégoire|Alexandre|Édouard|George|Georges|Albert|Baudouin|Léopold|"
-    r"tome|chapitre|acte|scène|livre|partie|volume|article|siècle)\s+([IVX]+)\b"
+    r"[Tt]ome|[Cc]hapitre|[Aa]cte|[Ss]cène|[Ll]ivre|[Pp]artie|[Vv]olume|[Aa]rticle|[Ss]iècle)\s+([IVX]+)\b"
 )
 _ARABIC_ORDINAL_RE = re.compile(r"\b(\d+)(er|ers|re|res|ère|ères|e|es|ème|èmes)\b")
 _FRENCH_INITIALISMS = frozenset({
@@ -330,7 +330,7 @@ def _ordinal_fr(n, feminine=False, plural=False):
         base = "première" if feminine else "premier"
     else:
         word = _number_fr(n)
-        if word.endswith("s"):
+        if word.endswith(("vingts", "cents")):
             word = word[:-1]
         if word.endswith("e"):
             word = word[:-1]
@@ -544,7 +544,9 @@ def chunks(text):
         if char == ".":
             word = _ALPHA_WORD_BEFORE_DOT.search(text[:i])
             if word and word[1].lower() in ABBREVIATIONS:
-                continue
+                abbr = word[1].lower()
+                if abbr == "etc" or (following != "" and (abbr not in ("art", "vol", "ex") or re.match(r"\s+\d", text[i + 1:]))):
+                    continue
             if previous.isalpha() and following.isalpha():
                 continue
         if text[start:i].strip():

@@ -11,6 +11,7 @@ from tiny_voca.prosody_fr import (
     classify_sentence_type,
     extract_french_phrasal_features,
     load_prosody_refiner,
+    prepare_french_structure,
     prepare_french_tts_text,
     synthesize_with_refiner,
 )
@@ -159,6 +160,147 @@ class TestP7FrenchProsodyRefiner(unittest.TestCase):
         self.assertIn("avécé", prepare_french_tts_text("un AVC"))
         self.assertIn("Louis XIV", prepare_french_tts_text("Louis XIV"))
         self.assertIn("MM. Dupont", prepare_french_tts_text("MM. Dupont"))
+
+    def test_prepare_french_edge_cases_and_guards(self):
+        self.assertEqual(prepare_french_tts_text("4,56 Md$"), "4,56 milliards de dollars")
+        self.assertEqual(prepare_french_tts_text("50 k€ et 1 k€"), "50 mille euros et mille euros")
+        self.assertEqual(prepare_french_tts_text("En 2011/12 et 2013/2014."), "En 2011-12 et 2013-2014.")
+        self.assertEqual(prepare_french_tts_text("Du 01/05 au 14/07."), "Du premier mai au 14 juillet.")
+        self.assertEqual(prepare_french_tts_text("Ouvert 24h/24 et 7j/7."), "Ouvert 24 heures sur 24 et 7 jours sur 7.")
+
+        # Single-letter V/A/W must not expand on identifiers or years, while real units do.
+        self.assertEqual(
+            prepare_french_tts_text("Bâtiment 2 A, porte 3 A, chapitre 2 V, classe 3 W, en 2014 A voté."),
+            "Bâtiment 2 A, porte 3 A, chapitre 2 V, classe 3 W, en 2014 A voté.",
+        )
+        self.assertEqual(prepare_french_tts_text("12 V, 2,5 A et 30 W."), "12 volts, 2,5 ampères et 30 watts.")
+
+        # Parentheses (initial & mid-sentence), numbered lists, NBSP guillemets, standalone months, pp.
+        self.assertEqual(
+            prepare_french_tts_text("(Note importante) Le projet (lancé en 2024) s'appelle Petite Voix."),
+            "Note importante, Le projet, lancé en 2024, s'appelle Petite Voix.",
+        )
+        self.assertEqual(
+            prepare_french_structure("Étapes :\n1. Ouvrir\n2. Valider"),
+            "Étapes :\n1, Ouvrir.\n2, Valider.",
+        )
+        self.assertEqual(
+            prepare_french_tts_text("«\u00a0Il n'y avait pas de neurochirurgiens\u00a0», a déclaré Georges."),
+            "«Il n'y avait pas de neurochirurgiens», a déclaré Georges.",
+        )
+        self.assertEqual(
+            prepare_french_tts_text("En janv. 2026, de sept. à déc. 2026, voir pp. 12-15."),
+            "En janvier 2026, de septembre à décembre 2026, voir pages 12-15.",
+        )
+        # Word "sept." at end of sentence must stay untouched.
+        self.assertEqual(prepare_french_structure("Ils sont sept. Ensuite on part."), "Ils sont sept. Ensuite on part.")
+
+        # Fixed /s/ pronunciation in QCM & sav@ email local part
+        self.assertIn("kucéème", prepare_french_tts_text("Le QCM"))
+        self.assertEqual(prepare_french_tts_text("sav@exemple.fr"), "èssavé arobase exemple point fr")
+
+        # Collateral-damage guards on plain French fractions, words, years, and 1x multiplier
+        self.assertEqual(
+            prepare_french_tts_text("Au 3/4 de la salle, le 1/4 d'heure, le 5/5, au 1/2 tour"),
+            "Au trois quarts de la salle, le un quart d'heure, le 5 sur 5, au un demi tour",
+        )
+        self.assertEqual(
+            prepare_french_tts_text("Nous partons en mer. 3 bateaux arrivent."),
+            "Nous partons en mer. 3 bateaux arrivent.",
+        )
+        self.assertEqual(
+            prepare_french_tts_text("C'est un beau jeu. 2 joueurs gagnent."),
+            "C'est un beau jeu. 2 joueurs gagnent.",
+        )
+        self.assertEqual(
+            prepare_french_structure("Il y en a sept. il attend."),
+            "Il y en a sept. il attend.",
+        )
+        self.assertEqual(prepare_french_structure("1914. Début.\n1918. Fin."), "1914. Début.\n1918. Fin.")
+        self.assertEqual(prepare_french_tts_text("1x par jour"), "une fois par jour")
+
+        # Area/volume pre-NFKC superscripts, electrical/bit-rate units, spaced currencies, vulgar fractions
+        self.assertEqual(
+            prepare_french_tts_text("50 m², 1 m², 20 m³, 10 km², 25 cm², ½ litre, ¼ d'heure, ¾ des élèves"),
+            "50 mètres carrés, 1 mètre carré, 20 mètres cubes, 10 kilomètres carrés, 25 centimètres carrés, un demi litre, un quart d'heure, trois quarts des élèves",
+        )
+        self.assertEqual(
+            prepare_french_tts_text("4,56 Md €, 290,4 M €, 500 mA, 100 Mb/s, 10 Gb/s"),
+            "4,56 milliards d'euros, 290,4 millions d'euros, 500 milliampères, 100 mégabits par seconde, 10 gigabits par seconde",
+        )
+        # URLs without period-swallowing or trailing slash, month-end sentence splits, Av. prepositions
+        self.assertEqual(
+            prepare_french_tts_text("Voir https://example.org. Visitez https://www.service-public.fr/ ici."),
+            "Voir example point org. Visitez www point service tiret public point fr ici.",
+        )
+        self.assertEqual(
+            prepare_french_structure("Le 15 déc. La suite."),
+            "Le 15 décembre. La suite.",
+        )
+        self.assertEqual(
+            prepare_french_tts_text("Av. des Champs-Élysées et av. de la République."),
+            "Avenue des Champs-Élysées et avenue de la République.",
+        )
+
+    def test_classify_sentence_type_comprehensive(self):
+        for q_wh in (
+            "Qu'est-ce que tu veux ?",
+            "Où vas-tu ?",
+            "Quand arrive-t-il ?",
+            "Comment ça va ?",
+            "Pourquoi partir ?",
+            "Combien ça coûte ?",
+            "Qui est là ?",
+            "Quel jour sommes-nous ?",
+            "Quelles sont vos raisons ?",
+            "Lequel préfères-tu ?",
+            "Auquel penses-tu ?",
+            "Duquel parles-tu ?",
+            "De quoi s'agit-il ?",
+            "Pourquoi pas ?!",
+        ):
+            self.assertEqual(classify_sentence_type(q_wh), (0.0, 1.0, 0.0), q_wh)
+        for q_tot in ("Est-ce qu'il vient ?", "Est-ce que tu sais ?", "Tu viens demain ?", "Avez-vous fini ?", "Vraiment ?!"):
+            self.assertEqual(classify_sentence_type(q_tot), (1.0, 0.0, 0.0), q_tot)
+        for decl in ("Où il va, je l'ignore.", "Quand il pleut, il reste."):
+            self.assertEqual(classify_sentence_type(decl), (0.0, 0.0, 0.0), decl)
+
+    def test_extract_french_phrasal_features_clauses_geminates_and_fallbacks(self):
+        empty = extract_french_phrasal_features(torch.zeros(0, dtype=torch.long), "")
+        self.assertEqual(empty.shape, (0, PHRASAL_DIM))
+
+        oob = extract_french_phrasal_features(torch.tensor([999, -1], dtype=torch.long), "x")
+        self.assertEqual(oob.shape, (2, PHRASAL_DIM))
+
+        # Multi-clause: "Bonjour, ça va ; merci."
+        syms = ["<bos>", "b", "ɔ̃", "ʒ", "u", "ʁ", ",", "s", "a", "<sp>", "v", "a", ";", "m", "ɛ", "ʁ", "s", "i", ".", "<eos>"]
+        toks = torch.tensor([SYMBOL_TO_ID[s] for s in syms], dtype=torch.long)
+        feats = extract_french_phrasal_features(toks, "Bonjour, ça va ; merci.")
+        self.assertEqual(float(feats[6, 2]), 1.0)   # ','
+        self.assertEqual(float(feats[12, 2]), 1.0)  # ';'
+        self.assertEqual(float(feats[18, 2]), 0.0)  # '.' is terminal, not internal
+        self.assertEqual(float(feats[1, 16]), 1.0)  # "Bonjour" clause-final
+        self.assertEqual(float(feats[7, 16]), 0.0)  # "ça" not clause-final
+        self.assertEqual(float(feats[10, 16]), 1.0) # "va" clause-final
+        self.assertEqual(float(feats[13, 16]), 1.0) # "merci" clause-final
+        self.assertGreater(float(feats[10, 10]), float(feats[7, 10]))
+        self.assertGreater(float(feats[7, 11]), float(feats[10, 11]))
+
+        # Geminate boundary "elle lit": l <sp> l
+        gem_syms = ["<bos>", "ɛ", "l", "<sp>", "l", "i", "<eos>"]
+        gem_toks = torch.tensor([SYMBOL_TO_ID[s] for s in gem_syms], dtype=torch.long)
+        gem_feats = extract_french_phrasal_features(gem_toks, "elle lit")
+        self.assertEqual(float(gem_feats[3, 17]), 1.0)
+
+        non_gem = ["<bos>", "ɛ", "l", "<sp>", "v", "a", "<eos>"]
+        non_gem_feats = extract_french_phrasal_features(torch.tensor([SYMBOL_TO_ID[s] for s in non_gem], dtype=torch.long), "elle va")
+        self.assertEqual(float(non_gem_feats[3, 17]), 0.0)
+
+        # Token-only fallback (text=""): <= 2 phones treated as function word, >= 3 as content
+        fb_syms = ["<bos>", "d", "ə", "<sp>", "p", "w", "a", "l", "<eos>"]
+        fb_feats = extract_french_phrasal_features(torch.tensor([SYMBOL_TO_ID[s] for s in fb_syms], dtype=torch.long), "")
+        self.assertEqual(float(fb_feats[1, 8]), 1.0)
+        self.assertEqual(float(fb_feats[4, 8]), 0.0)
 
 
 if __name__ == "__main__":

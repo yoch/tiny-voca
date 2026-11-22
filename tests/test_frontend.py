@@ -150,7 +150,83 @@ class FrontEndTests(unittest.TestCase):
             got_seq = tuple(s for s in got.symbols if s in PHONE_SET or s == UNK)
             if any(got_seq == tuple(ref.split()) for ref in case["variants"]):
                 exact += 1
-        self.assertGreaterEqual(exact, 260)
+        self.assertGreaterEqual(exact, 263)
+
+    def test_french_ordinals_roman_guards_and_elision_units(self):
+        self.assertEqual(
+            frontend_fingerprint(),
+            "31807ddbd16771299960e70d15addc80902ab70ae20738240178903e23c7f7a6",
+        )
+        self.assertEqual(
+            frontend_rules_fingerprint(),
+            "70856b196b07f0a0584e8392c593bb90e69f36e669ce883433cb79f35c88d26f",
+        )
+        self.assertEqual(text._ordinal_fr(1), "premier")
+        self.assertEqual(text._ordinal_fr(3), "troisième")
+        self.assertEqual(text._ordinal_fr(23), "vingt-troisième")
+        self.assertEqual(text._ordinal_fr(80), "quatre-vingtième")
+        self.assertEqual(text._ordinal_fr(83), "quatre-vingt-troisième")
+        self.assertEqual(text._ordinal_fr(103), "cent troisième")
+        self.assertEqual(text._ordinal_fr(200), "deux centième")
+        self.assertEqual(text._ordinal_fr(1000), "millième")
+
+        self.assertEqual(text._expand_french_text("Vers 14h15, un Ver de terre."), "Vers 14 heures 15, un Ver de terre.")
+        self.assertEqual(text._expand_french_text("Article II, Scène IV, Chapitre III."), "Article 2, Scène 4, Chapitre 3.")
+        self.assertEqual(
+            text._expand_french_text("En 2014 s'est dit, les 3 l'ont vu, en 2015 m'a-t-on dit."),
+            "En 2014 s'est dit, les 3 l'ont vu, en 2015 m'a-t-on dit.",
+        )
+        if HAVE_ESPEAK:
+            self.assertEqual(phonemize("Vers 14h15").symbols[1:-1], ("v", "ɛ", "ʁ", SP, "k", "a", "t", "ɔ", "ʁ", "z", SP, "œ", "ʁ", SP, "k", "ɛ̃", "z"))
+            self.assertEqual(phonemize("3e").symbols[1:-1], ("t", "ʁ", "w", "a", "z", "j", "ɛ", "m"))
+            self.assertEqual(phonemize("Article II").symbols[1:-1], ("a", "ʁ", "t", "i", "k", "l", SP, "d", "ø"))
+            self.assertEqual(phonemize("J'aime l'art.").symbols[-2], ".")
+            self.assertEqual(phonemize("En plein vol.").symbols[-2], ".")
+            self.assertEqual(phonemize("C'est mon prof.").symbols[-2], ".")
+            self.assertIn(".", phonemize("Il a pris son vol. Il arrive demain.").symbols[1:-2])
+            self.assertIn(".", phonemize("C'est mon ex. Elle habite à Lyon.").symbols[1:-2])
+            self.assertEqual(phonemize("etc.").symbols[1:-1], ("ɛ", "t", "s", "e", "t", "e", "ʁ", "a"))
+
+    def test_number_ordinal_roman_wer_and_error_edges(self):
+        expected_nums = {
+            0: "zéro", 1: "un", 16: "seize", 21: "vingt et un", 61: "soixante et un",
+            70: "soixante-dix", 71: "soixante et onze", 79: "soixante-dix-neuf",
+            80: "quatre-vingts", 81: "quatre-vingt-un", 91: "quatre-vingt-onze",
+            99: "quatre-vingt-dix-neuf", 100: "cent", 101: "cent un",
+            200: "deux cents", 201: "deux cent un", 1000: "mille",
+            1001: "mille un", 2000: "deux mille", 2026: "deux mille vingt-six",
+            1_000_000: "1000000",
+        }
+        for n, word in expected_nums.items():
+            self.assertEqual(text._number_fr(n), word, n)
+
+        self.assertEqual(text._ordinal_fr(1, feminine=True), "première")
+        self.assertEqual(text._ordinal_fr(1, plural=True), "premiers")
+        self.assertEqual(text._ordinal_fr(1, feminine=True, plural=True), "premières")
+        for n, word in {
+            2: "deuxième", 4: "quatrième", 5: "cinquième", 9: "neuvième", 19: "dix-neuvième",
+            21: "vingt et unième", 71: "soixante et onzième", 81: "quatre-vingt-unième", 100: "centième",
+        }.items():
+            self.assertEqual(text._ordinal_fr(n), word, n)
+        self.assertEqual(text._ordinal_fr(3, plural=True), "troisièmes")
+
+        for roman, val in (("I", 1), ("IV", 4), ("IX", 9), ("XIV", 14), ("XLII", 42), ("XCIX", 99), ("MCMXCIX", 1999), ("MMXXVI", 2026)):
+            self.assertEqual(text._roman_to_int(roman), val, roman)
+        for bad in ("", "IIII", "VV", "IC", "ABC"):
+            self.assertIsNone(text._roman_to_int(bad), bad)
+
+        self.assertEqual(text.normalize_for_wer("C’est l'été — à Noël !"), "c'est l'été à noël")
+        self.assertEqual(text.normalize_for_wer("Café-crème, 100%.", language="en"), "caf cr me 100")
+        self.assertEqual(canonical("eː"), ("e",))
+        self.assertEqual(canonical("oː"), ("o",))
+
+        for empty in ("", "   ", None):
+            with self.assertRaises(ValueError):
+                phonemize(empty)
+        if HAVE_ESPEAK:
+            for unpron in ("!!! ...", "— —", "(( ))"):
+                with self.assertRaises(text.NothingToPronounce):
+                    phonemize(unpron)
 
 
 if __name__ == "__main__":

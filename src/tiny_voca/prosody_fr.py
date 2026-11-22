@@ -19,7 +19,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from .text import PHONE_SET, SYMBOL_TO_ID, SYMBOLS, VOWEL_SET
+from .text import PHONE_SET, SYMBOL_TO_ID, SYMBOLS, VOWEL_SET, _MONTHS_FR
 
 PHRASAL_DIM = 18
 
@@ -453,7 +453,7 @@ _FR_PHONE_RE = re.compile(r"(?<!\d)(0[1-9])(?:[\s.\-](\d{2})){4}(?!\d)")
 _FR_PHONE_SPLIT_RE = re.compile(r"(?<!\d)(0[1-9])[\s.\-](\d{2})[\s.\-](\d{2})[\s.\-](\d{2})[\s.\-](\d{2})(?!\d)")
 _FR_INTL_PHONE_RE = re.compile(r"(?<!\w)\+(33|32|41|352|1)[\s.\-]?(\d)[\s.\-](\d{2})[\s.\-](\d{2})[\s.\-](\d{2})[\s.\-](\d{2})(?!\d)")
 _EMAIL_RE = re.compile(r"\b([A-Za-z0-9._%+\-]+)@([A-Za-z0-9.\-]+\.[A-Za-z]{2,})\b")
-_URL_RE = re.compile(r"\bhttps?://([A-Za-z0-9.\-]+(?:/[^\s,;)]*[^\s,;).!?])?)")
+_URL_RE = re.compile(r"\bhttps?://([A-Za-z0-9.\-]+[A-Za-z0-9\-](?:/(?:[^\s,;)]*[^\s,;).!?])?)?)")
 
 _UNITS_FR_EXT = (
     # Compound data-rate units FIRST (before bare Ko/Mo/Go/To)
@@ -461,10 +461,25 @@ _UNITS_FR_EXT = (
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Mo/s\b"), "mégaoctet par seconde", "mégaoctets par seconde"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Go/s\b"), "gigaoctet par seconde", "gigaoctets par seconde"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*To/s\b"), "téraoctet par seconde", "téraoctets par seconde"),
-    # Currency magnitudes (M€, M$, Md€)
-    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Md€"), "milliard d'euros", "milliards d'euros"),
-    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*M€"), "million d'euros", "millions d'euros"),
-    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*M\$"), "million de dollars", "millions de dollars"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*(?:[Kk]b/s|[Kk]bps)\b"), "kilobit par seconde", "kilobits par seconde"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*(?:Mb/s|Mbps)\b"), "mégabit par seconde", "mégabits par seconde"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*(?:Gb/s|Gbps)\b"), "gigabit par seconde", "gigabits par seconde"),
+    # Currency magnitudes (M€, M$, Md€, Md$, k€, k$, M£, Md£, with optional French space)
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Md\s*€"), "milliard d'euros", "milliards d'euros"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*M\s*€"), "million d'euros", "millions d'euros"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Md\s*\$"), "milliard de dollars", "milliards de dollars"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*M\s*\$"), "million de dollars", "millions de dollars"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Md\s*£"), "milliard de livres", "milliards de livres"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*M\s*£"), "million de livres", "millions de livres"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[kK]\s*€"), "mille euros", "mille euros"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[kK]\s*\$"), "mille dollars", "mille dollars"),
+    # Area & volume superscripts before normalize_text() NFKC folds ²/³ -> 2/3
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*km²(?![\w²³])"), "kilomètre carré", "kilomètres carrés"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*cm²(?![\w²³])"), "centimètre carré", "centimètres carrés"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*mm²(?![\w²³])"), "millimètre carré", "millimètres carrés"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*m²(?![\w²³])"), "mètre carré", "mètres carrés"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*cm³(?![\w²³])"), "centimètre cube", "centimètres cubes"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*m³(?![\w²³])"), "mètre cube", "mètres cubes"),
     # Computing storage & timing
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[Kk]o\b"), "kilooctet", "kilooctets"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*Mo\b"), "mégaoctet", "mégaoctets"),
@@ -472,13 +487,14 @@ _UNITS_FR_EXT = (
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*To\b"), "téraoctet", "téraoctets"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*ms\b"), "milliseconde", "millisecondes"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[µμu]s\b"), "microseconde", "microsecondes"),
-    # Metric volume, mass, area, physics
+    # Metric volume, mass, area, electrical & physics
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*ml\b"), "millilitre", "millilitres"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*cl\b"), "centilitre", "centilitres"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*dl\b"), "décilitre", "décilitres"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*mg\b"), "milligramme", "milligrammes"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[µμ]g\b"), "microgramme", "microgrammes"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*[µμ]m\b"), "micromètre", "micromètres"),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*mA\b"), "milliampère", "milliampères"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*ha\b"), "hectare", "hectares"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*kHz\b"), "kilohertz", "kilohertz"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*MHz\b"), "mégahertz", "mégahertz"),
@@ -487,9 +503,21 @@ _UNITS_FR_EXT = (
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*kW\b"), "kilowatt", "kilowatts"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*MW\b"), "mégawatt", "mégawatts"),
     (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*dB\b"), "décibel", "décibels"),
-    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*V\b"), "volt", "volts"),
-    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*A\b"), "ampère", "ampères"),
-    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*W\b"), "watt", "watts"),
+)
+
+_UNIT_ID_NOUNS = frozenset({
+    "bâtiment", "batiment", "escalier", "porte", "salle", "ligne", "chapitre",
+    "classe", "annexe", "terminal", "hall", "zone", "lot", "bloc", "niveau",
+    "quai", "rang", "section", "secteur", "groupe", "type", "catégorie",
+    "categorie", "étage", "etage", "tome", "volume", "article", "dossier",
+    "bureau", "allée", "allee", "pavillon", "aile", "entrée", "entree",
+    "tranche", "phase", "étape", "etape", "couloir", "voie", "rangée",
+    "rangee", "place", "case", "box",
+})
+_SINGLE_LETTER_UNITS_FR = (
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*V\b(?!['’ʼ])"), "volt", "volts", False),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*A\b(?!['’ʼ])"), "ampère", "ampères", True),
+    (re.compile(r"\b(\d+(?:[.,]\d+)?)\s*W\b(?!['’ʼ])"), "watt", "watts", False),
 )
 
 # Only override acronyms/initialisms that eSpeak NG mispronounces or that text.py
@@ -528,7 +556,7 @@ _FR_ACRONYM_OVERRIDES = {
     "VTC": "vétécé",
     "KGB": "kagébé",
     "CDG": "sédégé",
-    "QCM": "kuséème",
+    "QCM": "kucéème",
     "CDI": "sédéi",
     "CDD": "sédédé",
     "IVG": "ivégé",
@@ -536,12 +564,37 @@ _FR_ACRONYM_OVERRIDES = {
     "SPA": "èspéa",
     "VIP": "véipé",
     "FAQ": "èfaku",
+    "OCDE": "océdéeuh",
+    "AFP": "aèfpé",
+    "FMI": "èfèmi",
+    "BCE": "bécéeuh",
+    "ANPE": "aènpéeuh",
+    "ARS": "aèrèsse",
+    "CNI": "séèni",
+    "SAV": "èssavé",
+    "OS": "ohèsse",
+    "TI": "téi",
+    "BTP": "bétépé",
+    "BNP": "béènpé",
+    "QG": "kugé",
+    "JO": "jio",
+    "CGU": "ségéu",
+    "CGV": "ségévé",
+    "SQL": "èskuèle",
+    "CSV": "séèssvé",
+    "XML": "iksèmèle",
+    "SSH": "èssèssache",
+    "SSD": "èssèssdé",
+    "TTS": "tétéèsse",
+    "ASR": "aèssère",
+    "CSS": "séèssèsse",
+    "CSSS": "séèssèssèsse",
 }
 _EMAIL_LOCAL_INITIALISMS = {
     "dpo": "dépéo",
     "rh": "èrache",
     "drh": "déèrache",
-    "sav": "èsavé",
+    "sav": "èssavé",
     "ceo": "sééo",
     "cto": "sétéo",
     "pdg": "pédégé",
@@ -550,24 +603,34 @@ _EMAIL_LOCAL_INITIALISMS = {
 }
 _ALL_CAPS_WORD_RE = re.compile(r"\b[A-Z]{2,6}\b")
 
+_FR_MONTH_AFTER_DAY = (
+    r"(?:1er|[12]?\d|3[01])\s+"
+    r"(?i:janv\.|févr\.|avr\.|juill?\.|sept\.|oct\.|nov\.|déc\.|"
+    r"(?:janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b)"
+)
 _FR_DAYS_ABBR = (
-    (re.compile(r"\b([Ll])un\.\s*(?=\d)"), "lundi "),
-    (re.compile(r"\b([Mm])ar\.\s*(?=\d)"), "mardi "),
-    (re.compile(r"\b([Mm])er\.\s*(?=\d)"), "mercredi "),
-    (re.compile(r"\b([Jj])eu\.\s*(?=\d)"), "jeudi "),
-    (re.compile(r"\b([Vv])en\.\s*(?=\d)"), "vendredi "),
-    (re.compile(r"\b([Ss])am\.\s*(?=\d)"), "samedi "),
-    (re.compile(r"\b([Dd])im\.\s*(?=\d)"), "dimanche "),
+    (re.compile(rf"\b([Ll])un\.\s*(?={_FR_MONTH_AFTER_DAY})"), "lundi "),
+    (re.compile(rf"\b([Mm])ar\.\s*(?={_FR_MONTH_AFTER_DAY})"), "mardi "),
+    (re.compile(rf"\b([Mm])er\.\s*(?={_FR_MONTH_AFTER_DAY})"), "mercredi "),
+    (re.compile(rf"\b([Jj])eu\.\s*(?={_FR_MONTH_AFTER_DAY})"), "jeudi "),
+    (re.compile(rf"\b([Vv])en\.\s*(?={_FR_MONTH_AFTER_DAY})"), "vendredi "),
+    (re.compile(rf"\b([Ss])am\.\s*(?={_FR_MONTH_AFTER_DAY})"), "samedi "),
+    (re.compile(rf"\b([Dd])im\.\s*(?={_FR_MONTH_AFTER_DAY})"), "dimanche "),
+)
+_FR_OTHER_MONTH = (
+    r"(?i:janv\.|févr\.|avr\.|juill?\.|oct\.|nov\.|déc\.|"
+    r"(?:janvier|février|mars|avril|mai|juin|juillet|août|octobre|novembre|décembre)\b)"
 )
 _FR_MONTHS_ABBR = (
-    (re.compile(r"\b(\d{1,2}|1er|premier)\s+janv\.", re.IGNORECASE), r"\1 janvier"),
-    (re.compile(r"\b(\d{1,2}|1er|premier)\s+févr\.", re.IGNORECASE), r"\1 février"),
-    (re.compile(r"\b(\d{1,2}|1er|premier)\s+avr\.", re.IGNORECASE), r"\1 avril"),
-    (re.compile(r"\b(\d{1,2}|1er|premier)\s+juill?\.", re.IGNORECASE), r"\1 juillet"),
-    (re.compile(r"\b(\d{1,2}|1er|premier)\s+sept\.", re.IGNORECASE), r"\1 septembre"),
-    (re.compile(r"\b(\d{1,2}|1er|premier)\s+oct\.", re.IGNORECASE), r"\1 octobre"),
-    (re.compile(r"\b(\d{1,2}|1er|premier)\s+nov\.", re.IGNORECASE), r"\1 novembre"),
-    (re.compile(r"\b(\d{1,2}|1er|premier)\s+déc\.", re.IGNORECASE), r"\1 décembre"),
+    (re.compile(r"\b([Jj])anv\."), "janvier"),
+    (re.compile(r"\b([Ff])évr\."), "février"),
+    (re.compile(r"\b([Aa])vr\."), "avril"),
+    (re.compile(r"\b([Jj])uill?\."), "juillet"),
+    (re.compile(r"\b(\d{1,2}|1er|premier)\s+sept\.", re.IGNORECASE), None),
+    (re.compile(rf"\b([Ss])ept\.(?=\s+(?:(?:19|20)\d{{2}}\b|(?:à|au|-|–|—)\s+{_FR_OTHER_MONTH}))"), "septembre"),
+    (re.compile(r"\b([Oo])ct\."), "octobre"),
+    (re.compile(r"\b([Nn])ov\."), "novembre"),
+    (re.compile(r"\b([Dd])éc\."), "décembre"),
 )
 _FR_LEXICON_OVERRIDES = (
     (re.compile(r"\bGitHub\b", re.IGNORECASE), "guite-heube"),
@@ -583,6 +646,11 @@ _FR_LEXICON_OVERRIDES = (
 )
 
 
+_VULGAR_FRACTION_RE = re.compile(r"(?<!\d)([½¼¾⅓⅔])")
+_VULGAR_FRACTIONS = {"½": "1/2", "¼": "1/4", "¾": "3/4", "⅓": "1/3", "⅔": "2/3"}
+_CAP_SENTENCE_START_RE = re.compile(r"""^\s+["'“‘(\[«]?[A-ZÀ-ÖØ-ÞŒŸ]""")
+
+
 def _expand_french_acronym(m: re.Match) -> str:
     word = m.group(0)
     return _FR_ACRONYM_OVERRIDES.get(word, word)
@@ -596,7 +664,33 @@ def _unit_plural(num_str: str, singular: str, plural: str) -> str:
     unit = singular if abs(val) <= 1.0 else plural
     if num_str == "1" and singular in ("milliseconde", "microseconde"):
         return f"une {unit}"
+    if num_str == "1" and singular in ("mille euros", "mille dollars"):
+        return singular
     return f"{num_str} {unit}"
+
+
+def _expand_single_letter_units(text: str) -> str:
+    """Expand 1-letter electrical/power units (V, A, W) while guarding identifiers and years."""
+    for pat, sing, plur, is_ampere in _SINGLE_LETTER_UNITS_FR:
+        def _sub(m: re.Match, s=sing, p=plur, amp=is_ampere) -> str:
+            prev = re.search(r"([A-Za-zÀ-ÖØ-öø-ÿŒœ]+)\.?\s*$", m.string[:m.start()])
+            if prev and prev.group(1).lower() in _UNIT_ID_NOUNS:
+                return m.group(0)
+            if amp and re.fullmatch(r"(?:19|20)\d{2}", m.group(1)) and re.match(r"\s+[a-zà-öø-ÿœ]", m.string[m.end():]):
+                return m.group(0)
+            return _unit_plural(m.group(1), s, p)
+        text = pat.sub(_sub, text)
+    return text
+
+
+def _expand_year_span(m: re.Match) -> str:
+    y1_s, y2_s = m.group(1), m.group(2)
+    y1, y2 = int(y1_s), int(y2_s)
+    if len(y2_s) == 4 and y1 < y2 <= y1 + 10:
+        return f"{y1_s}-{y2_s}"
+    if len(y2_s) == 2 and y2 == (y1 + 1) % 100:
+        return f"{y1_s}-{y2_s}"
+    return m.group(0)
 
 
 def prepare_french_structure(text: str) -> str:
@@ -622,7 +716,25 @@ def prepare_french_structure(text: str) -> str:
             else:
                 rebuilt.append(ln)
         text = "\n".join(rebuilt)
-    text = re.sub(r"([.!?…])\s+»", r"\1»", text)
+        lines = text.splitlines()
+    num_lines = sum(1 for ln in lines if re.match(r"^\s*\d{1,2}[.)]\s+\S", ln))
+    after_colon = any(
+        lines[i - 1].rstrip().endswith(":") and re.match(r"^\s*1[.)]\s+\S", ln)
+        for i, ln in enumerate(lines) if i > 0
+    )
+    if num_lines >= 2 or after_colon:
+        rebuilt = []
+        for ln in lines:
+            m = re.match(r"^\s*(\d{1,2})[.)]\s+(.+?)\s*$", ln)
+            if m:
+                item = m.group(2)
+                if item[-1:] not in ".!?…,:;":
+                    item = item + "."
+                rebuilt.append(f"{m.group(1)}, {item}")
+            else:
+                rebuilt.append(ln)
+        text = "\n".join(rebuilt)
+    text = re.sub(r"(?<=\S)\s+»", "»", text)
     text = re.sub(r"«\s+", "«", text)
     # Strip dialogue-turn dashes at utterance start or right after sentence-ending
     # punctuation so "— Tu viens ? — Non !" splits cleanly into two sentences.
@@ -632,7 +744,13 @@ def prepare_french_structure(text: str) -> str:
     for pat, repl in _FR_DAYS_ABBR:
         text = pat.sub(lambda m, r=repl: (r.capitalize() if m.group(1).isupper() else r), text)
     for pat, repl in _FR_MONTHS_ABBR:
-        text = pat.sub(repl, text)
+        def _month_sub(m: re.Match, r=repl) -> str:
+            suffix = "." if _CAP_SENTENCE_START_RE.match(m.string[m.end():]) else ""
+            if r is None:
+                return f"{m.group(1)} septembre{suffix}"
+            word = r.capitalize() if m.group(1).isupper() else r
+            return word + suffix
+        text = pat.sub(_month_sub, text)
     # Expand period-bearing abbreviations before sentence splitting (preserving case)
     # so forms like "l'art. 3", "bât. B", "esc. 2", "N.B.", "c.-à-d.", "suiv." never
     # falsely split a sentence at their abbreviation dot.
@@ -646,12 +764,14 @@ def prepare_french_structure(text: str) -> str:
     text = re.sub(r"\b(\d+)\s*c\.\s*à\s*c\.", r"\1 cuillères à café", text, flags=re.IGNORECASE)
     text = re.sub(r"\bPr\.?\s+(?=[A-ZÀ-ÖØ-ÞŒ])", "Professeur ", text)
     text = re.sub(r"\bMe\.?\s+(?=[A-ZÀ-ÖØ-ÞŒ])", "Maître ", text)
-    text = re.sub(r"\bAv\.\s+(?=[A-ZÀ-ÖØ-ÞŒ])(?!J\.-?C)", "Avenue ", text)
-    text = re.sub(r"\bav\.\s+(?=[A-ZÀ-ÖØ-ÞŒ])(?!J\.-?C)", "avenue ", text)
+    text = re.sub(r"\bAv\.\s+(?=(?:[A-ZÀ-ÖØ-ÞŒ]|(?:de|du|des)\s|d['’]|l['’]))(?!J\.-?C)", "Avenue ", text)
+    text = re.sub(r"\bav\.\s+(?=(?:[A-ZÀ-ÖØ-ÞŒ]|(?:de|du|des)\s|d['’]|l['’]))(?!J\.-?C)", "avenue ", text)
     text = re.sub(r"\bBât\.\s*", "Bâtiment ", text)
     text = re.sub(r"\bbât\.\s*", "bâtiment ", text)
     text = re.sub(r"\bEsc\.\s*", "Escalier ", text)
     text = re.sub(r"\besc\.\s*", "escalier ", text)
+    text = re.sub(r"\bPp\.\s*(?=\d)", "Pages ", text)
+    text = re.sub(r"\bpp\.\s*(?=\d)", "pages ", text)
     text = re.sub(r"\bArt\.\s*(?=\d)", "Article ", text)
     text = re.sub(r"\bart\.\s*(?=\d)", "article ", text)
     text = re.sub(r"\bTél\.\s*", "Téléphone ", text)
@@ -704,9 +824,21 @@ def prepare_french_tts_text(text: str) -> str:
     # 5. Computing, physics, currency-magnitude & metric units.
     for pat, sing, plur in _UNITS_FR_EXT:
         text = pat.sub(lambda m, s=sing, p=plur: _unit_plural(m.group(1), s, p), text)
+    text = _expand_single_letter_units(text)
 
-    # 6. Common fractions, ratings/scores ("14/20") & multipliers ("2x").
-    # Protect dates DD/MM/YYYY from being caught by the generic X/Y score regex.
+    # 6. Unicode vulgar fractions, common fractions, 24h/24, year spans, short dates, scores ("14/20") & multipliers ("2x").
+    # Protect dates DD/MM/YYYY, short dates ("le 14/07"), and year spans ("2011/12") from X/Y.
+    text = _VULGAR_FRACTION_RE.sub(lambda m: _VULGAR_FRACTIONS[m.group(1)], text)
+    text = re.sub(r"\b(\d)\u2044(\d)\b", r"\1/\2", text)
+    text = re.sub(r"\b24\s*[hH]\s*/\s*24\b", "24 heures sur 24", text)
+    text = re.sub(r"\b7\s*[jJ]\s*/\s*7\b", "7 jours sur 7", text)
+    text = re.sub(r"(?<!/)\b((?:19|20)\d{2})/(\d{4}|\d{2})\b(?!/\d)", _expand_year_span, text)
+    text = re.sub(
+        r"\b(le|du|au)\s+(0[1-9]|[12]\d|3[01])/(0[1-9]|1[0-2])\b(?!/\d)",
+        lambda m: f"{m.group(1)} {'premier' if int(m.group(2)) == 1 else int(m.group(2))} {_MONTHS_FR[int(m.group(3)) - 1]}",
+        text,
+        flags=re.IGNORECASE,
+    )
     text = re.sub(r"\b1/2\s+heure\b", "une demi-heure", text, flags=re.IGNORECASE)
     text = re.sub(r"\b1/2\b", "un demi", text)
     text = re.sub(r"\b1/3\b", "un tiers", text)
@@ -714,6 +846,7 @@ def prepare_french_tts_text(text: str) -> str:
     text = re.sub(r"\b1/4\b", "un quart", text)
     text = re.sub(r"\b3/4\b", "trois quarts", text)
     text = re.sub(r"(?<!/)\b(\d+(?:[.,]\d+)?)/(\d+(?:[.,]\d+)?)\b(?!/\d)", r"\1 sur \2", text)
+    text = re.sub(r"\b1\s*[xX]\b", "une fois", text)
     text = re.sub(r"\b(\d+(?:[.,]\d+)?)\s*[xX]\b", r"\1 fois", text)
 
     # 7. Everyday symbols (~, #, &, ±).
@@ -729,6 +862,8 @@ def prepare_french_tts_text(text: str) -> str:
     text = re.sub(r"\s*;\s+", ", ", text)
     text = re.sub(r"(?<=[\w)\"»])\s+—\s+(?=\S)", ", ", text)
     text = re.sub(r"(?:…|\.{3})\s+(?=[a-zà-öø-ÿœ])", ", ", text)
+    text = re.sub(r"^\(([^()]+)\)\s+(?=\S)", r"\1, ", text)
+    text = re.sub(r"(?<=\S)\s+\(([^()]+)\)(?=\s+[^\s,.;:!?—…\"»])", r", \1,", text)
     text = re.sub(r"(?<=\S)\s+\(([^()]+)\)", r", \1", text)
 
     return text

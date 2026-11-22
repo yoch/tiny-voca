@@ -338,6 +338,319 @@
         "b y s"
       ],
       "forbid_ipa": ["ʒ a d i ,", "k a s i <sp>"]
+    },
+    {
+      "id": "elisions_all_clitics_after_numbers",
+      "category": "elisions",
+      "text": "En 2013-2014 s'annonce bien : les 3 L'ont vu, les 2 m'ont appelé, les 5 t'attendent, les 6 d'entre eux, les 7 n'ont rien dit, les 8 j'adore, les 9 c'est bon, les 10 qu'il veut, en 2014 s’est dit, en 2015 mʼa-t-on dit, mais 2 m de tissu, 10 s pile, 500 g de sucre et 1,5 L d'eau.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "d ø <sp> m i l <sp> k a t ɔ ʁ z <sp> s a n ɔ̃ s",
+        "t ʁ w a <sp> l ɔ̃ <sp> v y",
+        "d ø <sp> m ɔ̃ t <sp> a p l e",
+        "s ɛ̃ k <sp> t a t ɑ̃ d",
+        "s i <sp> d ɑ̃ t ʁ <sp> ø",
+        "s ɛ t <sp> n ɔ̃ <sp> ʁ i ɛ̃",
+        "y i <sp> ʒ a d ɔ ʁ",
+        "n œ f <sp> s ɛ <sp> b ɔ̃",
+        "d i <sp> k i l <sp> v ø",
+        "k a t ɔ ʁ z <sp> s ɛ <sp> d i",
+        "k ɛ̃ z <sp> m a t ɔ̃ <sp> d i",
+        "d ø <sp> m ɛ t ʁ <sp> d ə <sp> t i s y",
+        "d i <sp> s ə ɡ ɔ̃ d <sp> p i l",
+        "s ɛ̃ k s ɑ̃ <sp> ɡ ʁ a m",
+        "s ɛ̃ k <sp> l i t ʁ <sp> d o"
+      ],
+      "forbid_ipa": ["s ə ɡ ɔ̃ d ə s", "l i t ʁ ə", "m ɛ t ʁ ə", "ɡ ʁ a m ə"]
+    },
+    {
+      "id": "units_single_letter_v_a_w_false_positives",
+      "category": "units",
+      "text": "Bâtiment 2 A, porte 3 A, chapitre 2 V, classe 3 W : en 2014 A voté la loi et en 2014 A's, contre 12 V, 2,5 A et 30 W.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "b a t i m ɑ̃ <sp> d ø z <sp> a",
+        "p ɔ ʁ t <sp> t ʁ w a z <sp> a",
+        "ʃ a p i t ʁ <sp> d ø <sp> v e",
+        "k l a s <sp> t ʁ w a <sp> d u b l ə v e",
+        "k a t ɔ ʁ z <sp> a <sp> v o t e",
+        "k a t ɔ ʁ z <sp> e j z",
+        "d u z <sp> v ɔ l t",
+        "s ɛ̃ k <sp> ɑ̃ p ɛ ʁ",
+        "t ʁ ɑ̃ t <sp> w a t"
+      ],
+      "forbid_ipa": ["b a t i m ɑ̃ <sp> d ø z <sp> ɑ̃ p ɛ ʁ", "p ɔ ʁ t <sp> t ʁ w a z <sp> ɑ̃ p ɛ ʁ", "d ø <sp> v ɔ l t", "t ʁ w a z <sp> w a t", "k a t ɔ ʁ z <sp> ɑ̃ p ɛ ʁ"]
+    },
+    {
+      "id": "roman_ordinals_vs_french_words_and_capitalized_context",
+      "category": "ordinals",
+      "text": "Vers 14h15, un Ver de terre traverse la Vie privée au Ve siècle, Ier siècle, Ire partie, Article II, Scène IV et Chapitre III.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "v ɛ ʁ <sp> k a t ɔ ʁ z <sp> œ ʁ <sp> k ɛ̃ z",
+        "œ̃ <sp> v ɛ ʁ <sp> d ə <sp> t ɛ ʁ",
+        "l a <sp> v i <sp> p ʁ i v e",
+        "o <sp> s ɛ̃ k j ɛ m <sp> s j ɛ k l",
+        "p ʁ ə m j e <sp> s j ɛ k l",
+        "p ʁ ə m j ɛ ʁ <sp> p a ʁ t i",
+        "a ʁ t i k l <sp> d ø",
+        "s ɛ n <sp> k a t ʁ",
+        "ʃ a p i t ʁ <sp> t ʁ w a"
+      ],
+      "forbid_ipa": ["s ɛ̃ k j ɛ m <sp> k a t ɔ ʁ z", "s ɛ̃ k j ɛ m <sp> d ə <sp> t ɛ ʁ", "ʁ o m ɛ̃"]
+    },
+    {
+      "id": "ordinals_arabic_and_roman_troisieme",
+      "category": "ordinals",
+      "text": "Son 3e anniversaire, le 23e rang, le 80e jour, la 83e place, le 103e km et le IIIe siècle.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "s ɔ̃ <sp> t ʁ w a z j ɛ m <sp> a n i v ɛ ʁ s ɛ ʁ",
+        "v ɛ̃ t t ʁ w a z j ɛ m <sp> ʁ ɑ̃",
+        "k a t ʁ v ɛ̃ t j ɛ m <sp> ʒ u ʁ",
+        "k a t ʁ v ɛ̃ t t ʁ w a z j ɛ m <sp> p l a s",
+        "s ɑ̃ <sp> t ʁ w a z j ɛ m <sp> k i l o m ɛ t ʁ",
+        "l ə <sp> t ʁ w a z j ɛ m <sp> s j ɛ k l"
+      ],
+      "forbid_ipa": ["t ʁ w a j ɛ m"]
+    },
+    {
+      "id": "currency_magnitudes_md_m_k",
+      "category": "currency",
+      "text": "Revenus de 4,56 Md$, 290,4 M$, 1,5 Md€, 50 k€ et 1 k$.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "m i l j a ʁ <sp> d ə <sp> d ɔ l a ʁ",
+        "m i l j ɔ̃ <sp> d ə <sp> d ɔ l a ʁ",
+        "m i l j a ʁ <sp> d ø ʁ o",
+        "s ɛ̃ k ɑ̃ t <sp> m i l <sp> ø ʁ o",
+        "e <sp> m i l <sp> d ɔ l a ʁ"
+      ],
+      "forbid_ipa": ["ɛ m d e <sp> d ɔ l a ʁ", "k a <sp> ø ʁ o", "œ̃ <sp> m i l"]
+    },
+    {
+      "id": "slashes_years_short_dates_and_24h_7j",
+      "category": "dates",
+      "text": "En 2011/12 et 2013/2014, ouvert 24h/24 et 7j/7 du 01/05 au 14/07, noté 14/20.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "ɑ̃ <sp> d ø <sp> m i l <sp> ɔ̃ z <sp> d u z <sp> e <sp> d ø <sp> m i l <sp> t ʁ ɛ z <sp> d ø <sp> m i l <sp> k a t ɔ ʁ z",
+        "v ɛ̃ t k a t ʁ <sp> œ ʁ <sp> s y ʁ <sp> v ɛ̃ t k a t ʁ",
+        "s ɛ t <sp> ʒ u ʁ <sp> s y ʁ <sp> s ɛ t",
+        "d y <sp> p ʁ ə m j e <sp> m ɛ <sp> o <sp> k a t ɔ ʁ z <sp> ʒ y i j ɛ",
+        "k a t ɔ ʁ z <sp> s y ʁ <sp> v ɛ̃"
+      ],
+      "forbid_ipa": ["ɔ̃ z <sp> s y ʁ <sp> d u z", "t ʁ ɛ z <sp> s y ʁ", "ʒ i <sp> s ɛ t", "s ɛ̃ k <sp> o"]
+    },
+    {
+      "id": "guillemets_nbsp_and_elided_quotes",
+      "category": "punctuation",
+      "text": "«\u00a0Il n'y avait pas de neurochirurgiens\u00a0», a déclaré Georges ; «\u00a0S'il pleut, l'eau monte\u00a0».",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "\" i l <sp> n i <sp> a v ɛ <sp> p a <sp> d ə <sp> n ø ʁ o ʃ i ʁ y ʁ ʒ j ɛ̃ \" , a <sp> d e k l a ʁ e <sp> ʒ ɔ ʁ ʒ",
+        "\" s i l <sp> p l ø , l o <sp> m ɔ̃ t \" ."
+      ],
+      "forbid_ipa": ["j ɛ̃ <sp> \"", "t <sp> \""]
+    },
+    {
+      "id": "numbered_list_splits_cleanly",
+      "category": "punctuation",
+      "text": "Étapes :\n1. Ouvrir l'application\n2. Cliquer sur démarrer\n3. Valider le résultat",
+      "expect_sentences": 3,
+      "expect_ipa_contains": [
+        "e t a p , œ̃ , u v ʁ i ʁ <sp> l a p l i k a s j ɔ̃ .",
+        "d ø , k l i k e <sp> s y ʁ <sp> d e m a ʁ e .",
+        "t ʁ w a , v a l i d e <sp> l ə <sp> ʁ e z y l t a ."
+      ],
+      "forbid_ipa": ["1.", "2.", "3."]
+    },
+    {
+      "id": "parentheses_mid_sentence_and_initial",
+      "category": "punctuation",
+      "text": "(Note importante) Le projet (lancé en 2024) s'appelle Petite Voix.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "n ɔ t <sp> ɛ̃ p ɔ ʁ t ɑ̃ t , l ə <sp> p ʁ o ʒ ɛ , l ɑ̃ s e <sp> ɑ̃ <sp> d ø <sp> m i l <sp> v ɛ̃ t k a t ʁ , s a p ɛ l <sp> p ə t i t <sp> v w a ."
+      ],
+      "forbid_ipa": ["(", ")"],
+      "onnx_check": {
+        "voice": 0,
+        "expect_punct_pause_min_frames": 10
+      }
+    },
+    {
+      "id": "abbreviated_months_standalone_and_pp",
+      "category": "abbreviations",
+      "text": "En janv. 2026, de févr. à déc. 2026, voir pp. 12-15.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "ʒ ɑ̃ v j e <sp> d ø <sp> m i l <sp> v ɛ̃ t s i s",
+        "d ə <sp> f e v ʁ i e <sp> a <sp> d e s ɑ̃ b ʁ",
+        "p a ʒ <sp> d u z <sp> k ɛ̃ z"
+      ],
+      "forbid_ipa": ["ʒ ɑ̃ v .", "p e <sp> p e", "p e p e"]
+    },
+    {
+      "id": "acronyms_fixed_s_and_common_french_initialisms",
+      "category": "acronyms",
+      "text": "Le QCM, l'OCDE, l'AFP, le FMI, la BCE, l'ANPE, l'ARS, la CNI, le SAV, l'OS, des TI et sav@exemple.fr.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "k y s e ɛ m",
+        "l o s e d e œ",
+        "l a ɛ f p e",
+        "ɛ f ɛ m i",
+        "b e s e œ",
+        "l a ɛ n p e œ",
+        "l a ɛ ʁ ɛ s",
+        "s e ɛ n i",
+        "l ə <sp> ɛ s a v e",
+        "l o ɛ s",
+        "d e <sp> t e i",
+        "ɛ s a v e <sp> a ʁ o b a z"
+      ],
+      "forbid_ipa": ["k y z e ɛ m", "ɛ z a v e", "l ɔ k d", "l a f p", "l a <sp> b s", "l ɔ s", "d e <sp> t i"]
+    },
+    {
+      "id": "acronyms_tech_no_internal_sp",
+      "category": "acronyms",
+      "text": "Le BTP, la BNP, le SQL, le CSV, le XML, le SSH, le SSD, le TTS, l'ASR et le CSS.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "b e t e p e",
+        "b e ɛ n p e",
+        "ɛ s k y ɛ l",
+        "s e ɛ s v e",
+        "i k s ɛ m ɛ l",
+        "ɛ s ɛ s a ʃ",
+        "ɛ s ɛ s d e",
+        "t e t e ɛ s",
+        "l a ɛ s ɛ ʁ",
+        "s e ɛ s ɛ s"
+      ],
+      "forbid_ipa": ["b e <sp> t e", "ɛ s <sp> k y <sp> ɛ l", "ɛ z ɛ z"]
+    },
+    {
+      "id": "elisions_acronyms_hmuet_and_compounds",
+      "category": "elisions",
+      "text": "L'API, l'USB, l'IRM, d'EDF, l'homme, l'hiver, jusqu'à, lorsqu'il, puisqu'elle, quoiqu'on, presqu'île, quelqu'un, aujourd'hui et grand'mère.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "l a p e i",
+        "l y ɛ s b e",
+        "l j ɛ ʁ ɛ m",
+        "d e d e ɛ f",
+        "l ɔ m",
+        "l i v ɛ ʁ",
+        "ʒ y s k a",
+        "l o ʁ s k i l",
+        "p y i s k ɛ l",
+        "k w a k ɔ̃",
+        "p ʁ ɛ s k i l",
+        "k ɛ l k œ̃",
+        "o ʒ u ʁ d y i",
+        "ɡ ʁ ɑ̃ m ɛ ʁ"
+      ],
+      "forbid_ipa": ["ɡ ʁ ɑ̃ d <sp> m ɛ ʁ", "l ə <sp> y"]
+    },
+    {
+      "id": "units_area_volume_and_unicode_fractions",
+      "category": "units",
+      "text": "Un studio de 50 m², un volume de 20 m³, un parc de 10 km², une puce de 25 cm², ½ litre d'eau, ¼ d'heure et ¾ des élèves.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "m ɛ t ʁ <sp> k a ʁ e",
+        "m ɛ t ʁ <sp> k y b",
+        "k i l o m ɛ t ʁ <sp> k a ʁ e",
+        "s ɑ̃ t i m ɛ t ʁ <sp> k a ʁ e",
+        "œ̃ <sp> d ə m i <sp> l i t ʁ",
+        "œ̃ <sp> k a ʁ <sp> d œ ʁ",
+        "t ʁ w a <sp> k a ʁ <sp> d e z <sp> e l ɛ v"
+      ],
+      "forbid_ipa": ["ɛ m <sp> d ø", "ɛ m <sp> t ʁ w a", "k i l o m ɛ t ʁ <sp> d ø", "œ̃ <sp> d ø <sp> l i t ʁ"]
+    },
+    {
+      "id": "units_electrical_datarate_and_spaced_currencies",
+      "category": "units",
+      "text": "Chargeur 500 mA, fibre 100 Mb/s ou 10 Gb/s, budget de 4,56 Md € et 290,4 M €.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "m i l j ɑ̃ p ɛ ʁ",
+        "m e ɡ a b i <sp> p a ʁ <sp> s ə ɡ ɔ̃ d",
+        "ʒ i ɡ a b i <sp> p a ʁ <sp> s ə ɡ ɔ̃ d",
+        "m i l j a ʁ <sp> d ø ʁ o",
+        "m i l j ɔ̃ <sp> d ø ʁ o"
+      ],
+      "forbid_ipa": ["ɛ m <sp> a", "ɛ m b e", "ʒ e b e", "ɛ m d e <sp> ø ʁ o", "ɛ m <sp> ø ʁ o"]
+    },
+    {
+      "id": "urls_trailing_period_and_slash_and_emails",
+      "category": "symbols",
+      "text": "Voir https://example.org. Visitez https://www.service-public.fr/ ou http://mon-site.fr/guide/page_1.html et écrivez à rh@societe.com ou pdg@societe.com.",
+      "expect_sentences": 2,
+      "expect_ipa_contains": [
+        "ɔ ʁ ɡ .",
+        "p y b l i k <sp> p w ɛ̃ <sp> ɛ f ɛ ʁ <sp> u",
+        "ɛ ʁ a ʃ <sp> a ʁ o b a z",
+        "p e d e ʒ e <sp> a ʁ o b a z"
+      ],
+      "forbid_ipa": ["ɔ ʁ ɡ <sp> p w ɛ̃"]
+    },
+    {
+      "id": "abbreviated_months_sentence_end_and_avenue_prepositions",
+      "category": "abbreviations",
+      "text": "Le festival se termine le 15 déc. La billetterie ouvre le 3 avr. Rendez-vous av. des Champs-Élysées et av. de la République.",
+      "expect_sentences": 3,
+      "expect_ipa_contains": [
+        "k ɛ̃ z <sp> d e s ɑ̃ b ʁ .",
+        "t ʁ w a z <sp> a v ʁ i l .",
+        "a v n y <sp> d e",
+        "a v n y <sp> d ə <sp> l a"
+      ],
+      "forbid_ipa": ["a v <sp> d e"]
+    },
+    {
+      "id": "currencies_large_numbers_and_negatives",
+      "category": "currency",
+      "text": "Le devis est de 1 250,50 €, soit 0,50 € par pièce, 12,00 € ou 50 EUR, par -5 °C et +5 °C.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "m i l <sp> d ø s ɑ̃ <sp> s ɛ̃ k ɑ̃ t <sp> ø ʁ o <sp> s ɛ̃ k ɑ̃ t",
+        "z e ʁ o <sp> ø ʁ o <sp> s ɛ̃ k ɑ̃ t",
+        "d u z <sp> ø ʁ o",
+        "m w ɛ̃ <sp> s ɛ̃ k <sp> d ə ɡ ʁ e",
+        "p l y s <sp> s ɛ̃ k <sp> d ə ɡ ʁ e"
+      ],
+      "forbid_ipa": ["ø ʁ o <sp> z e ʁ o"]
+    },
+    {
+      "id": "clock_times_and_dates_boundaries",
+      "category": "dates",
+      "text": "De 0h00 à 00h15, puis 1h00, 1h05, 9h30 et 23h59 ; du 01/01/2026 au 2026-12-31, et en 50 av. J.-C., César vint.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "z e ʁ o <sp> œ ʁ",
+        "y n <sp> œ ʁ <sp> s ɛ̃ k",
+        "n œ v <sp> œ ʁ <sp> t ʁ ɑ̃ t",
+        "p ʁ ə m j e <sp> ʒ ɑ̃ v j e",
+        "t ʁ ɑ̃ t e œ̃ <sp> d e s ɑ̃ b ʁ",
+        "a v ɑ̃ <sp> ʒ e z y k ʁ i s t"
+      ],
+      "forbid_ipa": ["a v n y"]
+    },
+    {
+      "id": "cooking_abbreviations_and_phone_formats",
+      "category": "abbreviations",
+      "text": "Mélangez 1 c. à s. d'huile et 2 c. à c. de sucre. Appelez le 01-23-45-67-89, le 04.72.00.11.22 ou le +32 4 12 34 56 78.",
+      "expect_sentences": 2,
+      "expect_ipa_contains": [
+        "y n <sp> k y i j ɛ ʁ <sp> a <sp> s u p",
+        "k y i j ɛ ʁ z <sp> a <sp> k a f e",
+        "z e ʁ o <sp> œ̃ , v ɛ̃ t t ʁ w a",
+        "p l y s <sp> t ʁ ɑ̃ t d ø"
+      ],
+      "forbid_ipa": ["s e <sp> a <sp> ɛ s"]
     }
   ]
 }

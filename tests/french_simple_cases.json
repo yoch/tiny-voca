@@ -1,0 +1,418 @@
+{
+  "description": "Plain everyday French non-regression suite guarding simple sentences against collateral damage from normalization rules (no unexpected word rewrites, no swallowed punctuation, no false acronym/unit/date/ordinal triggers).",
+  "cases": [
+    {
+      "id": "simple_greeting_and_politeness",
+      "category": "conversational",
+      "text": "Bonjour, comment allez-vous aujourd'hui ?",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": "?",
+      "expect_ipa_contains": ["b ɔ̃ ʒ u ʁ , k ɔ m ɑ̃ <sp> a l e v u z <sp> o ʒ u ʁ d y i ?"],
+      "forbid_ipa": [],
+      "onnx_check": {
+        "voice": 0,
+        "expect_max_sp_pauses": 0
+      }
+    },
+    {
+      "id": "simple_bakery_request",
+      "category": "conversational",
+      "text": "Je voudrais deux croissants et une baguette, s'il vous plaît.",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": ["ʒ ə <sp> v u d ʁ ɛ <sp> d ø <sp> k ʁ w a s ɑ̃ <sp> e <sp> y n <sp> b a ɡ ɛ t , s i l <sp> v u <sp> p l ɛ ."],
+      "forbid_ipa": [],
+      "onnx_check": {
+        "voice": 1,
+        "expect_max_sp_pauses": 0
+      }
+    },
+    {
+      "id": "simple_morning_nature",
+      "category": "conversational",
+      "text": "Il fait très beau ce matin, les oiseaux chantent dans le jardin.",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": ["l e z <sp> w a z o <sp> ʃ ɑ̃ t <sp> d ɑ̃ <sp> l ə <sp> ʒ a ʁ d ɛ̃ ."],
+      "forbid_ipa": []
+    },
+    {
+      "id": "simple_negation_work",
+      "category": "conversational",
+      "text": "Non, je ne peux pas venir, j'ai beaucoup de travail.",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": ["n ɔ̃ , ʒ ə <sp> n ə <sp> p ø <sp> p a <sp> v ə n i ʁ , ʒ e <sp> b o k u <sp> d ə <sp> t ʁ a v a j ."],
+      "forbid_ipa": []
+    },
+    {
+      "id": "simple_multisentence_split",
+      "category": "splitting",
+      "text": "Bonjour. Comment vas-tu ? Très bien !",
+      "expect_sentences": 3,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": [".", "?", "!"],
+      "expect_ipa_contains": ["b ɔ̃ ʒ u ʁ .", "k ɔ m ɑ̃ <sp> v a t y ?", "t ʁ ɛ <sp> b j ɛ̃ !"],
+      "forbid_ipa": []
+    },
+    {
+      "id": "simple_two_questions",
+      "category": "splitting",
+      "text": "Qu'est-ce que tu fais demain soir ? On va au cinéma ?",
+      "expect_sentences": 2,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ["?", "?"],
+      "expect_ipa_contains": ["k ɛ s k ə <sp> t y <sp> f ɛ <sp> d ə m ɛ̃ <sp> s w a ʁ ?", "ɔ̃ <sp> v a <sp> o <sp> s i n e m a ?"],
+      "forbid_ipa": []
+    },
+    {
+      "id": "simple_exclamation_and_question",
+      "category": "splitting",
+      "text": "C'est vraiment dommage ! Peut-être la semaine prochaine ?",
+      "expect_sentences": 2,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ["!", "?"],
+      "expect_ipa_contains": ["s ɛ <sp> v ʁ ɛ m ɑ̃ <sp> d ɔ m a ʒ !", "p ø t ɛ t ʁ <sp> l a <sp> s ə m ɛ n <sp> p ʁ o ʃ ɛ n ?"],
+      "forbid_ipa": []
+    },
+    {
+      "id": "simple_words_colliding_with_abbreviations_end",
+      "category": "punctuation_guards",
+      "text": "J'aime l'art. En plein vol. C'est mon prof.",
+      "expect_sentences": 2,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": [".", "."],
+      "expect_ipa_contains": ["ʒ ɛ m <sp> l a ʁ .", "ɑ̃ <sp> p l ɛ̃ <sp> v ɔ l .", "s ɛ <sp> m ɔ̃ <sp> p ʁ ɔ f ."],
+      "forbid_ipa": ["a ʁ t i k l", "v o l y m", "p ʁ o f ɛ s œ ʁ"]
+    },
+    {
+      "id": "simple_vol_and_ex_mid_text",
+      "category": "punctuation_guards",
+      "text": "Il a pris son vol. Il arrive demain. C'est mon ex. Elle habite à Lyon.",
+      "expect_sentences": 2,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": [".", "."],
+      "expect_ipa_contains": ["s ɔ̃ <sp> v ɔ l . i l <sp> a ʁ i v", "m ɔ̃ n <sp> ɛ k s . ɛ l <sp> a b i t"],
+      "forbid_ipa": ["v o l y m", "ɛ ɡ z ɑ̃ p l"]
+    },
+    {
+      "id": "simple_mer_before_digits",
+      "category": "abbr_guards",
+      "text": "Nous partons en mer. 3 bateaux arrivent.",
+      "expect_sentences": 2,
+      "expect_ends_with_punct": [".", "."],
+      "expect_ipa_contains": ["ɑ̃ <sp> m ɛ ʁ .", "t ʁ w a <sp> b a t o z <sp> a ʁ i v ."],
+      "forbid_ipa": ["m ɛ ʁ k ʁ ə d i"]
+    },
+    {
+      "id": "simple_jeu_before_digits",
+      "category": "abbr_guards",
+      "text": "C'est un beau jeu. 2 joueurs gagnent.",
+      "expect_sentences": 2,
+      "expect_ends_with_punct": [".", "."],
+      "expect_ipa_contains": ["b o <sp> ʒ ø .", "d ø <sp> ʒ w œ ʁ <sp> ɡ a n j ."],
+      "forbid_ipa": ["ʒ ø d i"]
+    },
+    {
+      "id": "simple_sept_not_septembre",
+      "category": "abbr_guards",
+      "text": "Ils sont sept. Ensuite on part. Il y en a sept. il attend.",
+      "expect_sentences": 3,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": [".", ".", "."],
+      "expect_ipa_contains": ["i l <sp> s ɔ̃ <sp> s ɛ t .", "ɑ̃ n <sp> a <sp> s ɛ t . i l <sp> a t ɑ̃ ."],
+      "forbid_ipa": ["s ɛ p t ɑ̃ b ʁ"]
+    },
+    {
+      "id": "simple_fractions_after_le_du_au",
+      "category": "fraction_guards",
+      "text": "Au 3/4 de la salle, le 1/4 d'heure de retard, le 5/5, au 1/2 tour et du 1/2 litre.",
+      "expect_sentences": 1,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": [
+        "o <sp> t ʁ w a <sp> k a ʁ <sp> d ə <sp> l a <sp> s a l",
+        "l ə <sp> œ̃ <sp> k a ʁ <sp> d œ ʁ",
+        "l ə <sp> s ɛ̃ k <sp> s y ʁ <sp> s ɛ̃ k",
+        "o <sp> œ̃ <sp> d ə m i <sp> t u ʁ",
+        "d y <sp> œ̃ <sp> d ə m i <sp> l i t ʁ"
+      ],
+      "forbid_ipa": ["a v ʁ i l", "m ɛ ,", "f e v ʁ i e"]
+    },
+    {
+      "id": "simple_chronological_years_multiline",
+      "category": "list_guards",
+      "text": "1914. Début du conflit.\n1918. Fin du conflit.",
+      "expect_sentences": 4,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": [".", ".", ".", "."],
+      "expect_ipa_contains": ["m i l <sp> n œ f s ɑ̃ <sp> k a t ɔ ʁ z .", "m i l <sp> n œ f s ɑ̃ <sp> d i z y i t ."],
+      "forbid_ipa": ["k a t ɔ ʁ z ,", "d i z y i t ,"]
+    },
+    {
+      "id": "simple_words_colliding_with_roman_ordinals",
+      "category": "word_guards",
+      "text": "Vers midi, vers la plage, un ver de terre, la vie est belle, des vies entières.",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": ["v ɛ ʁ <sp> m i d i", "v ɛ ʁ <sp> l a <sp> p l a ʒ", "œ̃ <sp> v ɛ ʁ <sp> d ə <sp> t ɛ ʁ", "l a <sp> v i <sp> ɛ <sp> b ɛ l"],
+      "forbid_ipa": ["s ɛ̃ k j ɛ m", "s i z j ɛ m", "p ʁ ə m j e"]
+    },
+    {
+      "id": "simple_determiners_and_pronouns",
+      "category": "word_guards",
+      "text": "Les chats, des chiens, ces livres, mes amis, ses idées, nos projets, vos questions.",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": ["l e <sp> ʃ a , d e <sp> ʃ j ɛ̃ , s e <sp> l i v ʁ , m e z <sp> a m i , s e z <sp> i d e , n o <sp> p ʁ o ʒ ɛ , v o <sp> k ɛ s t j ɔ̃ ."],
+      "forbid_ipa": ["j ɛ m"]
+    },
+    {
+      "id": "simple_me_pronoun_not_maitre",
+      "category": "abbr_guards",
+      "text": "Me voici ! Me diras-tu la vérité ? Me voilà parti.",
+      "expect_sentences": 3,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ["!", "?", "."],
+      "expect_ipa_contains": ["m ə <sp> v w a s i !", "m ə <sp> d i ʁ a t y <sp> l a <sp> v e ʁ i t e ?", "m ə <sp> v w a l a <sp> p a ʁ t i ."],
+      "forbid_ipa": ["m ɛ t ʁ"]
+    },
+    {
+      "id": "simple_numbers_without_units",
+      "category": "unit_guards",
+      "text": "En 2020 a eu lieu la fête ; il a 2 amis, 3 voitures, 5 ans et 10 mots.",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": ["d ø <sp> m i l <sp> v ɛ̃ t <sp> a <sp> y <sp> l j ø", "d ø z <sp> a m i , t ʁ w a <sp> v w a t y ʁ , s ɛ̃ k <sp> ɑ̃ <sp> e <sp> d i <sp> m o ."],
+      "forbid_ipa": ["<sp> ɑ̃ p ɛ ʁ", "<sp> m ɛ t ʁ", "<sp> s ə ɡ ɔ̃ d", "<sp> l i t ʁ", "<sp> ɡ ʁ a m", "<sp> v ɔ l t", "<sp> w a t"]
+    },
+    {
+      "id": "simple_homograph_est_verb",
+      "category": "homograph_guards",
+      "text": "Il est grand, elle l'est aussi, et c'est vraiment bien. Est-ce que tu viens demain ?",
+      "expect_sentences": 2,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": [".", "?"],
+      "expect_ipa_contains": ["i l <sp> ɛ <sp> ɡ ʁ ɑ̃ , ɛ l <sp> l ɛ t <sp> o s i", "ɛ s <sp> k ə <sp> t y <sp> v j ɛ̃ <sp> d ə m ɛ̃ ?"],
+      "forbid_ipa": ["ɛ s t"]
+    },
+    {
+      "id": "simple_homograph_plus_negation",
+      "category": "homograph_guards",
+      "text": "Il n'y en a plus, je ne veux plus partir, on verra plus tard, c'est de plus en plus grand.",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": ["ɑ̃ n <sp> a <sp> p l y", "v ø <sp> p l y <sp> p a ʁ t i ʁ", "p l y <sp> t a ʁ", "d ə <sp> p l y z <sp> ɑ̃ <sp> p l y <sp> ɡ ʁ ɑ̃ ."],
+      "forbid_ipa": ["p l y s"]
+    },
+    {
+      "id": "simple_homograph_tous",
+      "category": "homograph_guards",
+      "text": "Tous les jours, tous mes amis viennent, ils sont tous venus, merci à tous.",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": ["t u <sp> l e <sp> ʒ u ʁ", "t u <sp> m e z <sp> a m i", "t u s <sp> v ə n y", "m ɛ ʁ s i <sp> a <sp> t u s ."],
+      "forbid_ipa": []
+    },
+    {
+      "id": "simple_homograph_vis_os_fils_fier",
+      "category": "homograph_guards",
+      "text": "Je vis à Paris, tu vis ici, je la vis hier ; un os blanc, des fils de soie, et mon fils est très fier.",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": [
+        "ʒ ə <sp> v i <sp> a <sp> p a ʁ i",
+        "l a <sp> v i <sp> j ɛ ʁ",
+        "œ̃ n <sp> ɔ s <sp> b l ɑ̃",
+        "f i l <sp> d ə <sp> s w a",
+        "m ɔ̃ <sp> f i s <sp> ɛ <sp> t ʁ ɛ <sp> f j ɛ ʁ ."
+      ],
+      "forbid_ipa": ["v i s", "œ̃ n <sp> o", "f j e"]
+    },
+    {
+      "id": "simple_lowercase_nouns_not_acronyms",
+      "category": "acronym_guards",
+      "text": "Un spa tranquille, un os blanc, une rame de métro.",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": ["œ̃ <sp> s p a <sp> t ʁ ɑ̃ k i l", "œ̃ n <sp> ɔ s <sp> b l ɑ̃", "y n <sp> ʁ a m <sp> d ə <sp> m e t ʁ o ."],
+      "forbid_ipa": ["ɛ s p e a", "o ɛ s"]
+    },
+    {
+      "id": "simple_liaisons_h_and_et",
+      "category": "liaisons",
+      "text": "Un pain et un café, des haricots verts, les héros et les hôtels.",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": ["p ɛ̃ <sp> e <sp> œ̃", "d e <sp> a ʁ i k o", "l e <sp> e ʁ o", "l e z <sp> o t ɛ l ."],
+      "forbid_ipa": ["d e z <sp> a ʁ i k o", "l e z <sp> e ʁ o"]
+    },
+    {
+      "id": "simple_compounds_and_clitics",
+      "category": "conversational",
+      "text": "Vas-y, donne-m'en un peu, ne t'en fais pas ! Dit-il, a-t-il demandé, y a-t-il quelqu'un ?",
+      "expect_sentences": 2,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ["!", "?"],
+      "expect_ipa_contains": ["v a z i , d ɔ n m ɑ̃ n <sp> œ̃ <sp> p ø , n ə <sp> t ɑ̃ <sp> f ɛ <sp> p a !", "d i t i l , a t i l <sp> d ə m ɑ̃ d e , i <sp> a t i l <sp> k ɛ l k œ̃ ?"],
+      "forbid_ipa": []
+    },
+    {
+      "id": "simple_spelled_numbers_hours_ordinals",
+      "category": "conversational",
+      "text": "Elle habite au premier étage, lui au deuxième et moi au troisième. Le train part à huit heures et arrive à neuf heures et demie.",
+      "expect_sentences": 2,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": [".", "."],
+      "expect_ipa_contains": ["p ʁ ə m j e ʁ <sp> e t a ʒ", "o <sp> d ø z j ɛ m", "o <sp> t ʁ w a z j ɛ m .", "a <sp> y i t <sp> œ ʁ", "a <sp> n œ v <sp> œ ʁ <sp> e <sp> d ə m i ."],
+      "forbid_ipa": []
+    },
+    {
+      "id": "simple_everyday_digits_times_euros_mult",
+      "category": "numbers",
+      "text": "Le train arrive à 8h, le suivant à 8h05, un billet coûte 1 € ou 12,50 €, 1x par jour et de 10-15 minutes.",
+      "expect_sentences": 1,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": [
+        "a <sp> y i t <sp> œ ʁ",
+        "a <sp> y i t <sp> œ ʁ <sp> s ɛ̃ k",
+        "œ̃ n <sp> ø ʁ o",
+        "d u z <sp> ø ʁ o <sp> s ɛ̃ k ɑ̃ t",
+        "y n <sp> f w a <sp> p a ʁ <sp> ʒ u ʁ",
+        "d i <sp> k ɛ̃ z <sp> m i n y t ."
+      ],
+      "forbid_ipa": ["œ̃ <sp> f w a", "m w ɛ̃ <sp> k ɛ̃ z"]
+    },
+    {
+      "id": "simple_quotes_parens_titles",
+      "category": "punctuation",
+      "text": "M. Martin a dit : « Bonjour ! » Tu connais Paris (la capitale) ? (Voir annexe.)",
+      "expect_sentences": 3,
+      "expect_ends_with_punct": ["\"", "?", ")"],
+      "expect_ipa_contains": ["m ə s j ø <sp> m a ʁ t ɛ̃ <sp> a <sp> d i , \" b ɔ̃ ʒ u ʁ ! \"", "p a ʁ i , l a <sp> k a p i t a l ?", "( v w a ʁ <sp> a n ɛ k s . )"],
+      "forbid_ipa": ["\" ."],
+      "onnx_check": {
+        "voice": 0,
+        "expect_punct_pause_min_frames": 10
+      }
+    },
+    {
+      "id": "simple_unicode_spaces_and_apostrophes",
+      "category": "typography",
+      "text": "Bonjour\u00a0!\u202fC’est d’aujourd’hui, n’est-ce pas\u00a0?",
+      "expect_sentences": 2,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": ["!", "?"],
+      "expect_ipa_contains": ["b ɔ̃ ʒ u ʁ !", "s ɛ <sp> d o ʒ u ʁ d y i , n ɛ s <sp> p a ?"],
+      "forbid_ipa": []
+    },
+    {
+      "id": "simple_ordinary_homographs_couvent_president_portions",
+      "category": "homographs",
+      "text": "Les poules du couvent couvent. Ils président le conseil, le président écoute, et nous notions ces notions.",
+      "expect_sentences": 2,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": [".", "."],
+      "expect_ipa_contains": [
+        "l e <sp> p u l <sp> d y <sp> k u v ɑ̃ <sp> k u v .",
+        "i l <sp> p ʁ e z i d <sp> l ə <sp> k ɔ̃ s ɛ j",
+        "l ə <sp> p ʁ e z i d ɑ̃ <sp> e k u t",
+        "n u <sp> n o t j ɔ̃ <sp> s e <sp> n o s j ɔ̃ ."
+      ],
+      "forbid_ipa": []
+    },
+    {
+      "id": "simple_oues_ouent_verbs_and_nouns",
+      "category": "verbs",
+      "text": "Tu joues dehors, ils louent une maison, les roues tournent, ils avouent tout.",
+      "expect_sentences": 1,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": [
+        "t y <sp> ʒ u <sp> d ə ɔ ʁ",
+        "i l <sp> l u <sp> y n <sp> m ɛ z ɔ̃",
+        "l e <sp> ʁ u <sp> t u ʁ n",
+        "i l z <sp> a v u <sp> t u ."
+      ],
+      "forbid_ipa": ["ʒ u ə", "l u ɑ̃", "ʁ u ə"]
+    },
+    {
+      "id": "simple_av_not_expanded_when_not_address",
+      "category": "abbr_guards",
+      "text": "En 500 av. J.-C., Rome grandit ; en 100 ap. J.-C., l'empire s'étend.",
+      "expect_sentences": 1,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": [
+        "a v ɑ̃ <sp> ʒ e z y k ʁ i s t",
+        "a p ʁ ɛ <sp> ʒ e z y k ʁ i s t"
+      ],
+      "forbid_ipa": ["a v n y"]
+    },
+    {
+      "id": "simple_standard_si_units_clean",
+      "category": "units",
+      "text": "Il a acheté 2 kg de pommes, 50 km plus loin, à 25 cm du bord, et il reste 10 mm.",
+      "expect_sentences": 1,
+      "expect_ends_with_punct": ".",
+      "expect_ipa_contains": [
+        "k i l ɔ ɡ ʁ a m",
+        "k i l o m ɛ t ʁ",
+        "s ɑ̃ t i m ɛ t ʁ",
+        "m i l i m ɛ t ʁ ."
+      ],
+      "forbid_ipa": ["k a ʒ e", "k a ɛ m", "s e ɛ m", "ɛ m ɛ m"]
+    },
+    {
+      "id": "simple_abbreviations_titles_everyday",
+      "category": "abbreviations",
+      "text": "M. et Mme Martin arrivent. Mlle Durand et le Dr Bernard les attendent.",
+      "expect_sentences": 2,
+      "expect_ends_with_punct": [".", "."],
+      "expect_ipa_contains": [
+        "m ə s j ø <sp> e <sp> m a d a m <sp> m a ʁ t ɛ̃ <sp> a ʁ i v .",
+        "m a d m w a z ɛ l <sp> d y ʁ ɑ̃",
+        "d o k t ø ʁ <sp> b ɛ ʁ n a ʁ"
+      ],
+      "forbid_ipa": ["ɛ m <sp> e"]
+    },
+    {
+      "id": "simple_sept_before_capital_sentence_start",
+      "category": "abbr_guards",
+      "text": "Ils sont sept. Il part demain. Elle en compte sept. Tout le monde arrive.",
+      "expect_sentences": 4,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": [".", ".", ".", "."],
+      "expect_ipa_contains": ["i l <sp> s ɔ̃ <sp> s ɛ t .", "k ɔ̃ t <sp> s ɛ t ."],
+      "forbid_ipa": ["s ɛ p t ɑ̃ b ʁ"]
+    },
+    {
+      "id": "simple_accents_cedilla_ligatures_diaeresis",
+      "category": "conversational",
+      "text": "Un cœur d'œuf, un garçon français à Noël, maïs naïf, où va l'élève très sûr ?",
+      "expect_sentences": 1,
+      "expect_unchanged_words": true,
+      "expect_ends_with_punct": "?",
+      "expect_ipa_contains": [
+        "œ̃ <sp> k œ ʁ <sp> d œ f",
+        "ɡ a ʁ s ɔ̃ <sp> f ʁ ɑ̃ s ɛ z <sp> a <sp> n ɔ ɛ l",
+        "m a i s <sp> n a i f",
+        "u <sp> v a <sp> l e l ɛ v <sp> t ʁ ɛ <sp> s y ʁ ?"
+      ],
+      "forbid_ipa": [],
+      "onnx_check": {
+        "voice": 0,
+        "expect_max_sp_pauses": 0
+      }
+    }
+  ]
+}
