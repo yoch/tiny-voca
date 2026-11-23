@@ -404,7 +404,7 @@
       "expect_ends_with_punct": "?",
       "expect_ipa_contains": [
         "œ̃ <sp> k œ ʁ <sp> d œ f",
-        "ɡ a ʁ s ɔ̃ <sp> f ʁ ɑ̃ s ɛ z <sp> a <sp> n ɔ ɛ l",
+        "ɡ a ʁ s ɔ̃ <sp> f ʁ ɑ̃ s ɛ <sp> a <sp> n ɔ ɛ l",
         "m a i s <sp> n a i f",
         "u <sp> v a <sp> l e l ɛ v <sp> t ʁ ɛ <sp> s y ʁ ?"
       ],

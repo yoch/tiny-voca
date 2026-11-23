@@ -28,7 +28,7 @@ import unicodedata
 FRONTEND_VERSION = 4
 # Bump whenever normalization, expansion, liaison/elision or post-eSpeak rules change
 # without altering the 54-symbol inventory / fallback vocabulary.
-FRONTEND_RULES_VERSION = 2
+FRONTEND_RULES_VERSION = 3
 ESPEAK_VOICE = "fr"
 SEPARATOR = "_"
 FRONTENDS = ("espeak",)
@@ -211,7 +211,43 @@ _ELIDED_WORD_RE = re.compile(
     r"\b(jusqu|lorsqu|puisqu|quoiqu|qu|[dlnsmtjc])'([A-Za-zÀ-ÖØ-öø-ÿŒœ]+(?:['-][A-Za-zÀ-ÖØ-öø-ÿŒœ]+)*)\b",
     re.IGNORECASE,
 )
-_NO_LIAISON_SPLIT_RE = re.compile(r"(?i)(?:(?<!\bvingt)\s+(?=\bet\b)|\s+(?=\bhameaux?\b))")
+_NO_LIAISON_SPLIT_RE = re.compile(
+    r"(?i)(?:(?<!\bvingt)\s+(?=\bet\b)|\s+(?=\bhameaux?\b))"
+)
+# No liaison after an -ment adverb ("vraiment emporter"). Verbs in -ment keep eSpeak's liaison: the teacher says
+# "forment‿une" (CTC check on teacher clips, .local-runs/frontend_rules_1123/teacher_liaison).
+_ADVERB_MENT_RE = re.compile(r"(?:ement|ément|amment|emment)$")
+_ADVERBS_MENT = frozenset((
+    "vraiment", "joliment", "gaiment", "absolument", "résolument", "éperdument", "assidûment", "dûment", "goulûment",
+    "poliment", "infiniment", "hardiment", "gentiment", "précisément", "notamment", "évidemment", "récemment"))
+_NO_LIAISON_START = frozenset("aeiouyàâäéèêëîïôöùûüœæh")
+# "puis" never takes a liaison in the teacher's reading (CTC check on Qwen clips: 35/37 without). "mais" loses it only
+# before the words of _NO_LIAISON_BEFORE (9/10 without); before a pronoun the teacher varies, eSpeak's choice is kept.
+_NO_LIAISON_AFTER = frozenset(("puis",))
+# No liaison from a plural noun/adjective in -s/-x to a following preposition or adverb ("outils lourds avant"):
+# the words before which the piece is split, and the -s/-x words that keep their liaison there.
+_NO_LIAISON_BEFORE = frozenset((
+    "avant", "après", "avec", "à", "au", "aux", "en", "entre", "envers", "ou", "où", "ici", "ainsi", "aussi",
+    "autour", "auprès", "ensuite", "enfin", "encore", "environ", "hier"))
+_LIAISON_KEPT_AFTER = frozenset((
+    "les", "des", "ces", "mes", "tes", "ses", "nos", "vos", "leurs", "aux", "ils", "elles", "nous", "vous",
+    "dans", "sans", "sous", "chez", "très", "plus", "moins", "trop", "deux", "trois", "six", "dix", "quels", "quelles",
+    "tous", "toutes", "pas", "jamais", "depuis", "dès", "alors", "vers", "lors", "quelques",
+    "plusieurs", "certains", "certaines", "gros", "bas", "las",
+    "temps", "mieux",                                    # de temps‿en temps, de mieux‿en mieux
+    # Verb forms: the teacher makes these liaisons (sommes‿en, êtes‿à, suis‿entre, sois‿en).
+    "suis", "es", "sommes", "êtes", "sois", "soyons", "soyez", "étions", "étiez", "avons", "avez", "allons", "allez",
+    "vais", "vas", "viens", "fais", "mis", "pris"))
+_WORD_SPLIT_RE = re.compile(r"(\s+)")
+# Phonetic respellings applied to each piece just before eSpeak NG (the expanded text keeps its spelling):
+# "germent" is only ever a verb, which eSpeak reads [ʒɛʁmɑ̃] without a subject pronoun; the verb "ferment" [fɛʁm]
+# unless a determiner makes it the noun ("le ferment"); "de plus" closing a phrase is [plys] ("dix minutes de
+# plus", "De plus, ...", pieces end at punctuation), while "de plus en plus" and "non plus" are untouched.
+_GERMENT_RE = re.compile(r"\bgerment\b", re.IGNORECASE)
+_FERMENT_RE = re.compile(r"\b(\w+)(\s+)ferment\b", re.IGNORECASE)
+_FERMENT_NOUN_DETERMINERS = frozenset(("le", "un", "ce", "du", "au", "son", "mon", "ton", "leur", "notre", "votre", "quel", "cet"))
+_DE_PLUS_FINAL_RE = re.compile(r"\b(de)\s+plus\s*$", re.IGNORECASE)
+_PHRASE_FINAL_PUNCTUATION = frozenset((",", ".", ";", ":", "!", "?", "…", "—"))   # not quotes or brackets
 
 _ESPEAK_LOCK = threading.Lock()
 _ESPEAK_LIB = None
@@ -289,6 +325,13 @@ def frontend_rules_identity():
         "acronym_hints": dict(sorted(_ACRONYM_HINTS.items())),
         "word_hints": dict(sorted(_FRENCH_WORD_HINTS.items())),
         "elided_prefixes": sorted(_ELIDED_PREFIX_PHONES),
+        "no_liaison_split": _NO_LIAISON_SPLIT_RE.pattern,
+        "no_liaison_adverbs": [_ADVERB_MENT_RE.pattern, sorted(_ADVERBS_MENT)],
+        "no_liaison_after": sorted(_NO_LIAISON_AFTER),
+        "phonetic_respell": [_GERMENT_RE.pattern, _FERMENT_RE.pattern, sorted(_FERMENT_NOUN_DETERMINERS),
+                             _DE_PLUS_FINAL_RE.pattern, sorted(_PHRASE_FINAL_PUNCTUATION)],
+        "no_liaison_before": sorted(_NO_LIAISON_BEFORE),
+        "liaison_kept_after": sorted(_LIAISON_KEPT_AFTER),
     }
 
 
@@ -652,10 +695,36 @@ def _espeak_subpiece(sub):
     return parse_espeak(raw)
 
 
+def _phonetic_respell(piece):
+    piece = _GERMENT_RE.sub("germe", piece)
+    return _FERMENT_RE.sub(lambda m: m[0] if m[1].lower() in _FERMENT_NOUN_DETERMINERS else f"{m[1]}{m[2]}ferme", piece)
+
+
+def _no_liaison_pieces(piece):
+    """Split a text piece where no liaison may be made, so eSpeak NG phonemizes each side separately."""
+    piece = _phonetic_respell(piece)
+    out = []
+    for sub in _NO_LIAISON_SPLIT_RE.split(piece):
+        tokens = _WORD_SPLIT_RE.split(sub)
+        start = 0
+        for i in range(2, len(tokens), 2):
+            left, right = tokens[i - 2].lower(), tokens[i].lower()
+            plural = (right in _NO_LIAISON_BEFORE and len(left) >= 3 and left[-1] in "sx" and left.isalpha()
+                      and left not in _LIAISON_KEPT_AFTER)
+            adverb = (right[:1] in _NO_LIAISON_START and left.isalpha()
+                      and (left in _ADVERBS_MENT or (len(left) > 6 and _ADVERB_MENT_RE.search(left))))
+            conjunction = left in _NO_LIAISON_AFTER and right[:1] in _NO_LIAISON_START
+            if plural or adverb or conjunction:
+                out.append("".join(tokens[start:i - 1]))
+                start = i
+        out.append("".join(tokens[start:]))
+    return out
+
+
 def espeak_words(piece):
     """Phonemize one text piece. Returns words as lists of ``(phone, stress)``."""
     words = []
-    for sub in _NO_LIAISON_SPLIT_RE.split(piece):
+    for sub in _no_liaison_pieces(piece):
         sub = sub.strip()
         if sub:
             words.extend(_espeak_subpiece(sub))
@@ -753,8 +822,14 @@ def phonemize(text):
     if not isinstance(text, str) or not text.strip():
         raise ValueError("text must not be empty")
     pieces = []
-    for punctuation, piece in chunks(_expand_french_text(normalize_text(text))):
-        pieces.append((True, piece) if punctuation else (False, espeak_words(piece)))
+    parts = list(chunks(_expand_french_text(normalize_text(text))))
+    for index, (punctuation, piece) in enumerate(parts):
+        if punctuation:
+            pieces.append((True, piece))
+            continue
+        if index + 1 >= len(parts) or (parts[index + 1][0] and parts[index + 1][1] in _PHRASE_FINAL_PUNCTUATION):
+            piece = _DE_PLUS_FINAL_RE.sub(r"\1 plusse", piece)
+        pieces.append((False, espeak_words(piece)))
     return tokenize(pieces)
 
 

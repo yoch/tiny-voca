@@ -305,7 +305,7 @@
       "expect_sentences": 1,
       "expect_ipa_contains": [
         "d ə <sp> m ɛ s <sp> a <sp> ʃ a m o n i",
-        "p y i z <sp> o s ɛ ʁ",
+        "p y i <sp> o s ɛ ʁ",
         "b ʁ y s ɛ l",
         "t ʁ w a",
         "a v o ʁ j a"
@@ -646,11 +646,95 @@
       "expect_sentences": 2,
       "expect_ipa_contains": [
         "y n <sp> k y i j ɛ ʁ <sp> a <sp> s u p",
-        "k y i j ɛ ʁ z <sp> a <sp> k a f e",
+        "d ø <sp> k y i j ɛ ʁ <sp> a <sp> k a f e",
         "z e ʁ o <sp> œ̃ , v ɛ̃ t t ʁ w a",
         "p l y s <sp> t ʁ ɑ̃ t d ø"
       ],
-      "forbid_ipa": ["s e <sp> a <sp> ɛ s"]
+      "forbid_ipa": ["s e <sp> a <sp> ɛ s", "k y i j ɛ ʁ z <sp> a"]
+    },
+    {
+      "id": "rules_v3_germent_ferment_verbs",
+      "category": "liaison_rules",
+      "text": "Des idées originales germent parfois, les usines ferment demain, mais le ferment agit encore.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "ʒ ɛ ʁ m <sp> p a ʁ f w a",
+        "f ɛ ʁ m <sp> d ə m ɛ̃",
+        "l ə <sp> f ɛ ʁ m ɑ̃ <sp> a ʒ i"
+      ],
+      "forbid_ipa": ["ʒ ɛ ʁ m ɑ̃", "f ɛ ʁ m ɑ̃ <sp> d ə"]
+    },
+    {
+      "id": "rules_v3_de_plus_final_s",
+      "category": "liaison_rules",
+      "text": "Son trajet durait dix minutes de plus. De plus, il pleut de plus en plus, et moi non plus. Je n'en peux plus.",
+      "expect_sentences": 3,
+      "expect_ipa_contains": [
+        "m i n y t <sp> d ə <sp> p l y s .",
+        "d ə <sp> p l y s , i l",
+        "d ə <sp> p l y z <sp> ɑ̃ <sp> p l y s ,",
+        "n ɔ̃ <sp> p l y .",
+        "p ø <sp> p l y ."
+      ],
+      "forbid_ipa": ["m i n y t <sp> d ə <sp> p l y .", "n ɔ̃ <sp> p l y s"]
+    },
+    {
+      "id": "rules_v3_no_liaison_plural_before_preposition",
+      "category": "liaison_rules",
+      "text": "Ils ont rangé leurs outils lourds avant de partir, avec trois pommes au panier et deux cuillères à soupe de miel.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "l œ ʁ z <sp> u t i <sp> l u ʁ <sp> a v ɑ̃",
+        "p ɔ m <sp> o <sp> p a n j e",
+        "k y i j ɛ ʁ <sp> a <sp> s u p"
+      ],
+      "forbid_ipa": ["l u ʁ z <sp> a v ɑ̃", "p ɔ m z <sp> o", "k y i j ɛ ʁ z <sp> a"]
+    },
+    {
+      "id": "rules_v3_no_liaison_after_adverb_but_verbs_keep_it",
+      "category": "liaison_rules",
+      "text": "Faut-il vraiment emporter un parapluie ? Ces Longs-Nez forment une corporation.",
+      "expect_sentences": 2,
+      "expect_ipa_contains": [
+        "v ʁ ɛ m ɑ̃ <sp> ɑ̃ p ɔ ʁ t e",
+        "f ɔ ʁ m t <sp> y n"
+      ],
+      "forbid_ipa": ["v ʁ ɛ m ɑ̃ t <sp> ɑ̃ p"]
+    },
+    {
+      "id": "rules_v3_liaisons_kept",
+      "category": "liaison_rules",
+      "text": "On en parle de temps en temps : nous sommes en retard, vous êtes à Paris, et les amis arrivent avec deux heures de retard.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "t ɑ̃ z ɑ̃ t ɑ̃",
+        "s ɔ m z <sp> ɑ̃ <sp> ʁ ə t a ʁ",
+        "v u z <sp> ɛ t z <sp> a <sp> p a ʁ i",
+        "l e z <sp> a m i",
+        "d ø z <sp> œ ʁ"
+      ],
+      "forbid_ipa": []
+    },
+    {
+      "id": "rules_v3_puis_mais_liaison",
+      "category": "liaison_rules",
+      "text": "Nous passons d'abord au café, puis à la pharmacie, puis on rentre, mais il pleut, mais aussi il vente.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "p y i <sp> a <sp> l a",
+        "p y i <sp> ɔ̃ <sp> ʁ ɑ̃ t ʁ",
+        "m ɛ z <sp> i l <sp> p l ø",
+        "m ɛ <sp> o s i"
+      ],
+      "forbid_ipa": ["p y i z", "m ɛ z <sp> o s i"]
+    },
+    {
+      "id": "rules_v3_de_plus_not_before_quotes_or_brackets",
+      "category": "liaison_rules",
+      "text": "Il n'y a rien de plus « beau » que ça.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": ["d ə <sp> p l y \" b o"],
+      "forbid_ipa": ["p l y s \""]
     }
   ]
 }
