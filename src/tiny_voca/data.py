@@ -47,7 +47,7 @@ def continuous_pitch(pitch, voiced, default=0.0, window=5, tolerance=0.45):
 
 
 class AnnotatedDataset:
-    def __init__(self, manifest, config, acoustic_root=None, cache=True, voiced_vowels=False):
+    def __init__(self, manifest, config, acoustic_root=None, cache=True, voiced_vowels=False, compact=False):
         self.manifest = Path(manifest)
         metadata_path = self.manifest.parent / "annotations.json"
         if not metadata_path.exists():
@@ -95,6 +95,8 @@ class AnnotatedDataset:
         self.lengths = [r["frames"] for r in self.rows]
         self._cache = {} if cache else None
         self.voiced_vowels = voiced_vowels
+        # compact: keep the cached waveform as int16 when that is exact (16-bit sources), half the memory.
+        self.compact = compact
 
     def __len__(self):
         return len(self.rows)
@@ -108,7 +110,10 @@ class AnnotatedDataset:
 
     def __getitem__(self, index):
         if self._cache is not None and index in self._cache:
-            return self._cache[index]
+            item = self._cache[index]
+            if item["wave"].dtype == torch.int16:
+                item = {**item, "wave": item["wave"].float() / 32768.0}
+            return item
         row, c = self.rows[index], self.config
         path = (self.root / row["path"]).resolve()
         if not path.is_relative_to(self.root.resolve()):
@@ -137,7 +142,12 @@ class AnnotatedDataset:
             "pitch_trusted": trusted,
         }
         if self._cache is not None:
-            self._cache[index] = item
+            cached = item
+            if self.compact:
+                pcm = torch.round(item["wave"] * 32768.0)
+                if torch.equal(pcm / 32768.0, item["wave"]) and pcm.abs().max() <= 32767:
+                    cached = {**item, "wave": pcm.to(torch.int16)}
+            self._cache[index] = cached
         return item
 
 

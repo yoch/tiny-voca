@@ -170,7 +170,42 @@ def clip_system_gradients(system, max_norm, separate_prosody=False):
     return math.hypot(g_pros, g_acou), {"grad_norm_prosody": g_pros, "grad_norm_acoustic": g_acou}
 
 
-def optimize_step(system, critics, optimizer, critic_optimizer, batch, step, recipe):
+class GradientSync:
+    """Data-parallel training without a DDP wrapper: after each backward pass the gradients are averaged over
+    the ranks, so every rank applies the same update to identical weights. A parameter that received a gradient
+    on any rank gets one everywhere (zeros where it had none); parameters without a gradient on every rank keep
+    None, as in a single process."""
+
+    def __init__(self, world):
+        import torch.distributed as dist
+        self.dist, self.world = dist, world
+
+    def average(self, module):
+        params = [p for p in module.parameters() if p.requires_grad]
+        if not params:
+            return
+        device = params[0].device
+        present = torch.tensor([p.grad is not None for p in params], dtype=torch.float32, device=device)
+        self.dist.all_reduce(present, op=self.dist.ReduceOp.MAX)
+        chosen = [p for p, flag in zip(params, present.tolist()) if flag]
+        if not chosen:
+            return
+        flat = torch.cat([(p.grad if p.grad is not None else torch.zeros_like(p)).reshape(-1) for p in chosen])
+        self.dist.all_reduce(flat)
+        flat /= self.world
+        offset = 0
+        for p in chosen:
+            n = p.numel()
+            p.grad = flat[offset:offset + n].view_as(p).clone()
+            offset += n
+
+    def sum(self, tensor):
+        tensor = tensor.clone()
+        self.dist.all_reduce(tensor)
+        return tensor
+
+
+def optimize_step(system, critics, optimizer, critic_optimizer, batch, step, recipe, sync=None):
     weights = recipe["weights"]
     branch = recipe.get("branched_from") or {}
     start = 0 if branch.get("keep_schedule") else branch.get("step", 0)
@@ -188,6 +223,8 @@ def optimize_step(system, critics, optimizer, critic_optimizer, batch, step, rec
         critic_optimizer.zero_grad(set_to_none=True)
         d_loss = discriminator_loss(critics(real), critics(fake.detach()))
         d_loss.backward()
+        if sync is not None:
+            sync.average(critics)
         nn.utils.clip_grad_norm_(critics.parameters(), 10, error_if_nonfinite=True)
         critic_optimizer.step()
         critics.requires_grad_(False)
@@ -203,7 +240,12 @@ def optimize_step(system, critics, optimizer, critic_optimizer, batch, step, rec
             reconstruction_gradient = torch.autograd.grad(auxiliary["reconstruction"], wave, retain_graph=True)[0].gather(1, index)
             gan_gradient = torch.autograd.grad(gan, wave, retain_graph=True)[0].gather(1, index)
             ramp = min(1.0, (step - recipe["gan_start"] + 1) / max(recipe["gan_ramp"], 1))
-            scale = (recipe["gan_ratio"] * ramp * reconstruction_gradient.norm() / gan_gradient.norm().clamp_min(1e-12))
+            if sync is None:
+                reconstruction_norm, gan_norm = reconstruction_gradient.norm(), gan_gradient.norm()
+            else:   # norms over the whole (all-rank) batch, so every rank uses the same scale
+                squares = sync.sum(torch.stack((reconstruction_gradient.square().sum(), gan_gradient.square().sum())))
+                reconstruction_norm, gan_norm = squares[0].sqrt(), squares[1].sqrt()
+            scale = (recipe["gan_ratio"] * ramp * reconstruction_norm / gan_norm.clamp_min(1e-12))
             scale = scale.clamp(max=recipe["gan_scale_max"]).detach()
             loss = loss + scale * gan
             metrics.update(discriminator=d_loss, adversarial=adversarial, feature_matching=matching, gan_scale=scale)
@@ -215,6 +257,8 @@ def optimize_step(system, critics, optimizer, critic_optimizer, batch, step, rec
             # Consume the exact same RNG draw as crops() so delayed-GAN replays stay RNG-aligned.
             torch.rand(len(batch["frame_lengths"]), recipe["crops"], device=batch["wave"].device)
         loss.backward()
+    if sync is not None:
+        sync.average(system)
     grad, clip_metrics = clip_system_gradients(
         system, recipe["grad_clip"], separate_prosody=bool(recipe.get("separate_prosody_clip", False))
     )
@@ -372,6 +416,10 @@ def main():
     parser.add_argument("--recorded-voicing", action="store_true", help="Use the pitch tracker's voicing as it is, "
                         "without marking vowel frames voiced")
     parser.add_argument("--no-preload", action="store_true", help="Load feature files lazily instead of before the first step")
+    parser.add_argument("--distributed", action="store_true", help="Data-parallel over the GPUs of this machine: launch with "
+                        "torchrun --nproc_per_node N. Each rank takes 1/N of the utterances and of --batch-frames / --max-batch "
+                        "(same global batch); gradients are averaged; rank 0 validates, logs and saves")
+    parser.add_argument("--compact-cache", action="store_true", help="Keep cached waveforms as int16 when exact (half the RAM)")
     args = parser.parse_args()
     if min(args.steps, args.batch_frames, args.max_batch, args.save_every, args.keep_every, args.log_every, args.crops, args.gan_ramp) < 1:
         parser.error("steps, batch limits and intervals must be positive")
@@ -405,28 +453,51 @@ def main():
     if time.time() >= deadline():
         raise SystemExit("the cloud budget deadline has passed (or is too close); not starting")
     c = Config.from_dict(json.loads(args.config.read_text())) if args.config else Config()
+    rank, world, sync = 0, 1, None
+    if args.distributed:
+        import torch.distributed as dist
+        local_rank = int(os.environ.get("LOCAL_RANK", "0"))
+        if str(args.device).startswith("cuda"):
+            torch.cuda.set_device(local_rank)
+            args.device = f"cuda:{local_rank}"
+        dist.init_process_group("nccl" if str(args.device).startswith("cuda") else "gloo")
+        rank, world = dist.get_rank(), dist.get_world_size()
+        if args.batch_frames % world or args.max_batch % world:
+            parser.error("--batch-frames and --max-batch must be divisible by the number of ranks")
+        sync = GradientSync(world) if world > 1 else None
+    lead = rank == 0
+
+    def barrier():
+        if world > 1:
+            torch.distributed.barrier()
     torch.manual_seed(args.seed)
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
-    train = AnnotatedDataset(args.train, c, voiced_vowels=not args.recorded_voicing)
-    validation = AnnotatedDataset(args.validation, c, voiced_vowels=not args.recorded_voicing)
+    train = AnnotatedDataset(args.train, c, voiced_vowels=not args.recorded_voicing, compact=args.compact_cache)
+    validation = AnnotatedDataset(args.validation, c, voiced_vowels=not args.recorded_voicing, compact=args.compact_cache)
     check_leakage(train, validation)
     if train.annotation != validation.annotation:
         raise ValueError("train and validation manifests come from different annotation runs")
     if args.output.exists() and any(args.output.iterdir()) and not args.resume:
         raise FileExistsError("output directory is not empty; use --resume or a new directory")
+    barrier()   # every rank has checked the output directory before rank 0 writes into it
     pool = balanced_indices(train, args.subset) if args.subset else list(range(len(train)))
+    pool_size = len(pool)
+    pool = pool[rank::world]   # each rank trains on (and caches) its own share of the utterances
     validation_indices = balanced_indices(validation, args.validation_size)
     if not args.no_preload:
         train.preload(pool)
-        validation.preload(validation_indices)
+        if lead:
+            validation.preload(validation_indices)
     system, critics = TrainingSystem(c).to(args.device), Discriminators().to(args.device)
     count = sum(p.numel() for p in system.model.parameters())
     if count > 5_000_000:
         raise ValueError(f"inference parameter budget exceeded: {count:,}")
     optimizer = torch.optim.AdamW(system.parameters(), lr=args.learning_rate, betas=(0.8, 0.99), weight_decay=0.01)
     critic_optimizer = torch.optim.AdamW(critics.parameters(), lr=args.learning_rate, betas=(0.8, 0.99), weight_decay=0.0)
-    sampler = BucketSampler([train.lengths[i] for i in pool], args.batch_frames, args.max_batch, args.seed)
+    sampler = BucketSampler([train.lengths[i] for i in pool], args.batch_frames // world, args.max_batch // world, args.seed + rank)
+    if world > 1:
+        torch.manual_seed(args.seed + 1000 * rank)   # weights were initialised identically; now per-rank randomness
     fingerprints = [train.fingerprint, validation.fingerprint]
     recipe = {key: getattr(args, key) for key in ("batch_frames", "max_batch", "learning_rate", "warmup", "lr_half_life", "grad_clip",
                                                    "gan_start", "gan_ratio", "gan_ramp", "feature_matching", "gan_scale_max",
@@ -440,6 +511,8 @@ def main():
         recipe["separate_prosody_clip"] = True
     if args.align_gan_rng:
         recipe["align_gan_rng"] = True
+    if world > 1:
+        recipe["world_size"] = world
     recipe["branched_from"] = None
     step = 0
 
@@ -463,10 +536,14 @@ def main():
         critics.load_state_dict(state["critics"])
         optimizer.load_state_dict(state["optimizer"])
         critic_optimizer.load_state_dict(state["critic_optimizer"])
-        sampler.load_state(state["sampler"])
-        torch.set_rng_state(state["torch_rng"].cpu())
-        if str(args.device).startswith("cuda") and state["cuda_rng"] is not None:
-            torch.cuda.set_rng_state_all([x.cpu() for x in state["cuda_rng"]])
+        own = state["ranks"][rank] if world > 1 else state
+        sampler.load_state(own["sampler"])
+        torch.set_rng_state(own["torch_rng"].cpu())
+        if str(args.device).startswith("cuda") and own["cuda_rng"] is not None:
+            if world > 1:
+                torch.cuda.set_rng_state(own["cuda_rng"].cpu())
+            else:
+                torch.cuda.set_rng_state_all([x.cpu() for x in own["cuda_rng"]])
         step = state["step"]
     elif args.init_from:
         state = torch.load(args.init_from, map_location=args.device, weights_only=True)
@@ -512,36 +589,67 @@ def main():
                                                annotation=state["annotation"])
     if step >= args.steps:
         raise ValueError("checkpoint already reached requested total steps")
-    args.output.mkdir(parents=True, exist_ok=True)
-    (args.output / "config.json").write_text(json.dumps(c.to_dict(), indent=2) + "\n")
-    (args.output / "recipe.json").write_text(json.dumps({**recipe, "annotation": train.annotation, "frontend": frontend_fingerprint(),
-                                                         "frontend_rules": frontend_rules_fingerprint(),
-                                                         "train_utterances": len(pool), "datasets": fingerprints}, indent=2) + "\n")
-    print(json.dumps({"inference_parameters": count, "training_only_parameters": sum(p.numel() for p in system.mel_head.parameters())
-                      + sum(p.numel() for p in critics.parameters()), "train_utterances": len(pool), "start_step": step,
-                      "branched": bool(args.init_from), "resumed": bool(args.resume)}), flush=True)
+    if lead:
+        args.output.mkdir(parents=True, exist_ok=True)
+        (args.output / "config.json").write_text(json.dumps(c.to_dict(), indent=2) + "\n")
+        (args.output / "recipe.json").write_text(json.dumps({**recipe, "annotation": train.annotation, "frontend": frontend_fingerprint(),
+                                                             "frontend_rules": frontend_rules_fingerprint(),
+                                                             "train_utterances": pool_size, "datasets": fingerprints}, indent=2) + "\n")
+        print(json.dumps({"inference_parameters": count, "training_only_parameters": sum(p.numel() for p in system.mel_head.parameters())
+                          + sum(p.numel() for p in critics.parameters()), "train_utterances": pool_size, "start_step": step,
+                          "branched": bool(args.init_from), "resumed": bool(args.resume), "world_size": world}), flush=True)
+    barrier()
     start = time.monotonic()
     system.train()
 
+    def own_state():
+        if world > 1:   # this rank's device only
+            cuda = torch.cuda.get_rng_state() if str(args.device).startswith("cuda") else None
+        else:
+            cuda = torch.cuda.get_rng_state_all() if str(args.device).startswith("cuda") else None
+        return {"sampler": sampler.state(), "torch_rng": torch.get_rng_state(), "cuda_rng": cuda}
+
     def snapshot():
-        return {"format_version": CHECKPOINT_FORMAT, "config": c.to_dict(), "frontend": frontend_fingerprint(),
-                "frontend_rules": frontend_rules_fingerprint(), "annotation": train.annotation,
-                "step": step, "datasets": fingerprints, "recipe": recipe, "system": system.state_dict(), "critics": critics.state_dict(),
-                "optimizer": optimizer.state_dict(), "critic_optimizer": critic_optimizer.state_dict(), "sampler": sampler.state(),
-                "torch_rng": torch.get_rng_state(), "cuda_rng": torch.cuda.get_rng_state_all() if str(args.device).startswith("cuda") else None}
+        """Collective when world > 1 (every rank must call it); the full state is returned on rank 0."""
+        mine = own_state()
+        ranks = None
+        if world > 1:
+            ranks = [None] * world
+            torch.distributed.all_gather_object(ranks, mine)
+        state = {"format_version": CHECKPOINT_FORMAT, "config": c.to_dict(), "frontend": frontend_fingerprint(),
+                 "frontend_rules": frontend_rules_fingerprint(), "annotation": train.annotation,
+                 "step": step, "datasets": fingerprints, "recipe": recipe, "system": system.state_dict(), "critics": critics.state_dict(),
+                 "optimizer": optimizer.state_dict(), "critic_optimizer": critic_optimizer.state_dict(), **mine}
+        if ranks is not None:
+            state["ranks"] = ranks
+        return state
     if step == args.gan_start and not args.resume:
-        atomic_save(snapshot(), args.output / f"step-{step:08d}.pt")
+        state = snapshot()
+        if lead:
+            atomic_save(state, args.output / f"step-{step:08d}.pt")
+        barrier()
     window, window_steps, window_start = defaultdict(float), 0, time.monotonic()
     while step < args.steps:
         batch = collate([train[pool[i]] for i in sampler.next()], args.device)
-        metrics = optimize_step(system, critics, optimizer, critic_optimizer, batch, step, recipe)
+        metrics = optimize_step(system, critics, optimizer, critic_optimizer, batch, step, recipe, sync)
         step += 1
+        if world > 1 and os.environ.get("TINY_VOCA_CHECK_SYNC"):   # debugging: the weights must stay identical on all ranks
+            checksum = torch.stack([torch.cat([p.detach().double().reshape(-1) for p in m.parameters()]).sum()
+                                    for m in (system, critics)])
+            gathered = [torch.zeros_like(checksum) for _ in range(world)]
+            torch.distributed.all_gather(gathered, checksum)
+            if any(not torch.equal(g, gathered[0]) for g in gathered):
+                raise RuntimeError(f"ranks diverged at step {step}: {[g.tolist() for g in gathered]}")
         for key, value in metrics.items():
             window[key] += value
         window_steps += 1
         elapsed = time.monotonic() - start
         should_stop = (elapsed >= args.max_seconds or step == args.steps or time.time() >= deadline()
                        or (args.stop_file is not None and args.stop_file.exists()))
+        if world > 1:   # all ranks stop at the same step
+            flag = torch.tensor([float(should_stop)], device=args.device)
+            torch.distributed.all_reduce(flag, op=torch.distributed.ReduceOp.MAX)
+            should_stop = bool(flag.item())
         retain = step == args.gan_start or step % args.keep_every == 0
         save = step % args.save_every == 0 or should_stop or retain
         if step % args.log_every == 0 or save:
@@ -552,19 +660,28 @@ def main():
             record.update(step=step, elapsed_seconds=elapsed, steps_per_second=window_steps / max(seconds, 1e-9),
                           audio_seconds_per_second=window["frames"] * c.hop / c.sample_rate / max(seconds, 1e-9),
                           learning_rate=optimizer.param_groups[0]["lr"])
+            if world > 1:
+                record["world_size"] = world
             if save:
-                record.update(validate(system, validation, validation_indices, args.device, recipe["weights"]))
+                if lead:   # validation first, as before: the saved RNG state is the one training continues from
+                    record.update(validate(system, validation, validation_indices, args.device, recipe["weights"]))
                 state = snapshot()
-                atomic_save(state, args.output / "last.pt")
-                export_model(system.model, args.output / "inference.pt", step, train.annotation)
-                if retain:
-                    atomic_save(state, args.output / f"step-{step:08d}.pt")
-            with (args.output / "metrics.jsonl").open("a") as stream:
-                stream.write(json.dumps(record) + "\n")
-            print(json.dumps(record), flush=True)
+                if lead:
+                    atomic_save(state, args.output / "last.pt")
+                    export_model(system.model, args.output / "inference.pt", step, train.annotation)
+                    if retain:
+                        atomic_save(state, args.output / f"step-{step:08d}.pt")
+                del state
+                barrier()
+            if lead:
+                with (args.output / "metrics.jsonl").open("a") as stream:
+                    stream.write(json.dumps(record) + "\n")
+                print(json.dumps(record), flush=True)
             window, window_steps, window_start = defaultdict(float), 0, time.monotonic()
         if should_stop:
             break
+    if world > 1:
+        torch.distributed.destroy_process_group()
 
 
 if __name__ == "__main__":
