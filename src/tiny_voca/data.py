@@ -17,6 +17,15 @@ from .text import PHONE_IDS, SYMBOL_TO_ID, VOWELS, frontend_fingerprint, fronten
 VOWEL_IDS = frozenset(SYMBOL_TO_ID[v] for v in VOWELS)
 
 
+def release_memory():
+    """Return freed heap memory to the system (glibc ``malloc_trim``); a no-op elsewhere."""
+    try:
+        import ctypes
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except (OSError, AttributeError):
+        pass
+
+
 def continuous_pitch(pitch, voiced, default=0.0, window=5, tolerance=0.45):
     """Clean a pitch track and make it continuous.
 
@@ -101,12 +110,20 @@ class AnnotatedDataset:
     def __len__(self):
         return len(self.rows)
 
-    def preload(self, indices=None, workers=8):
+    def preload(self, indices=None, workers=8, chunk=1000):
         """Read feature files into memory up front (about 10 ms each otherwise
-        lands on the first training steps). Needs ``cache=True``."""
+        lands on the first training steps). Needs ``cache=True``.
+
+        The float32 waveforms and other temporaries freed while caching stay
+        held by the allocator (glibc): on the 55 h French set the process grew
+        to 2.4x the cached tensors and was killed. Memory is handed back to
+        the system after every chunk."""
         from concurrent.futures import ThreadPoolExecutor
+        indices = list(range(len(self)) if indices is None else indices)
         with ThreadPoolExecutor(workers) as pool:
-            list(pool.map(self.__getitem__, range(len(self)) if indices is None else indices))
+            for start in range(0, len(indices), chunk):
+                list(pool.map(self.__getitem__, indices[start:start + chunk]))
+                release_memory()
 
     def __getitem__(self, index):
         if self._cache is not None and index in self._cache:

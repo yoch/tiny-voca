@@ -17,7 +17,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from .config import CHECKPOINT_FORMAT, Config
-from .data import AnnotatedDataset, BucketSampler, collate
+from .data import AnnotatedDataset, BucketSampler, collate, release_memory
 from .losses import (
     Discriminators,
     SpectralLoss,
@@ -672,6 +672,7 @@ def main():
                     if retain:
                         atomic_save(state, args.output / f"step-{step:08d}.pt")
                 del state
+                release_memory()   # the cache's allocator holes (see AnnotatedDataset.preload)
                 barrier()
             if lead:
                 with (args.output / "metrics.jsonl").open("a") as stream:
