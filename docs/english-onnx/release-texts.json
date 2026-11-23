@@ -1,0 +1,14 @@
+[
+  {"id":"short1","group":"short","text":"Both!"},
+  {"id":"short2","group":"short","text":"Watch this."},
+  {"id":"short3","group":"short","text":"Whose keys?"},
+  {"id":"cons1","group":"consonants","text":"The thin cloth brushed his rough sleeve."},
+  {"id":"cons2","group":"consonants","text":"Six crisp crusts cracked under the chef's knife."},
+  {"id":"cons3","group":"consonants","text":"A beige badge flashed beside the small blue torch."},
+  {"id":"pitch1","group":"intonation","text":"Did Zoe say Tuesday, or did she say Thursday?","pitch_range":1.2},
+  {"id":"pitch2","group":"intonation","text":"Wait, you're leaving now?","pitch_shift":0.0578,"pitch_range":1.25},
+  {"id":"pitch3","group":"intonation","text":"I thought we'd have to start again, but it worked!","speed":0.92,"pitch_shift":-0.0578,"pitch_range":0.85},
+  {"id":"long1","group":"long","text":"While the photographer adjusted the tripod, a bus splashed through the puddle, and everyone on the pavement stepped back just as the sun broke through the clouds."},
+  {"id":"long2","group":"long","text":"If you need the results before Friday, send the revised chart to the office this morning, then call us when the last shipment arrives.","speed":1.12},
+  {"id":"long3","group":"long","text":"The rehearsal was supposed to start at seven, but when the lights went out, the musicians kept playing until someone finally found the switch.","speed":0.95}
+]

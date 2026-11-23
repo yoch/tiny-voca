@@ -58,7 +58,8 @@ class Attention(nn.Module):
     def forward(self, x, mask, table):
         b, t, c = x.shape
         q, k, v = self.qkv(x).view(b, t, 3, self.heads, c // self.heads).permute(2, 0, 3, 1, 4)
-        y = F.scaled_dot_product_attention(rotate(q, table), rotate(k, table), v, attn_mask=mask[:, None, None, :],
+        attn_mask = None if mask is None else mask[:, None, None, :]
+        y = F.scaled_dot_product_attention(rotate(q, table), rotate(k, table), v, attn_mask=attn_mask,
                                            dropout_p=self.dropout if self.training else 0.0)
         return self.out(y.transpose(1, 2).reshape(b, t, c))
 
@@ -75,6 +76,10 @@ class Block(nn.Module):
         self.dropout = nn.Dropout(c.dropout)
 
     def forward(self, x, mask, table):
+        if mask is None:
+            x = x + self.dropout(self.attention(self.norm1(x), None, table))
+            y = self.depthwise(self.norm2(x).transpose(1, 2)).transpose(1, 2)
+            return x + self.dropout(self.project(self.dropout(F.gelu(self.expand(y)))))
         keep = mask[..., None]
         x = (x + self.dropout(self.attention(self.norm1(x), mask, table))) * keep
         # Mask before the convolution so padded positions cannot leak back in.
@@ -94,7 +99,8 @@ class Stack(nn.Module):
         table = rotary_table(x.shape[1], self.width, x.device)
         for block in self.blocks:
             x = block(x, mask, table)
-        return self.norm(x) * mask[..., None]
+        out = self.norm(x)
+        return out if mask is None else out * mask[..., None]
 
 
 class Predictor(nn.Module):
@@ -108,6 +114,11 @@ class Predictor(nn.Module):
         self.out = nn.Linear(p, outputs)
 
     def forward(self, x, mask):
+        if mask is None:
+            x = self.conv1(x.transpose(1, 2)).transpose(1, 2)
+            x = self.drop(self.norm1(F.gelu(x)))
+            x = self.conv2(x.transpose(1, 2)).transpose(1, 2)
+            return self.out(self.drop(self.norm2(F.gelu(x))))
         x = self.conv1((x * mask[..., None]).transpose(1, 2)).transpose(1, 2)
         x = self.drop(self.norm1(F.gelu(x))) * mask[..., None]
         x = self.conv2(x.transpose(1, 2)).transpose(1, 2)

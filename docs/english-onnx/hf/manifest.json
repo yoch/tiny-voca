@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "model": "Tiny Voca English",
+  "license": "apache-2.0",
+  "upstream": {
+    "model": "n4ze3m/tiny-voca",
+    "author": "Muhammed Nazeem",
+    "revision": "d94d2a0338fd1e0eab7dd896ec0ad23d8cdf7c14",
+    "checkpoint_sha256": "ebb22871524c5732520fb1652e6aefcec708a7452e83bdd00adcf6181db5ef70",
+    "public_onnx_sha256": "fe6d918791a15b82e37465981d7f27a070e46b46635e5a3482fc8dff87a1ae46"
+  },
+  "export": {
+    "source": "https://github.com/yoch/tiny-voca/tree/a1f1dbe3f443a1b049302fcd8a6c3ff5bb849833",
+    "opset": 17,
+    "external_data": false,
+    "custom_operators": false
+  },
+  "sample_rate_hz": 24000,
+  "samples_per_frame": 256,
+  "voices": ["F2", "M2"],
+  "phonemizer": {
+    "name": "dizione",
+    "revision": "8cd889e4de7be6bd1dd2e6891344a0729fa14dd4",
+    "data_path": "n4ze3m/tiny-voca/phonemizer"
+  },
+  "inputs": {
+    "tokens": {"dtype": "int64", "shape": [1, "N"]},
+    "stress": {"dtype": "int64", "shape": [1, "N"]},
+    "voice": {"dtype": "int64", "shape": [1]},
+    "speed": {"dtype": "float32", "shape": [1]},
+    "pitch_shift": {"dtype": "float32", "shape": [1]},
+    "pitch_range": {"dtype": "float32", "shape": [1]}
+  },
+  "outputs": {
+    "audio": {"dtype": "float32", "shape": ["B", "samples"], "runtime_shape": [1, "samples"]},
+    "durations": {"dtype": "int64", "shape": [1, "N"]}
+  },
+  "variants": {
+    "exact.onnx": {
+      "precision": "fp32",
+      "learned_parameters": 4537291,
+      "bytes": 21360635,
+      "sha256": "754cf295bf18e4cecc47c484ac9eed9240e8a7cbe044656fc090a1a09f42c35a",
+      "decision": "READY FOR HF"
+    },
+    "exact-int8.onnx": {
+      "precision": "dynamic_int8_acoustic_projections",
+      "learned_parameters": 4537291,
+      "bytes": 15680240,
+      "sha256": "bc6c29367054afe5e5f851cf8f9900452e9a1e950f96e8e4e928675eb34e23f5",
+      "decision": "EXPERIMENTAL",
+      "pending": "Human blind listening"
+    }
+  }
+}
