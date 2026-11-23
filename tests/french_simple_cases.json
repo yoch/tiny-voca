@@ -105,7 +105,7 @@
       "text": "Nous partons en mer. 3 bateaux arrivent.",
       "expect_sentences": 2,
       "expect_ends_with_punct": [".", "."],
-      "expect_ipa_contains": ["ɑ̃ <sp> m ɛ ʁ .", "t ʁ w a <sp> b a t o z <sp> a ʁ i v ."],
+      "expect_ipa_contains": ["ɑ̃ <sp> m ɛ ʁ .", "t ʁ w a <sp> b a t o <sp> a ʁ i v ."],
       "forbid_ipa": ["m ɛ ʁ k ʁ ə d i"]
     },
     {

@@ -16,6 +16,7 @@ so tokens can never drift between them. Uses eSpeak NG (``fr``) either via the
 import ctypes
 import ctypes.util
 from dataclasses import dataclass
+import functools
 import hashlib
 import json
 import os
@@ -221,9 +222,14 @@ _ADVERBS_MENT = frozenset((
     "vraiment", "joliment", "gaiment", "absolument", "résolument", "éperdument", "assidûment", "dûment", "goulûment",
     "poliment", "infiniment", "hardiment", "gentiment", "précisément", "notamment", "évidemment", "récemment"))
 _NO_LIAISON_START = frozenset("aeiouyàâäéèêëîïôöùûüœæh")
-# "puis" never takes a liaison in the teacher's reading (CTC check on Qwen clips: 35/37 without). "mais" loses it only
-# before the words of _NO_LIAISON_BEFORE (9/10 without); before a pronoun the teacher varies, eSpeak's choice is kept.
-_NO_LIAISON_AFTER = frozenset(("puis",))
+# Never a liaison after these words: "puis" (Qwen 35/37 and both Gemini voices without), "mais" (Gemini without before
+# pronouns, Qwen 9/10 without before prepositions), "êtes" (correct but stilted; Gemini without).
+_NO_LIAISON_AFTER = frozenset(("puis", "mais", "êtes"))
+# A third-person plural verb in -ent (eSpeak reads the word alone without a final nasal vowel: "forment" [fɔʁm]) takes
+# no liaison ("forment une"), and neither does an -s/-x noun before it ("ses parents habitent").
+_NASAL_VOWELS = frozenset(("ɑ̃", "ɛ̃", "ɔ̃", "œ̃"))
+_VERB_ENT_RULE = "verb in -ent read without final nasal: no liaison after it, nor from an -s/-x noun before it (also ont, auront, iront)"
+_VERB_FORMS_VOWEL = frozenset(("ont", "auront", "iront"))
 # No liaison from a plural noun/adjective in -s/-x to a following preposition or adverb ("outils lourds avant"):
 # the words before which the piece is split, and the -s/-x words that keep their liaison there.
 _NO_LIAISON_BEFORE = frozenset((
@@ -236,7 +242,7 @@ _LIAISON_KEPT_AFTER = frozenset((
     "plusieurs", "certains", "certaines", "gros", "bas", "las",
     "temps", "mieux",                                    # de temps‿en temps, de mieux‿en mieux
     # Verb forms: the teacher makes these liaisons (sommes‿en, êtes‿à, suis‿entre, sois‿en).
-    "suis", "es", "sommes", "êtes", "sois", "soyons", "soyez", "étions", "étiez", "avons", "avez", "allons", "allez",
+    "suis", "es", "sommes", "sois", "soyons", "soyez", "étions", "étiez", "avons", "avez", "allons", "allez",
     "vais", "vas", "viens", "fais", "mis", "pris"))
 _WORD_SPLIT_RE = re.compile(r"(\s+)")
 # Phonetic respellings applied to each piece just before eSpeak NG (the expanded text keeps its spelling):
@@ -328,6 +334,7 @@ def frontend_rules_identity():
         "no_liaison_split": _NO_LIAISON_SPLIT_RE.pattern,
         "no_liaison_adverbs": [_ADVERB_MENT_RE.pattern, sorted(_ADVERBS_MENT)],
         "no_liaison_after": sorted(_NO_LIAISON_AFTER),
+        "verb_ent_rule": [_VERB_ENT_RULE, sorted(_VERB_FORMS_VOWEL)],
         "phonetic_respell": [_GERMENT_RE.pattern, _FERMENT_RE.pattern, sorted(_FERMENT_NOUN_DETERMINERS),
                              _DE_PLUS_FINAL_RE.pattern, sorted(_PHRASE_FINAL_PUNCTUATION)],
         "no_liaison_before": sorted(_NO_LIAISON_BEFORE),
@@ -700,6 +707,18 @@ def _phonetic_respell(piece):
     return _FERMENT_RE.sub(lambda m: m[0] if m[1].lower() in _FERMENT_NOUN_DETERMINERS else f"{m[1]}{m[2]}ferme", piece)
 
 
+@functools.lru_cache(maxsize=65536)
+def _is_verb_ent(word):
+    """True for a plural verb form in -ent: eSpeak NG reads the word alone without a final nasal vowel."""
+    if len(word) < 4 or not word.endswith("ent") or not word.isalpha():
+        return False
+    words = parse_espeak(_raw_espeak(word))
+    if len(words) != 1 or not words[0]:
+        return False
+    last = canonical(words[0][-1][0])
+    return bool(last) and last[-1] not in _NASAL_VOWELS
+
+
 def _no_liaison_pieces(piece):
     """Split a text piece where no liaison may be made, so eSpeak NG phonemizes each side separately."""
     piece = _phonetic_respell(piece)
@@ -714,7 +733,10 @@ def _no_liaison_pieces(piece):
             adverb = (right[:1] in _NO_LIAISON_START and left.isalpha()
                       and (left in _ADVERBS_MENT or (len(left) > 6 and _ADVERB_MENT_RE.search(left))))
             conjunction = left in _NO_LIAISON_AFTER and right[:1] in _NO_LIAISON_START
-            if plural or adverb or conjunction:
+            verb = (right[:1] in _NO_LIAISON_START and _is_verb_ent(left)) or (
+                len(left) >= 3 and left[-1] in "sx" and left.isalpha() and left not in _LIAISON_KEPT_AFTER
+                and right[:1] in _NO_LIAISON_START and (right in _VERB_FORMS_VOWEL or _is_verb_ent(right)))
+            if plural or adverb or conjunction or verb:
                 out.append("".join(tokens[start:i - 1]))
                 start = i
         out.append("".join(tokens[start:]))

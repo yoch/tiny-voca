@@ -691,15 +691,15 @@
       "forbid_ipa": ["l u ʁ z <sp> a v ɑ̃", "p ɔ m z <sp> o", "k y i j ɛ ʁ z <sp> a"]
     },
     {
-      "id": "rules_v3_no_liaison_after_adverb_but_verbs_keep_it",
+      "id": "rules_v3_no_liaison_after_adverb_or_plural_verb",
       "category": "liaison_rules",
       "text": "Faut-il vraiment emporter un parapluie ? Ces Longs-Nez forment une corporation.",
       "expect_sentences": 2,
       "expect_ipa_contains": [
         "v ʁ ɛ m ɑ̃ <sp> ɑ̃ p ɔ ʁ t e",
-        "f ɔ ʁ m t <sp> y n"
+        "f ɔ ʁ m <sp> y n"
       ],
-      "forbid_ipa": ["v ʁ ɛ m ɑ̃ t <sp> ɑ̃ p"]
+      "forbid_ipa": ["v ʁ ɛ m ɑ̃ t <sp> ɑ̃ p", "f ɔ ʁ m t"]
     },
     {
       "id": "rules_v3_liaisons_kept",
@@ -709,7 +709,7 @@
       "expect_ipa_contains": [
         "t ɑ̃ z ɑ̃ t ɑ̃",
         "s ɔ m z <sp> ɑ̃ <sp> ʁ ə t a ʁ",
-        "v u z <sp> ɛ t z <sp> a <sp> p a ʁ i",
+        "v u z <sp> ɛ t <sp> a <sp> p a ʁ i",
         "l e z <sp> a m i",
         "d ø z <sp> œ ʁ"
       ],
@@ -723,10 +723,10 @@
       "expect_ipa_contains": [
         "p y i <sp> a <sp> l a",
         "p y i <sp> ɔ̃ <sp> ʁ ɑ̃ t ʁ",
-        "m ɛ z <sp> i l <sp> p l ø",
+        "m ɛ <sp> i l <sp> p l ø",
         "m ɛ <sp> o s i"
       ],
-      "forbid_ipa": ["p y i z", "m ɛ z <sp> o s i"]
+      "forbid_ipa": ["p y i z", "m ɛ z"]
     },
     {
       "id": "rules_v3_de_plus_not_before_quotes_or_brackets",
@@ -735,6 +735,19 @@
       "expect_sentences": 1,
       "expect_ipa_contains": ["d ə <sp> p l y \" b o"],
       "forbid_ipa": ["p l y s \""]
+    },
+    {
+      "id": "rules_v3_no_liaison_noun_before_verb",
+      "category": "liaison_rules",
+      "text": "Ses parents habitent ici, les enfants ont faim, mais ils habitent loin et elles aiment ça.",
+      "expect_sentences": 1,
+      "expect_ipa_contains": [
+        "p a ʁ ɑ̃ <sp> a b i t",
+        "ɑ̃ f ɑ̃ <sp> ɔ̃ <sp> f ɛ̃",
+        "i l z <sp> a b i t",
+        "ɛ l z <sp> ɛ m"
+      ],
+      "forbid_ipa": ["p a ʁ ɑ̃ z", "ɑ̃ f ɑ̃ z <sp> ɔ̃"]
     }
   ]
 }

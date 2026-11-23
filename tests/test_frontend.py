@@ -159,7 +159,7 @@ class FrontEndTests(unittest.TestCase):
         )
         self.assertEqual(
             frontend_rules_fingerprint(),
-            "8846d5db32efbee9c19fe006a950b84bbe219cecab7359a984a2331d5791c59d",
+            "dfd29983f7c255e96722a1640cf04f0d433be815fb92b1bd82039682d22f18ba",
         )
         self.assertEqual(text._ordinal_fr(1), "premier")
         self.assertEqual(text._ordinal_fr(3), "troisième")
