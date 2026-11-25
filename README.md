@@ -1,5 +1,25 @@
 # tiny-voca
 
+> **This is the `french` branch of a fork.** It turns tiny-voca into a French
+> model: an eSpeak NG (`fr`) front end with French rules for liaisons, elisions
+> and words eSpeak reads wrongly, a French test suite, multi-GPU training and
+> the scripts that built the French data. Its weights are
+> [ymelka/tiny-voca-french](https://huggingface.co/ymelka/tiny-voca-french)
+> (five voices, 4.5M parameters), with a
+> [demo](https://huggingface.co/spaces/ymelka/tiny-voca-french). This branch
+> reads French only: for the English model, use
+> [n4ze3m/tiny-voca](https://github.com/n4ze3m/tiny-voca).
+>
+> ```bash
+> sudo apt install espeak-ng      # tested with 1.51
+> pip install "tiny-voca @ git+https://github.com/yoch/tiny-voca@french-v1"
+> hf download ymelka/tiny-voca-french --local-dir tiny-voca-french
+> python -m tiny_voca.infer --checkpoint tiny-voca-french/tiny-voca-french.pt \
+>   --voice F1 --text "Bonjour ! Ceci est tiny voca, en français." --output bonjour.wav
+> ```
+>
+> The rest of this page is upstream's README, about the English model.
+
 tiny-voca is a small English text-to-speech model. It has two voices, 4.5M
 parameters, and runs on a CPU or in the browser.
 
