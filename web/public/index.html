@@ -135,7 +135,11 @@ const EXAMPLES = [
   ["Homographs", "I read the book you read yesterday. They live near the live music hall."],
 ];
 const $ = (id) => document.getElementById(id);
-const worker = new Worker("worker.js");
+const workerUrl = new URL("worker.js", location.href);
+const flags = new URLSearchParams(location.search);
+if (flags.get("vocoder") === "compact") workerUrl.searchParams.set("vocoder", "compact");
+if (flags.get("threads") === "4") workerUrl.searchParams.set("threads", "4");
+const worker = new Worker(workerUrl);
 let ready = false, busy = false, request = 0, url = null, rate = 0, live = null;
 
 for (const [label, text] of EXAMPLES) {

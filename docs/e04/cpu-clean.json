@@ -1,0 +1,153 @@
+{
+  "platform": "Linux-6.8.0-142-lowlatency-x86_64-with-glibc2.39",
+  "processor": "x86_64",
+  "torch": "2.15.0+cpu",
+  "ort": "1.32.0",
+  "checkpoint": "synthetic seed=0",
+  "rows": [
+    {
+      "model": "filter-dense.onnx",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 25.11437050998211,
+      "p95_ms": 35.48922748304902,
+      "peak_rss_mib": 77.30078125,
+      "model_bytes": 2646764,
+      "samples": 48128,
+      "max_abs_error": 3.8743019104003906e-07,
+      "snr_db": 126.87460302417095
+    },
+    {
+      "model": "filter-dense.onnx",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 19.316358491778374,
+      "p95_ms": 35.90513071976599,
+      "peak_rss_mib": 77.75390625,
+      "model_bytes": 2646764,
+      "samples": 48128,
+      "max_abs_error": 3.8743019104003906e-07,
+      "snr_db": 126.87460302417095
+    },
+    {
+      "model": "filter-dft.onnx",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 63.881597481667995,
+      "p95_ms": 113.02948831580575,
+      "peak_rss_mib": 82.41015625,
+      "model_bytes": 67749,
+      "samples": 48128,
+      "max_abs_error": 5.364418029785156e-07,
+      "snr_db": 124.76018431888902
+    },
+    {
+      "model": "filter-dft.onnx",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 60.99383207038045,
+      "p95_ms": 68.79182322882114,
+      "peak_rss_mib": 82.59375,
+      "model_bytes": 67749,
+      "samples": 48128,
+      "max_abs_error": 5.364418029785156e-07,
+      "snr_db": 124.76018431888902
+    },
+    {
+      "model": "filter-radix2.onnx",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 235.3307963348925,
+      "p95_ms": 424.745370261371,
+      "peak_rss_mib": 83.703125,
+      "model_bytes": 261159,
+      "samples": 48128,
+      "max_abs_error": 3.8743019104003906e-07,
+      "snr_db": 127.59582824649372
+    },
+    {
+      "model": "filter-radix2.onnx",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 91.11546911299229,
+      "p95_ms": 149.8018940910697,
+      "peak_rss_mib": 83.01953125,
+      "model_bytes": 261159,
+      "samples": 48128,
+      "max_abs_error": 3.8743019104003906e-07,
+      "snr_db": 127.59582824649372
+    },
+    {
+      "model": "full-dense.onnx",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 78.40650109574199,
+      "p95_ms": 101.94797166623175,
+      "peak_rss_mib": 111.015625,
+      "model_bytes": 21351509,
+      "samples": 18432,
+      "max_abs_error": 0.0040416717529296875,
+      "snr_db": 59.038462256045094
+    },
+    {
+      "model": "full-dense.onnx",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 48.662176355719566,
+      "p95_ms": 88.94294374622399,
+      "peak_rss_mib": 111.5,
+      "model_bytes": 21351509,
+      "samples": 18432,
+      "max_abs_error": 0.0040416717529296875,
+      "snr_db": 59.03846140385643
+    },
+    {
+      "model": "full-dft.onnx",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 98.54774875566363,
+      "p95_ms": 140.18352017737922,
+      "peak_rss_mib": 111.66015625,
+      "model_bytes": 18772718,
+      "samples": 18432,
+      "max_abs_error": 0.004041492938995361,
+      "snr_db": 59.03999852194428
+    },
+    {
+      "model": "full-dft.onnx",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 58.19017346948385,
+      "p95_ms": 73.9445853512734,
+      "peak_rss_mib": 111.6015625,
+      "model_bytes": 18772718,
+      "samples": 18432,
+      "max_abs_error": 0.004041492938995361,
+      "snr_db": 59.03999852194428
+    },
+    {
+      "model": "full-radix2.onnx",
+      "threads": 1,
+      "runs": 30,
+      "median_ms": 155.10140219703317,
+      "p95_ms": 205.8623414952308,
+      "peak_rss_mib": 113.79296875,
+      "model_bytes": 18966246,
+      "samples": 18432,
+      "max_abs_error": 0.004041731357574463,
+      "snr_db": 59.03843395989248
+    },
+    {
+      "model": "full-radix2.onnx",
+      "threads": 4,
+      "runs": 30,
+      "median_ms": 108.80750045180321,
+      "p95_ms": 150.75515136122698,
+      "peak_rss_mib": 114.21875,
+      "model_bytes": 18966246,
+      "samples": 18432,
+      "max_abs_error": 0.004041731357574463,
+      "snr_db": 59.03843395989248
+    }
+  ]
+}

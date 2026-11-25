@@ -1,0 +1,92 @@
+[
+  {
+    "case": "0.5",
+    "threads": 1,
+    "durations_equal": true,
+    "max_abs_error": 0.00011152029037475586,
+    "normalized_peak_error": 0.00018066735682691342,
+    "snr_db": 80.0541914749313,
+    "exact": false
+  },
+  {
+    "case": "1",
+    "threads": 1,
+    "durations_equal": true,
+    "max_abs_error": 0.0001843571662902832,
+    "normalized_peak_error": 0.00025579868238454325,
+    "snr_db": 79.43877364229942,
+    "exact": false
+  },
+  {
+    "case": "2",
+    "threads": 1,
+    "durations_equal": true,
+    "max_abs_error": 0.00040531158447265625,
+    "normalized_peak_error": 0.0004905104619750159,
+    "snr_db": 79.38528403669027,
+    "exact": false
+  },
+  {
+    "case": "5",
+    "threads": 1,
+    "durations_equal": true,
+    "max_abs_error": 0.0008985400199890137,
+    "normalized_peak_error": 0.000977610229038999,
+    "snr_db": 70.6886192520707,
+    "exact": false
+  },
+  {
+    "case": "10",
+    "threads": 1,
+    "durations_equal": true,
+    "max_abs_error": 0.001231461763381958,
+    "normalized_peak_error": 0.0015312920404906508,
+    "snr_db": 66.83399839113127,
+    "exact": false
+  },
+  {
+    "case": "0.5",
+    "threads": 4,
+    "durations_equal": true,
+    "max_abs_error": 0.00011152029037475586,
+    "normalized_peak_error": 0.00018066735682691342,
+    "snr_db": 80.05412027399947,
+    "exact": false
+  },
+  {
+    "case": "1",
+    "threads": 4,
+    "durations_equal": true,
+    "max_abs_error": 0.0001843571662902832,
+    "normalized_peak_error": 0.00025579868238454325,
+    "snr_db": 79.43877364229942,
+    "exact": false
+  },
+  {
+    "case": "2",
+    "threads": 4,
+    "durations_equal": true,
+    "max_abs_error": 0.00040531158447265625,
+    "normalized_peak_error": 0.0004905104619750159,
+    "snr_db": 79.38533309697146,
+    "exact": false
+  },
+  {
+    "case": "5",
+    "threads": 4,
+    "durations_equal": true,
+    "max_abs_error": 0.0008985400199890137,
+    "normalized_peak_error": 0.000977610229038999,
+    "snr_db": 70.6886192520707,
+    "exact": false
+  },
+  {
+    "case": "10",
+    "threads": 4,
+    "durations_equal": true,
+    "max_abs_error": 0.001231461763381958,
+    "normalized_peak_error": 0.0015312920404906508,
+    "snr_db": 66.83399839113127,
+    "exact": false
+  }
+]
